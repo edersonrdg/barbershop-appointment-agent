@@ -460,7 +460,7 @@ T31 -> T32
 
 ---
 
-### T20: SmtpEmailSender
+### T20: SmtpEmailSender ✅
 
 **What**: Implementa `EmailSender` com `nodemailer@10`; em erro loga só `name`/`code` e relança. Instala `nodemailer@^10`.
 **Where**: `src/infrastructure/external/email/smtp-email-sender.ts`
@@ -469,9 +469,9 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] Envia `from = MAIL_FROM`, `to`, `subject`, `text` para o transporte
-- [ ] `CA-01.5`: transporte falha → relança e o log não contém o destinatário nem o corpo
-- [ ] Gate quick passa
+- [x] Envia `from = MAIL_FROM`, `to`, `subject`, `text` para o transporte
+- [x] `CA-01.5`: transporte falha → relança e o log não contém o destinatário nem o corpo
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
