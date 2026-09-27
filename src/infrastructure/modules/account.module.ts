@@ -21,7 +21,10 @@ import {
   BarbershopRepository,
 } from '../../usecases/ports/barbershop.repository.port';
 import { Clock, CLOCK } from '../../usecases/ports/clock.port';
-import { EMAIL_SENDER } from '../../usecases/ports/email-sender.port';
+import {
+  EMAIL_SENDER,
+  EmailSender,
+} from '../../usecases/ports/email-sender.port';
 import {
   ID_GENERATOR,
   IdGenerator,
@@ -30,12 +33,19 @@ import {
   PASSWORD_HASHER,
   PasswordHasher,
 } from '../../usecases/ports/password-hasher.port';
-import { PASSWORD_RESET_REPOSITORY } from '../../usecases/ports/password-reset.repository.port';
-import { RESET_TOKEN_GENERATOR } from '../../usecases/ports/reset-token-generator.port';
+import {
+  PASSWORD_RESET_REPOSITORY,
+  PasswordResetRepository,
+} from '../../usecases/ports/password-reset.repository.port';
+import {
+  RESET_TOKEN_GENERATOR,
+  ResetTokenGenerator,
+} from '../../usecases/ports/reset-token-generator.port';
 import {
   UserRepository,
   USER_REPOSITORY,
 } from '../../usecases/ports/user.repository.port';
+import { RequestPasswordResetUseCase } from '../../usecases/request-password-reset/request-password-reset.use-case';
 import { RegisterBarbershopUseCase } from '../../usecases/register-barbershop/register-barbershop.use-case';
 import type { Env } from '../config/env.schema';
 import { TypeOrmBarbershopRepository } from '../database/repositories/typeorm-barbershop.repository';
@@ -164,6 +174,36 @@ import { UuidIdGenerator } from '../security/uuid-id-generator';
       inject: [USER_REPOSITORY, BARBERSHOP_REPOSITORY],
       useFactory: (users: UserRepository, barbershops: BarbershopRepository) =>
         new GetMyAccountUseCase(users, barbershops),
+    },
+    {
+      provide: RequestPasswordResetUseCase,
+      inject: [
+        USER_REPOSITORY,
+        PASSWORD_RESET_REPOSITORY,
+        RESET_TOKEN_GENERATOR,
+        EMAIL_SENDER,
+        CLOCK,
+        ID_GENERATOR,
+        ConfigService,
+      ],
+      useFactory: (
+        users: UserRepository,
+        passwordResets: PasswordResetRepository,
+        resetTokenGenerator: ResetTokenGenerator,
+        emailSender: EmailSender,
+        clock: Clock,
+        idGenerator: IdGenerator,
+        config: ConfigService<Env, true>,
+      ) =>
+        new RequestPasswordResetUseCase(
+          users,
+          passwordResets,
+          resetTokenGenerator,
+          emailSender,
+          clock,
+          idGenerator,
+          config.get('APP_WEB_URL', { infer: true }),
+        ),
     },
     { provide: APP_GUARD, useClass: SessionGuard },
     { provide: APP_FILTER, useClass: DomainErrorFilter },

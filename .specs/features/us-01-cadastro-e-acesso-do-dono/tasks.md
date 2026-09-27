@@ -673,7 +673,7 @@ T31 -> T32
 
 ---
 
-### T31: POST /auth/password/forgot
+### T31: POST /auth/password/forgot ✅
 
 **What**: `AuthController.forgotPassword`.
 **Where**: `src/interface-adapters/controllers/auth.controller.ts`
@@ -682,11 +682,11 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] `CA-01.5`: e-mail existente → 202 e o fake recebe um e-mail com `${APP_WEB_URL}/redefinir-senha?token=...`
-- [ ] `CA-01.5`: e-mail inexistente → 202 com corpo idêntico e nenhum e-mail
-- [ ] `CA-01.5`: fake de e-mail que lança → 202 com corpo idêntico
-- [ ] `CA-01.5`: o banco guarda o SHA-256 do token do link, nunca o token
-- [ ] Gate full passa
+- [x] `CA-01.5`: e-mail existente → 202 e o fake recebe um e-mail com `${APP_WEB_URL}/redefinir-senha?token=...`
+- [x] `CA-01.5`: e-mail inexistente → 202 com corpo idêntico e nenhum e-mail
+- [x] `CA-01.5`: fake de e-mail que lança → 202 com corpo idêntico
+- [x] `CA-01.5`: o banco guarda o SHA-256 do token do link, nunca o token
+- [x] Gate full passa
 
 **Tests**: e2e
 **Gate**: full
