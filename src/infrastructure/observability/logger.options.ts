@@ -32,14 +32,18 @@ export function buildLoggerOptions(
         ignore: (req) =>
           silentPaths.some((path) => req.url?.startsWith(path) ?? false),
       },
-      // LGPD: telefone, senha e conteúdo de mensagens são dados pessoais dos clientes finais.
+      // LGPD: telefone, senha, e-mail, tokens e conteúdo de mensagens são dados pessoais.
       redact: {
         paths: [
           'req.headers.authorization',
           'req.headers.cookie',
           '*.password',
+          '*.newPassword',
           '*.phone',
           '*.message',
+          '*.email',
+          '*.token',
+          '*.accessToken',
         ],
         censor: '[REDACTED]',
       },

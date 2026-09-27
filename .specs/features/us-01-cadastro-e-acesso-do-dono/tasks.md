@@ -337,7 +337,7 @@ T31 -> T32
 
 ---
 
-### T13: Redact de PII nos logs
+### T13: Redact de PII nos logs ✅
 
 **What**: Amplia o `redact` com `*.email`, `*.token`, `*.accessToken`, `*.newPassword`.
 **Where**: `src/infrastructure/observability/logger.options.ts`
@@ -346,8 +346,8 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] Um logger pino montado com as opções gera `[REDACTED]` para `password`, `newPassword`, `email`, `phone`, `token` e `accessToken`
-- [ ] Gate quick passa
+- [x] Um logger pino montado com as opções gera `[REDACTED]` para `password`, `newPassword`, `email`, `phone`, `token` e `accessToken`
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
