@@ -120,14 +120,15 @@ T11 -> T12
 
 **Done when**:
 
-- [ ] `isValid` aceita os 16 fusos e recusa `Europe/Lisbon`, `UTC` e texto qualquer
-- [ ] `toUtc('2026-10-05', 09:00)` = `12:00Z` em `America/Sao_Paulo`, `13:00Z` em `America/Manaus`, `11:00Z` em `America/Noronha`, `14:00Z` em `America/Rio_Branco`
-- [ ] `weekdayOf('2026-10-05')` = `monday`; `weekdayOf('2026-10-04')` = `sunday`
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: ~10 tests novos passam (no silent deletions)
+- [x] `isValid` aceita os 16 fusos e recusa `Europe/Lisbon`, `UTC` e texto qualquer
+- [x] `toUtc('2026-10-05', 09:00)` = `12:00Z` em `America/Sao_Paulo`, `13:00Z` em `America/Manaus`, `11:00Z` em `America/Noronha`, `14:00Z` em `America/Rio_Branco`
+- [x] `weekdayOf('2026-10-05')` = `monday`; `weekdayOf('2026-10-04')` = `sunday`
+- [x] Gate check passes: `npm test`
+- [x] Test count: ~10 tests novos passam (no silent deletions)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
 **Commit**: `feat(US-03): add Brazilian timezone value object`
 
 ---
