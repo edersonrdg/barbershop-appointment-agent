@@ -354,7 +354,7 @@ T31 -> T32
 
 ---
 
-### T14: Entidades ORM
+### T14: Entidades ORM ✅
 
 **What**: `BarbershopEntity`, `UserEntity`, `PasswordResetTokenEntity` conforme o Data Model do design.
 **Where**: `src/infrastructure/database/entities/` (um arquivo por entidade)
@@ -363,8 +363,8 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] Colunas, tipos (`timestamptz`) e nomes em snake_case iguais ao design
-- [ ] Gate build passa
+- [x] Colunas, tipos (`timestamptz`) e nomes em snake_case iguais ao design
+- [x] Gate build passa
 
 **Tests**: none
 **Gate**: build
