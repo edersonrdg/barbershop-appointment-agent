@@ -478,7 +478,7 @@ T31 -> T32
 
 ---
 
-### T21: PrometheusAccountMetrics
+### T21: PrometheusAccountMetrics ✅
 
 **What**: Implementa `AccountMetrics` com o contador `barbershop_signups_total` (sem labels) no `METRICS_REGISTRY`.
 **Where**: `src/infrastructure/observability/prometheus-account-metrics.ts`
@@ -487,8 +487,8 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] Após duas chamadas, o registry expõe `barbershop_signups_total 2`
-- [ ] Gate quick passa
+- [x] Após duas chamadas, o registry expõe `barbershop_signups_total 2`
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
