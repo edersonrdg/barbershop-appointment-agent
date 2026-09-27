@@ -141,24 +141,24 @@ Hoje a barbearia só tem nome e um fuso fixo em `America/Sao_Paulo`, gravados no
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| CFG-01 | P1 Salvar — CA-03.1 `PUT` grava e responde | Execute | Implemented |
-| CFG-02 | P1 Salvar — CA-03.1 `GET` | Execute | Implemented |
-| CFG-03 | P1 Salvar — CA-03.1 dia fechado | Execute | Implemented |
-| CFG-04 | P1 Salvar — CA-03.1 intervalo | Execute | Implemented |
-| CFG-05 | P1 Salvar — CA-03.1 substituição da semana | Execute | Implemented |
-| CFG-06 | P1 Salvar — CA-03.1 estado inicial | Execute | Implemented |
-| CFG-07 | P1 Salvar — CA-03.1 períodos abertos em UTC | Execute | Implemented |
-| CFG-08 | P1 Recusar — CA-03.2 fechamento antes da abertura | Execute | Implemented |
-| CFG-09 | P1 Recusar — CA-03.2 intervalo inválido | Execute | Implemented |
-| CFG-10 | P1 Recusar — CA-03.2 payload malformado | Execute | Implemented |
-| CFG-11 | P1 Recusar — CA-03.2 `CHECK` no banco | Execute | Implemented |
-| CFG-12 | P1 Fuso — CA-03.3 padrão | Execute | Implemented |
-| CFG-13 | P1 Fuso — CA-03.3 fuso salvo | Execute | Implemented |
-| CFG-14 | P1 Fuso — CA-03.3 períodos no novo fuso | Execute | Implemented |
-| CFG-15 | P1 Fuso — CA-03.3 fuso fora da lista | Execute | Implemented |
-| CFG-16 | P1 Permissão — Barbeiro 403 | Execute | Implemented |
-| CFG-17 | P1 Permissão — sem sessão 401 | Execute | Implemented |
-| CFG-18 | P1 Permissão — RN-26 tenant da sessão | Execute | Implemented |
+| CFG-01 | P1 Salvar — CA-03.1 `PUT` grava e responde | Verify | Verified |
+| CFG-02 | P1 Salvar — CA-03.1 `GET` | Verify | Verified |
+| CFG-03 | P1 Salvar — CA-03.1 dia fechado | Verify | Verified |
+| CFG-04 | P1 Salvar — CA-03.1 intervalo | Verify | Verified |
+| CFG-05 | P1 Salvar — CA-03.1 substituição da semana | Verify | Verified |
+| CFG-06 | P1 Salvar — CA-03.1 estado inicial | Verify | Verified |
+| CFG-07 | P1 Salvar — CA-03.1 períodos abertos em UTC | Verify | Verified |
+| CFG-08 | P1 Recusar — CA-03.2 fechamento antes da abertura | Verify | Verified |
+| CFG-09 | P1 Recusar — CA-03.2 intervalo inválido | Verify | Verified |
+| CFG-10 | P1 Recusar — CA-03.2 payload malformado | Verify | Verified |
+| CFG-11 | P1 Recusar — CA-03.2 `CHECK` no banco | Verify | Verified |
+| CFG-12 | P1 Fuso — CA-03.3 padrão | Verify | Verified |
+| CFG-13 | P1 Fuso — CA-03.3 fuso salvo | Verify | Verified |
+| CFG-14 | P1 Fuso — CA-03.3 períodos no novo fuso | Verify | Verified |
+| CFG-15 | P1 Fuso — CA-03.3 fuso fora da lista | Verify | Verified |
+| CFG-16 | P1 Permissão — Barbeiro 403 | Verify | Verified |
+| CFG-17 | P1 Permissão — sem sessão 401 | Verify | Verified |
+| CFG-18 | P1 Permissão — RN-26 tenant da sessão | Verify | Verified |
 
 **ID format:** `CFG-NN` (Configuração da barbearia, épico E2). Cada teste cita o `CA-03.x` (ou o `RN`) no nome, conforme o CLAUDE.md.
 

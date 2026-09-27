@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 2,
+  "next_id": 4,
   "lessons": [
     {
       "id": "L-001",
@@ -22,6 +22,43 @@
       ],
       "created": "2026-09-27T21:27:11Z",
       "last_seen": "2026-09-27T21:27:11Z"
+    },
+    {
+      "id": "L-002",
+      "key": "surviving_mutant::database check tests must include a row exactly on each strict boundary equal values not only clearly invalid rows",
+      "text": "Database CHECK tests must include a row exactly on each strict boundary (equal values), not only clearly invalid rows.",
+      "signal": "surviving_mutant",
+      "scope": "db-schema",
+      "status": "candidate",
+      "features": [
+        "us-03-dados-e-horario-da-barbearia"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md M15 / test/database/opening-hours-schema.e2e-spec.ts:74 (CFG-11) (db-schema)",
+        "validation.md M18 / test/database/opening-hours-schema.e2e-spec.ts:74 (CFG-11) (db-schema)"
+      ],
+      "created": "2026-09-27T22:16:18Z",
+      "last_seen": "2026-09-27T22:16:18Z"
+    },
+    {
+      "id": "L-003",
+      "key": "surviving_mutant::when a criterion lists symmetric invalid inputs missing start or missing end test each side separately",
+      "text": "When a criterion lists symmetric invalid inputs (missing start or missing end), test each side separately.",
+      "signal": "surviving_mutant",
+      "scope": "schema",
+      "status": "candidate",
+      "features": [
+        "us-03-dados-e-horario-da-barbearia"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md M19 / src/interface-adapters/controllers/schemas/barbershop-settings.schema.spec.ts:75 (CFG-10) (schema)"
+      ],
+      "created": "2026-09-27T22:16:18Z",
+      "last_seen": "2026-09-27T22:16:18Z"
     }
   ]
 }
