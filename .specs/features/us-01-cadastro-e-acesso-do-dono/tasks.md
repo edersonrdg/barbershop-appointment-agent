@@ -392,7 +392,7 @@ T31 -> T32
 
 ### Phase 4: Adaptadores de infraestrutura
 
-### T16: ScryptPasswordHasher
+### T16: ScryptPasswordHasher ✅
 
 **What**: Implementa `PasswordHasher` com `scrypt`, salt de 16 bytes e `timingSafeEqual`.
 **Where**: `src/infrastructure/security/scrypt-password-hasher.ts`
@@ -401,9 +401,9 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] `CA-01.1`: hash não contém a senha, começa com `scrypt$`, dois hashes da mesma senha diferem
-- [ ] `verify` aceita a senha certa e recusa a errada e um hash malformado
-- [ ] Gate quick passa
+- [x] `CA-01.1`: hash não contém a senha, começa com `scrypt$`, dois hashes da mesma senha diferem
+- [x] `verify` aceita a senha certa e recusa a errada e um hash malformado
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
