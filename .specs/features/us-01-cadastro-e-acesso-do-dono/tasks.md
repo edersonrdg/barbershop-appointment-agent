@@ -590,7 +590,7 @@ T31 -> T32
 
 ---
 
-### T27: SessionGuard e decorators
+### T27: SessionGuard e decorators ✅
 
 **What**: `SessionGuard` global (`infrastructure/http/`) + `@Public()`, `@CurrentSession()` e o tipo `AuthenticatedSession` (`interface-adapters/controllers/`).
 **Where**: `src/infrastructure/http/session.guard.ts`
@@ -599,10 +599,10 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] Rota `@Public()` passa sem token
-- [ ] Sem header, esquema diferente de Bearer, assinatura errada, token expirado e payload sem `barbershopId` → `UnauthorizedException`
-- [ ] Token válido → `request.session` com `userId`, `barbershopId`, `role` do token
-- [ ] Gate quick passa
+- [x] Rota `@Public()` passa sem token
+- [x] Sem header, esquema diferente de Bearer, assinatura errada, token expirado e payload sem `barbershopId` → `UnauthorizedException`
+- [x] Token válido → `request.session` com `userId`, `barbershopId`, `role` do token
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
