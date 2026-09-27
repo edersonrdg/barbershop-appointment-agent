@@ -34,6 +34,27 @@ describe('TypeOrmUserRepository (e2e)', () => {
     return owner;
   }
 
+  async function insertBarber(
+    barbershopId: string,
+    email: string,
+    createdAt: Date,
+  ): Promise<string> {
+    const id = randomUUID();
+    await dataSource.query(
+      `INSERT INTO users (id, barbershop_id, name, email, phone, password_hash, role, created_at)
+       VALUES ($1, $2, $3, $4, NULL, $5, 'barber', $6)`,
+      [id, barbershopId, 'Barbeiro', email, 'hash', createdAt],
+    );
+    return id;
+  }
+
+  async function userIds(): Promise<string[]> {
+    const rows = await dataSource.query<{ id: string }[]>(
+      'SELECT id FROM users',
+    );
+    return rows.map((row) => row.id).sort();
+  }
+
   beforeAll(async () => {
     dataSource = new DataSource(buildTypeOrmOptions(validateEnv(process.env)));
     await dataSource.initialize();
@@ -85,5 +106,62 @@ describe('TypeOrmUserRepository (e2e)', () => {
     await createOwner('dono-a@barbearia.com');
 
     expect(await repository.findByEmail('outro@barbearia.com')).toBeNull();
+  });
+
+  it('CA-02.3: listByBarbershop returns only the barbershop users, oldest first (C30)', async () => {
+    const ownerA = await createOwner('dono-a@barbearia.com');
+    const ownerB = await createOwner('dono-b@barbearia.com');
+    const later = new Date(NOW.getTime() + 60_000);
+    const earlier = new Date(NOW.getTime() - 60_000);
+    const barberLater = await insertBarber(
+      ownerA.barbershopId,
+      'barbeiro-1@exemplo.com',
+      later,
+    );
+    const barberEarlier = await insertBarber(
+      ownerA.barbershopId,
+      'barbeiro-2@exemplo.com',
+      earlier,
+    );
+    await insertBarber(ownerB.barbershopId, 'barbeiro-b@exemplo.com', NOW);
+
+    const users = await repository.listByBarbershop(ownerA.barbershopId);
+
+    expect(users.map((user) => user.id)).toEqual([
+      barberEarlier,
+      ownerA.id,
+      barberLater,
+    ]);
+    expect(users[0].role).toBe('barber');
+    expect(users[0].phone).toBeNull();
+  });
+
+  it('CA-02.3: removeBarber deletes a barber of the barbershop but never an owner or a user of another barbershop (C30)', async () => {
+    const ownerA = await createOwner('dono-a@barbearia.com');
+    const ownerB = await createOwner('dono-b@barbearia.com');
+    const barberA = await insertBarber(
+      ownerA.barbershopId,
+      'barbeiro-a@exemplo.com',
+      NOW,
+    );
+    const barberB = await insertBarber(
+      ownerB.barbershopId,
+      'barbeiro-b@exemplo.com',
+      NOW,
+    );
+    const before = await userIds();
+
+    expect(await repository.removeBarber(ownerA.barbershopId, ownerA.id)).toBe(
+      false,
+    );
+    expect(await repository.removeBarber(ownerA.barbershopId, barberB)).toBe(
+      false,
+    );
+    expect(await userIds()).toEqual(before);
+
+    expect(await repository.removeBarber(ownerA.barbershopId, barberA)).toBe(
+      true,
+    );
+    expect(await userIds()).toEqual(before.filter((id) => id !== barberA));
   });
 });

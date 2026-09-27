@@ -9,12 +9,18 @@ import type { Response } from 'express';
 import { DomainError } from '../../domain/errors/domain.error';
 import { EmailAlreadyRegisteredError } from '../../domain/errors/email-already-registered.error';
 import { InvalidCredentialsError } from '../../domain/errors/invalid-credentials.error';
+import { InvalidInvitationError } from '../../domain/errors/invalid-invitation.error';
 import { InvalidPasswordResetTokenError } from '../../domain/errors/invalid-password-reset-token.error';
+import { InvitationDeliveryFailedError } from '../../domain/errors/invitation-delivery-failed.error';
+import { UserNotFoundError } from '../../domain/errors/user-not-found.error';
 
 const STATUS_BY_ERROR = new Map<unknown, HttpStatus>([
   [EmailAlreadyRegisteredError, HttpStatus.CONFLICT],
   [InvalidCredentialsError, HttpStatus.UNAUTHORIZED],
   [InvalidPasswordResetTokenError, HttpStatus.BAD_REQUEST],
+  [InvalidInvitationError, HttpStatus.BAD_REQUEST],
+  [UserNotFoundError, HttpStatus.NOT_FOUND],
+  [InvitationDeliveryFailedError, HttpStatus.BAD_GATEWAY],
 ]);
 
 @Catch(DomainError)

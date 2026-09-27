@@ -18,8 +18,8 @@ export class UserEntity {
   @Column({ type: 'varchar', length: 254 })
   email!: string;
 
-  @Column({ type: 'varchar', length: 16 })
-  phone!: string;
+  @Column({ type: 'varchar', length: 16, nullable: true })
+  phone!: string | null;
 
   @Column({ name: 'password_hash', type: 'text' })
   passwordHash!: string;

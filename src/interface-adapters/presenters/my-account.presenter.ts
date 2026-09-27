@@ -7,7 +7,7 @@ export interface MyAccountResponse {
     id: string;
     name: string;
     email: string;
-    phone: string;
+    phone: string | null;
     role: UserRole;
   };
   barbershop: {

@@ -27,7 +27,7 @@ em vez de criar um segundo mecanismo de token, de sessão ou de guard.
 
 1. `POST /users/invitations` -> `SessionGuard` (exists) - sessão válida, usuário ainda existe, perfil `owner` (door 2, door 3)
 2. `ZodValidationPipe` (exists) - `email`, `name`
-3. `InviteBarberUseCase` (new, no door - placement per conventions) - recusa e-mail já cadastrado, gera o token pelo `ResetTokenGenerator` (exists), persiste `UserInvitation` (door 1) substituindo convites pendentes do mesmo e-mail na barbearia
+3. `InviteBarberUseCase` (new, no door - placement per conventions) - recusa e-mail já cadastrado, lê o nome da barbearia no `BarbershopRepository` (exists) para o texto do e-mail, gera o token pelo `ResetTokenGenerator` (exists), persiste `UserInvitation` (door 1) substituindo convites pendentes do mesmo e-mail na barbearia
 4. `EmailSender` (exists) - envia `${APP_WEB_URL}/aceitar-convite?token=<token>`
 5. out: `201` com o convite, sem o token
 
