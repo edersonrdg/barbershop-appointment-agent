@@ -314,14 +314,15 @@ T11 -> T12
 
 **Done when**:
 
-- [ ] `CA-03.1`: grava nome, endereço, fuso e semana e devolve o estado salvo
-- [ ] `CA-03.2`: horário incoerente lança `InvalidOpeningHoursError` e o repositório continua com o estado anterior
-- [ ] `CA-03.3`: fuso novo gravado
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: ~4 tests novos passam (no silent deletions)
+- [x] `CA-03.1`: grava nome, endereço, fuso e semana e devolve o estado salvo
+- [x] `CA-03.2`: horário incoerente lança `InvalidOpeningHoursError` e o repositório continua com o estado anterior
+- [x] `CA-03.3`: fuso novo gravado
+- [x] Gate check passes: `npm test`
+- [x] Test count: ~4 tests novos passam (no silent deletions)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
 **Commit**: `feat(US-03): add update barbershop settings use case`
 
 ---
