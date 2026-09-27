@@ -342,14 +342,15 @@ T11 -> T12
 
 **Done when**:
 
-- [ ] `CA-03.2`: dia ausente, `25:00`, intervalo sem `endsAt`, nome com 1 caractere e endereço com 4 caracteres são recusados, cada um no seu `field`
-- [ ] `CA-03.3`: `Europe/Lisbon` recusado com "Escolha um fuso horário do Brasil." no campo `timezone`
-- [ ] Nome e endereço saem com trim; campos extras somem
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: ~8 tests novos passam (no silent deletions)
+- [x] `CA-03.2`: dia ausente, `25:00`, intervalo sem `endsAt`, nome com 1 caractere e endereço com 4 caracteres são recusados, cada um no seu `field`
+- [x] `CA-03.3`: `Europe/Lisbon` recusado com "Escolha um fuso horário do Brasil." no campo `timezone`
+- [x] Nome e endereço saem com trim; campos extras somem
+- [x] Gate check passes: `npm test`
+- [x] Test count: ~8 tests novos passam (no silent deletions)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
 **Commit**: `feat(US-03): add barbershop settings request schema`
 
 ---
