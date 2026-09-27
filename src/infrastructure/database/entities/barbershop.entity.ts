@@ -8,6 +8,9 @@ export class BarbershopEntity {
   @Column({ type: 'varchar', length: 100 })
   name!: string;
 
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  address!: string | null;
+
   @Column({ type: 'varchar', length: 64, default: 'America/Sao_Paulo' })
   timezone!: string;
 

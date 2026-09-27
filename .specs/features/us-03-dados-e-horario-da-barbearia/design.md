@@ -169,7 +169,7 @@ Contrato:
 | `opens_at` | `time` | NOT NULL |
 | `closes_at` | `time` | NOT NULL; `CHECK (closes_at > opens_at)` |
 | `break_starts_at` | `time` | NULL |
-| `break_ends_at` | `time` | NULL; `CHECK ((break_starts_at IS NULL AND break_ends_at IS NULL) OR (opens_at < break_starts_at AND break_starts_at < break_ends_at AND break_ends_at < closes_at))` |
+| `break_ends_at` | `time` | NULL; `CHECK ((break_starts_at IS NULL AND break_ends_at IS NULL) OR (break_starts_at IS NOT NULL AND break_ends_at IS NOT NULL AND opens_at < break_starts_at AND break_starts_at < break_ends_at AND break_ends_at < closes_at))`. Os `IS NOT NULL` são obrigatórios: sem eles, um intervalo com um lado só daria `NULL` na comparação, e o `CHECK` aceitaria a linha |
 
 Dia fechado = sem linha. O Postgres devolve `time` como `HH:mm:ss`; o repositório corta para `HH:mm`.
 

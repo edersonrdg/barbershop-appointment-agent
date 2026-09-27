@@ -203,13 +203,14 @@ T11 -> T12
 
 **Done when**:
 
-- [ ] `migration:run` e `migration:revert` funcionam no Postgres do compose
-- [ ] e2e de schema `CA-03.2`: `INSERT` direto com `closes_at <= opens_at`, com intervalo fora do expediente, com só um lado do intervalo e com `weekday = 0` falham; linha válida entra
-- [ ] Gate check passes: `npm test && npm run test:e2e`
-- [ ] Test count: ~5 tests e2e novos passam (no silent deletions)
+- [x] `migration:run` e `migration:revert` funcionam no Postgres do compose
+- [x] e2e de schema `CA-03.2`: `INSERT` direto com `closes_at <= opens_at`, com intervalo fora do expediente, com só um lado do intervalo e com `weekday = 0` falham; linha válida entra
+- [x] Gate check passes: `npm test && npm run test:e2e`
+- [x] Test count: ~5 tests e2e novos passam (no silent deletions)
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Done
 **Commit**: `feat(US-03): add opening hours schema with check constraints`
 
 ---
