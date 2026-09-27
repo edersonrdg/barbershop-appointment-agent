@@ -167,7 +167,7 @@ T31 -> T32
 
 ---
 
-### T4: Entidade Barbershop
+### T4: Entidade Barbershop ✅
 
 **What**: `Barbershop.startTrial({ id, name, now })` com `subscriptionStatus 'trialing'`, `trialEndsAt = now + 14 × 24 h` e fuso `America/Sao_Paulo`; `Barbershop.restore(props)`.
 **Where**: `src/domain/entities/barbershop.ts`
@@ -176,8 +176,8 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] Teste `CA-01.2`: fim do teste exatamente 14 × 86 400 000 ms após `now`, status `trialing`
-- [ ] Gate quick passa
+- [x] Teste `CA-01.2`: fim do teste exatamente 14 × 86 400 000 ms após `now`, status `trialing`
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
