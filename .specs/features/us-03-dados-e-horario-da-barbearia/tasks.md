@@ -93,13 +93,14 @@ T11 -> T12
 
 **Done when**:
 
-- [ ] `00:00` e `23:59` aceitos; `24:00`, `9:00`, `09:60`, `09:00:00` e texto recusados (`InvalidValueError` / `isValid` falso)
-- [ ] `minutes` de `09:30` é 570
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: ~8 tests novos passam (no silent deletions)
+- [x] `00:00` e `23:59` aceitos; `24:00`, `9:00`, `09:60`, `09:00:00` e texto recusados (`InvalidValueError` / `isValid` falso)
+- [x] `minutes` de `09:30` é 570
+- [x] Gate check passes: `npm test`
+- [x] Test count: ~8 tests novos passam (no silent deletions)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
 **Commit**: `feat(US-03): add TimeOfDay value object`
 
 ---
