@@ -75,4 +75,15 @@ describe('validateEnv', () => {
     expect(env.SMTP_USER).toBeUndefined();
     expect(env.SMTP_PASSWORD).toBeUndefined();
   });
+
+  it('treats an empty SMTP_USER/SMTP_PASSWORD (as shipped in .env.example) as not provided', () => {
+    const env = validateEnv({
+      ...validEnv,
+      SMTP_USER: '',
+      SMTP_PASSWORD: '',
+    });
+
+    expect(env.SMTP_USER).toBeUndefined();
+    expect(env.SMTP_PASSWORD).toBeUndefined();
+  });
 });

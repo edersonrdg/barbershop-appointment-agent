@@ -24,8 +24,16 @@ export const envSchema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform((value) => value === 'true'),
-  SMTP_USER: z.string().min(1).optional(),
-  SMTP_PASSWORD: z.string().min(1).optional(),
+  // O .env.example deixa essas chaves em branco quando não usadas; uma
+  // string vazia deve contar como "não informado", não como valor inválido.
+  SMTP_USER: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.string().min(1).optional(),
+  ),
+  SMTP_PASSWORD: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.string().min(1).optional(),
+  ),
   MAIL_FROM: z.string().min(1),
 });
 
