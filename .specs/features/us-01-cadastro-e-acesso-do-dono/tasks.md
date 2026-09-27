@@ -260,7 +260,7 @@ T31 -> T32
 
 ---
 
-### T9: Use case GetMyAccount
+### T9: Use case GetMyAccount ✅
 
 **What**: Devolve usuário e barbearia do tenant da sessão.
 **Where**: `src/usecases/get-my-account/get-my-account.use-case.ts`
@@ -269,9 +269,9 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] `CA-01.4`: com duas barbearias no fake, devolve só o usuário e a barbearia do `barbershopId` informado
-- [ ] `CA-01.4`: `userId` de A com `barbershopId` de B → `InvalidCredentialsError` (não vaza dado de A nem de B)
-- [ ] Gate quick passa
+- [x] `CA-01.4`: com duas barbearias no fake, devolve só o usuário e a barbearia do `barbershopId` informado
+- [x] `CA-01.4`: `userId` de A com `barbershopId` de B → `InvalidCredentialsError` (não vaza dado de A nem de B)
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
