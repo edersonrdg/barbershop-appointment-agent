@@ -126,6 +126,10 @@ describe('Role permissions (e2e)', () => {
       'SELECT count(*) FROM user_invitations',
     );
     expect(invitationsAfter[0].count).toBe(invitationsBefore[0].count);
+    const attempted = await dataSource.query<{ count: string }[]>(
+      "SELECT count(*) FROM user_invitations WHERE email = 'novo@exemplo.com'",
+    );
+    expect(Number(attempted[0].count)).toBe(0);
     expect(await userByEmail(OWNER_EMAIL)).toEqual(owner);
   });
 

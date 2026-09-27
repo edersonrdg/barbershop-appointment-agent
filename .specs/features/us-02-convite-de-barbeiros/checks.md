@@ -62,7 +62,7 @@ Proof: `npx jest src/usecases/accept-invitation/accept-invitation.use-case.spec.
 
 ### S2 - O Barbeiro só alcança o que é dele · 4 files · 25 KB · ~6k
 
-**C16** - Com a sessão de um `barber`, `POST /users/invitations`, `GET /users` e `DELETE /users/<id do Dono>` respondem `403` com `{ message: 'Acesso negado.' }`; depois disso `user_invitations` tem 0 linhas e o Dono continua em `users` (AC 13) [done]
+**C16** - Com a sessão de um `barber`, `POST /users/invitations`, `GET /users` e `DELETE /users/<id do Dono>` respondem `403` com `{ message: 'Acesso negado.' }`; depois disso nenhum convite para `novo@exemplo.com` é gravado, o número de linhas em `user_invitations` não muda e o Dono continua em `users` (AC 13) [done]
 Proof: `npm run test:e2e -- test/users-permissions.e2e-spec.ts -t "\(C16\)"`
 
 **C17** - Uma rota de sonda autenticada sem `@Roles`, montada no mesmo `AppModule`, responde `403` com `{ message: 'Acesso negado.' }` ao `barber` e `200` ao `owner` (AC 14, door 2) [done]
@@ -150,3 +150,6 @@ Proof: `npx jest src/infrastructure/http/session.guard.spec.ts -t "\(C31\)"`
 ## Handoff
 
 - S1 = ~20k (domínio, use cases, migration, repositório, controller e o e2e maior); S2 entra no `SessionGuard` a ~26k; S3 fecha a ~34k. Base: `wc -c` dos 16 arquivos existentes tocados = 37 KB, mais ~90 KB estimados para ~25 arquivos novos, dividido por 4. Abaixo do budget de 150k - one builder
+- **Boundary:** C1-C31 closed at `1dabc87`
+- **Settled mid-build:** o usuário aprovou (2026-09-27) reescrever o C16 depois da rodada 1 do Verifier: "0 linhas em `user_invitations`" era inalcançável, porque o convite aceito do próprio barbeiro continua gravado; o claim passou a ser "nenhum convite para `novo@exemplo.com` e o número de linhas não muda"
+- **Abandoned:** nada

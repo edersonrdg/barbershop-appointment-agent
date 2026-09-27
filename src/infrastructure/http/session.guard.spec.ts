@@ -215,6 +215,16 @@ describe('SessionGuard', () => {
     await expectUnauthorized(await requestAs(randomUUID(), 'owner'));
   });
 
+  it('CA-02.3: rejects a token whose user exists only in another barbershop (C31)', async () => {
+    const token = await sign({
+      sub: userId,
+      barbershopId: randomUUID(),
+      role: 'owner',
+    });
+
+    await expectUnauthorized({ headers: { authorization: `Bearer ${token}` } });
+  });
+
   it('CA-02.2: stores the role from the database, not the one in the token (C31)', async () => {
     const barberClaimingOwner = await requestAs(barberId, 'owner');
     await expect(
