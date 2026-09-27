@@ -149,7 +149,7 @@ T31 -> T32
 
 ---
 
-### T3: Value object PhoneNumber
+### T3: Value object PhoneNumber ✅
 
 **What**: `PhoneNumber.create(raw)` aceita máscara e `+55`, exige DDD 11–99, fixo com 10 dígitos nacionais ou celular com 11 começando em 9, e expõe E.164; `PhoneNumber.isValid(raw)`.
 **Where**: `src/domain/value-objects/phone-number.ts`
@@ -158,9 +158,9 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] `'(11) 91234-5678'` e `'+55 11 91234-5678'` viram `'+5511912345678'`; `'(11) 3123-4567'` vira `'+551131234567'`
-- [ ] DDD `00`, celular de 11 dígitos sem 9 inicial, menos de 10 dígitos e letras são inválidos
-- [ ] Gate quick passa
+- [x] `'(11) 91234-5678'` e `'+55 11 91234-5678'` viram `'+5511912345678'`; `'(11) 3123-4567'` vira `'+551131234567'`
+- [x] DDD `00`, celular de 11 dígitos sem 9 inicial, menos de 10 dígitos e letras são inválidos
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
