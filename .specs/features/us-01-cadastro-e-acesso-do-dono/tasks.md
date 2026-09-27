@@ -555,7 +555,7 @@ T31 -> T32
 
 ### Phase 6: Infra HTTP
 
-### T25: DomainErrorFilter
+### T25: DomainErrorFilter ✅
 
 **What**: Filtro global que mapeia `EmailAlreadyRegisteredError`→409, `InvalidCredentialsError`→401, `InvalidPasswordResetTokenError`→400, corpo `{ message }`.
 **Where**: `src/infrastructure/http/domain-error.filter.ts`
@@ -564,8 +564,8 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] Cada erro gera o status e a mensagem da spec
-- [ ] Gate quick passa
+- [x] Cada erro gera o status e a mensagem da spec
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
