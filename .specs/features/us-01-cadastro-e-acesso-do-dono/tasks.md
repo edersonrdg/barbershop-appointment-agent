@@ -184,7 +184,7 @@ T31 -> T32
 
 ---
 
-### T5: Entidade User
+### T5: Entidade User ✅
 
 **What**: `User.createOwner({ id, barbershopId, name, email, phone, passwordHash, now })` sempre com `role 'owner'`; `User.restore(props)`.
 **Where**: `src/domain/entities/user.ts`
@@ -193,8 +193,8 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] Teste `CA-01.1`: usuário criado tem `role 'owner'` e o `barbershopId` informado
-- [ ] Gate quick passa
+- [x] Teste `CA-01.1`: usuário criado tem `role 'owner'` e o `barbershopId` informado
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
