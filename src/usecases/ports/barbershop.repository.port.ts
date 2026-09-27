@@ -11,4 +11,9 @@ export interface BarbershopRepository {
    */
   createWithOwner(barbershop: Barbershop, owner: User): Promise<void>;
   findById(barbershopId: string): Promise<Barbershop | null>;
+  /**
+   * Replaces the name, address, timezone and weekly opening hours of the
+   * barbershop atomically: either everything is saved or nothing changes.
+   */
+  saveSettings(barbershop: Barbershop): Promise<void>;
 }

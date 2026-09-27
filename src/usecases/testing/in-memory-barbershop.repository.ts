@@ -22,4 +22,14 @@ export class InMemoryBarbershopRepository implements BarbershopRepository {
     );
     return Promise.resolve(found ?? null);
   }
+
+  saveSettings(barbershop: Barbershop): Promise<void> {
+    const index = this.store.barbershops.findIndex(
+      (stored) => stored.id === barbershop.id,
+    );
+    if (index !== -1) {
+      this.store.barbershops[index] = barbershop;
+    }
+    return Promise.resolve();
+  }
 }

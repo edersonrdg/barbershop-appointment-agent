@@ -259,14 +259,15 @@ T11 -> T12
 
 **Done when**:
 
-- [ ] e2e `CA-03.1`: gravar e reler devolve o mesmo estado; dia aberto regravado como fechado some
-- [ ] e2e `RN-26`: gravar a barbearia A não altera nome, endereço, fuso nem dias da barbearia B
-- [ ] e2e: falha no meio da gravação (linha que viola `CHECK`) não deixa nada alterado
-- [ ] Gate check passes: `npm test && npm run test:e2e`
-- [ ] Test count: ~4 tests e2e novos passam (no silent deletions)
+- [x] e2e `CA-03.1`: gravar e reler devolve o mesmo estado; dia aberto regravado como fechado some
+- [x] e2e `RN-26`: gravar a barbearia A não altera nome, endereço, fuso nem dias da barbearia B
+- [x] e2e: falha no meio da gravação (linha que viola `CHECK`) não deixa nada alterado
+- [x] Gate check passes: `npm test && npm run test:e2e`
+- [x] Test count: ~4 tests e2e novos passam (no silent deletions)
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Done
 **Commit**: `feat(US-03): persist barbershop settings atomically`
 
 ---

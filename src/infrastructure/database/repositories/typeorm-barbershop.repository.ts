@@ -10,6 +10,7 @@ import { DayOpeningHours } from '../../../domain/value-objects/day-opening-hours
 import { TimeOfDay } from '../../../domain/value-objects/time-of-day';
 import {
   WEEKDAYS,
+  isoWeekdayNumber,
   weekdayFromIsoNumber,
 } from '../../../domain/value-objects/weekday';
 import {
@@ -74,6 +75,46 @@ export class TypeOrmBarbershopRepository implements BarbershopRepository {
       createdAt: row.createdAt,
     });
   }
+
+  async saveSettings(barbershop: Barbershop): Promise<void> {
+    const dayRows = toOpeningHoursRows(barbershop);
+    await this.dataSource.transaction(async (manager) => {
+      await manager.update(
+        BarbershopEntity,
+        { id: barbershop.id },
+        {
+          name: barbershop.name,
+          address: barbershop.address,
+          timezone: barbershop.timezone,
+        },
+      );
+      await manager.delete(BarbershopOpeningHoursEntity, {
+        barbershopId: barbershop.id,
+      });
+      if (dayRows.length > 0) {
+        await manager.insert(BarbershopOpeningHoursEntity, dayRows);
+      }
+    });
+  }
+}
+
+function toOpeningHoursRows(
+  barbershop: Barbershop,
+): BarbershopOpeningHoursEntity[] {
+  return WEEKDAYS.flatMap((weekday) => {
+    const day = barbershop.openingHours.forDay(weekday);
+    if (!day) return [];
+    return [
+      {
+        barbershopId: barbershop.id,
+        weekday: isoWeekdayNumber(weekday),
+        opensAt: day.opensAt.toString(),
+        closesAt: day.closesAt.toString(),
+        breakStartsAt: day.break?.startsAt.toString() ?? null,
+        breakEndsAt: day.break?.endsAt.toString() ?? null,
+      },
+    ];
+  });
 }
 
 function toWeeklyOpeningHours(
