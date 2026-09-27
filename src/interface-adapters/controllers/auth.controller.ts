@@ -1,6 +1,7 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { AuthenticateUserUseCase } from '../../usecases/authenticate-user/authenticate-user.use-case';
 import { RequestPasswordResetUseCase } from '../../usecases/request-password-reset/request-password-reset.use-case';
+import { ResetPasswordUseCase } from '../../usecases/reset-password/reset-password.use-case';
 import { RegisterBarbershopUseCase } from '../../usecases/register-barbershop/register-barbershop.use-case';
 import {
   SessionPresenter,
@@ -11,6 +12,8 @@ import type { ForgotPasswordBody } from './schemas/forgot-password.schema';
 import { forgotPasswordSchema } from './schemas/forgot-password.schema';
 import type { LoginBody } from './schemas/login.schema';
 import { loginSchema } from './schemas/login.schema';
+import type { ResetPasswordBody } from './schemas/reset-password.schema';
+import { resetPasswordSchema } from './schemas/reset-password.schema';
 import type { SignupBody } from './schemas/signup.schema';
 import { signupSchema } from './schemas/signup.schema';
 import { ZodValidationPipe } from './zod-validation.pipe';
@@ -27,6 +30,7 @@ export class AuthController {
     private readonly registerBarbershop: RegisterBarbershopUseCase,
     private readonly authenticateUser: AuthenticateUserUseCase,
     private readonly requestPasswordReset: RequestPasswordResetUseCase,
+    private readonly resetPasswordUseCase: ResetPasswordUseCase,
   ) {}
 
   @Post('signup')
@@ -57,5 +61,13 @@ export class AuthController {
   ): Promise<typeof FORGOT_PASSWORD_RESPONSE> {
     await this.requestPasswordReset.execute(body);
     return FORGOT_PASSWORD_RESPONSE;
+  }
+
+  @Post('password/reset')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async resetPassword(
+    @Body(new ZodValidationPipe(resetPasswordSchema)) body: ResetPasswordBody,
+  ): Promise<void> {
+    await this.resetPasswordUseCase.execute(body);
   }
 }

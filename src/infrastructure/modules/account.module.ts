@@ -46,6 +46,7 @@ import {
   USER_REPOSITORY,
 } from '../../usecases/ports/user.repository.port';
 import { RequestPasswordResetUseCase } from '../../usecases/request-password-reset/request-password-reset.use-case';
+import { ResetPasswordUseCase } from '../../usecases/reset-password/reset-password.use-case';
 import { RegisterBarbershopUseCase } from '../../usecases/register-barbershop/register-barbershop.use-case';
 import type { Env } from '../config/env.schema';
 import { TypeOrmBarbershopRepository } from '../database/repositories/typeorm-barbershop.repository';
@@ -203,6 +204,27 @@ import { UuidIdGenerator } from '../security/uuid-id-generator';
           clock,
           idGenerator,
           config.get('APP_WEB_URL', { infer: true }),
+        ),
+    },
+    {
+      provide: ResetPasswordUseCase,
+      inject: [
+        PASSWORD_RESET_REPOSITORY,
+        RESET_TOKEN_GENERATOR,
+        PASSWORD_HASHER,
+        CLOCK,
+      ],
+      useFactory: (
+        passwordResets: PasswordResetRepository,
+        resetTokenGenerator: ResetTokenGenerator,
+        passwordHasher: PasswordHasher,
+        clock: Clock,
+      ) =>
+        new ResetPasswordUseCase(
+          passwordResets,
+          resetTokenGenerator,
+          passwordHasher,
+          clock,
         ),
     },
     { provide: APP_GUARD, useClass: SessionGuard },

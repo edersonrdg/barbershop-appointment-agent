@@ -693,7 +693,7 @@ T31 -> T32
 
 ---
 
-### T32: POST /auth/password/reset
+### T32: POST /auth/password/reset ✅
 
 **What**: `AuthController.resetPassword`.
 **Where**: `src/interface-adapters/controllers/auth.controller.ts`
@@ -702,11 +702,11 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] `CA-01.5`: token do link + senha válida → 204; login com a nova 200, com a antiga 401
-- [ ] `CA-01.5`: mesmo token de novo → 400 "Link de redefinição inválido ou expirado."
-- [ ] `CA-01.5`: token substituído por pedido mais novo, token inexistente e token expirado (`expires_at` no passado no banco) → 400 com a mesma mensagem e senha inalterada
-- [ ] `CA-01.5`: senha nova inválida → 400 e o token continua utilizável depois
-- [ ] Gate build passa (última task)
+- [x] `CA-01.5`: token do link + senha válida → 204; login com a nova 200, com a antiga 401
+- [x] `CA-01.5`: mesmo token de novo → 400 "Link de redefinição inválido ou expirado."
+- [x] `CA-01.5`: token substituído por pedido mais novo, token inexistente e token expirado (`expires_at` no passado no banco) → 400 com a mesma mensagem e senha inalterada
+- [x] `CA-01.5`: senha nova inválida → 400 e o token continua utilizável depois
+- [x] Gate build passa (última task)
 
 **Tests**: e2e
 **Gate**: build

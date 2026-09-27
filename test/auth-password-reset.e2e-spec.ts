@@ -27,6 +27,25 @@ describe('Password reset (e2e)', () => {
       .send({ email });
   }
 
+  function reset(token: string, newPassword: string) {
+    return request(app.getHttpServer())
+      .post('/auth/password/reset')
+      .send({ token, newPassword });
+  }
+
+  function login(password: string) {
+    return request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email: EMAIL, password });
+  }
+
+  async function passwordHash(): Promise<string> {
+    const [row] = await dataSource.query<{ password_hash: string }[]>(
+      'SELECT password_hash FROM users',
+    );
+    return row.password_hash;
+  }
+
   function tokenFromLastEmail(): string {
     const text = emailSender.sent[emailSender.sent.length - 1].text;
     const escapedUrl = appWebUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -112,6 +131,108 @@ describe('Password reset (e2e)', () => {
         createHash('sha256').update(token).digest('hex'),
       ]);
       expect(hashes[0]).not.toContain(token);
+    });
+  });
+
+  describe('POST /auth/password/reset', () => {
+    const NEW_PASSWORD = 'nova-senha-456';
+    const INVALID_LINK_BODY = {
+      message: 'Link de redefinição inválido ou expirado.',
+    };
+
+    async function requestToken(): Promise<string> {
+      await forgot(EMAIL).expect(202);
+      return tokenFromLastEmail();
+    }
+
+    async function expectPasswordUnchanged(hashBefore: string): Promise<void> {
+      expect(await passwordHash()).toBe(hashBefore);
+      expect((await login(PASSWORD)).status).toBe(200);
+      expect((await login(NEW_PASSWORD)).status).toBe(401);
+    }
+
+    it('CA-01.5: responds 204 for the link token and a valid password; login accepts only the new one', async () => {
+      const token = await requestToken();
+
+      const response = await reset(token, NEW_PASSWORD);
+
+      expect(response.status).toBe(204);
+      expect(response.text).toBe('');
+      expect((await login(NEW_PASSWORD)).status).toBe(200);
+      const oldLogin = await login(PASSWORD);
+      expect(oldLogin.status).toBe(401);
+      expect(oldLogin.body).toEqual({ message: 'E-mail ou senha inválidos.' });
+    });
+
+    it('CA-01.5: rejects the same token a second time with 400', async () => {
+      const token = await requestToken();
+      await reset(token, NEW_PASSWORD).expect(204);
+      const hashAfterFirstReset = await passwordHash();
+
+      const response = await reset(token, 'terceira-senha-789');
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual(INVALID_LINK_BODY);
+      expect(await passwordHash()).toBe(hashAfterFirstReset);
+    });
+
+    it('CA-01.5: rejects a token superseded by a newer request with 400 and keeps the password', async () => {
+      const oldToken = await requestToken();
+      await requestToken();
+      const hashBefore = await passwordHash();
+
+      const response = await reset(oldToken, NEW_PASSWORD);
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual(INVALID_LINK_BODY);
+      await expectPasswordUnchanged(hashBefore);
+    });
+
+    it('CA-01.5: rejects an unknown token with 400 and keeps the password', async () => {
+      const hashBefore = await passwordHash();
+
+      const response = await reset('token-que-nao-existe', NEW_PASSWORD);
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual(INVALID_LINK_BODY);
+      await expectPasswordUnchanged(hashBefore);
+    });
+
+    it('CA-01.5: rejects an expired token with 400 and keeps the password', async () => {
+      const token = await requestToken();
+      await dataSource.query(
+        "UPDATE password_reset_tokens SET expires_at = now() - interval '1 minute'",
+      );
+      const hashBefore = await passwordHash();
+
+      const response = await reset(token, NEW_PASSWORD);
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual(INVALID_LINK_BODY);
+      await expectPasswordUnchanged(hashBefore);
+    });
+
+    it('CA-01.5: rejects an invalid new password with 400 without consuming the token', async () => {
+      const token = await requestToken();
+      const hashBefore = await passwordHash();
+
+      const response = await reset(token, 'curta');
+
+      expect(response.status).toBe(400);
+      const body = response.body as {
+        message: string;
+        errors: { field: string }[];
+      };
+      expect(body.message).toBe('Dados inválidos.');
+      expect(body.errors.map((error) => error.field)).toEqual(['newPassword']);
+      expect(await passwordHash()).toBe(hashBefore);
+      const usedAt = await dataSource.query<{ used_at: Date | null }[]>(
+        'SELECT used_at FROM password_reset_tokens',
+      );
+      expect(usedAt).toEqual([{ used_at: null }]);
+
+      await reset(token, NEW_PASSWORD).expect(204);
+      expect((await login(NEW_PASSWORD)).status).toBe(200);
     });
   });
 });
