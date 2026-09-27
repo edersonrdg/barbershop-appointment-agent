@@ -534,7 +534,7 @@ T31 -> T32
 
 ---
 
-### T24: TypeOrmPasswordResetRepository
+### T24: TypeOrmPasswordResetRepository ✅
 
 **What**: `replaceForUser`, `findByTokenHash` e `redeem` (transação: `UPDATE ... WHERE used_at IS NULL` + troca do hash da senha filtrando pelo tenant).
 **Where**: `src/infrastructure/database/repositories/typeorm-password-reset.repository.ts`
@@ -543,10 +543,10 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] `CA-01.5`: `replaceForUser` apaga o token não usado anterior do usuário
-- [ ] `CA-01.5`: `redeem` troca o hash e marca `used_at`; segundo `redeem` do mesmo token → `false` e senha inalterada
-- [ ] `redeem` com `barbershopId` de outro tenant → `false` e senha inalterada
-- [ ] Gate full passa
+- [x] `CA-01.5`: `replaceForUser` apaga o token não usado anterior do usuário
+- [x] `CA-01.5`: `redeem` troca o hash e marca `used_at`; segundo `redeem` do mesmo token → `false` e senha inalterada
+- [x] `redeem` com `barbershopId` de outro tenant → `false` e senha inalterada
+- [x] Gate full passa
 
 **Tests**: e2e
 **Gate**: full
