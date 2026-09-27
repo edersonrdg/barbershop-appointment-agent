@@ -497,7 +497,7 @@ T31 -> T32
 
 ### Phase 5: Repositórios
 
-### T22: TypeOrmBarbershopRepository
+### T22: TypeOrmBarbershopRepository ✅
 
 **What**: `createWithOwner` em transação (violação do índice de e-mail → `EmailAlreadyRegisteredError`) e `findById`.
 **Where**: `src/infrastructure/database/repositories/typeorm-barbershop.repository.ts`
@@ -506,10 +506,10 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] `CA-01.1`: grava e relê barbearia e Dono com todos os campos
-- [ ] `CA-01.3`: e-mail repetido → `EmailAlreadyRegisteredError` e a segunda barbearia não existe no banco
-- [ ] `CA-01.3`: dois `createWithOwner` simultâneos com o mesmo e-mail → um sucesso, um `EmailAlreadyRegisteredError`, uma barbearia só
-- [ ] Gate full passa
+- [x] `CA-01.1`: grava e relê barbearia e Dono com todos os campos
+- [x] `CA-01.3`: e-mail repetido → `EmailAlreadyRegisteredError` e a segunda barbearia não existe no banco
+- [x] `CA-01.3`: dois `createWithOwner` simultâneos com o mesmo e-mail → um sucesso, um `EmailAlreadyRegisteredError`, uma barbearia só
+- [x] Gate full passa
 
 **Tests**: e2e
 **Gate**: full
