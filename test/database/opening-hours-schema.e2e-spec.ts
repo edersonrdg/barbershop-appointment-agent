@@ -84,6 +84,24 @@ describe('Opening hours schema (e2e)', () => {
       },
     ],
     [
+      'a break starting exactly at opening',
+      {
+        opensAt: '09:00',
+        closesAt: '19:00',
+        breakStartsAt: '09:00',
+        breakEndsAt: '10:00',
+      },
+    ],
+    [
+      'a break ending exactly at closing',
+      {
+        opensAt: '09:00',
+        closesAt: '19:00',
+        breakStartsAt: '18:00',
+        breakEndsAt: '19:00',
+      },
+    ],
+    [
       'a break ending before it starts',
       {
         opensAt: '09:00',

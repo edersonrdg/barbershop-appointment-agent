@@ -89,6 +89,23 @@ describe('barbershopSettingsSchema', () => {
       ]);
     });
 
+    it('rejects a break without its start', () => {
+      const body = withOpeningHours({
+        monday: {
+          opensAt: '09:00',
+          closesAt: '19:00',
+          break: { endsAt: '13:00' },
+        },
+      });
+
+      expect(issuesOf(body)).toEqual([
+        {
+          field: 'openingHours.monday.break.startsAt',
+          message: 'Informe o horário no formato HH:mm, entre 00:00 e 23:59.',
+        },
+      ]);
+    });
+
     it('rejects a name with 1 character', () => {
       expect(issuesOf({ ...validBody(), name: ' Z ' })).toEqual([
         {
