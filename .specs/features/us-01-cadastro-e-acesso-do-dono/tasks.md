@@ -572,7 +572,7 @@ T31 -> T32
 
 ---
 
-### T26: ZodValidationPipe
+### T26: ZodValidationPipe ✅
 
 **What**: Pipe que valida com um schema Zod e lança 400 `{ message: 'Dados inválidos.', errors: [{ field, message }] }`; devolve o dado parseado (sem campos extras).
 **Where**: `src/interface-adapters/controllers/zod-validation.pipe.ts`
@@ -581,9 +581,9 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] Payload inválido → 400 listando cada campo inválido
-- [ ] Payload válido com campo extra → devolve o objeto sem o extra
-- [ ] Gate quick passa
+- [x] Payload inválido → 400 listando cada campo inválido
+- [x] Payload válido com campo extra → devolve o objeto sem o extra
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
