@@ -1,8 +1,17 @@
 import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
+import type { ScryptOptions } from 'node:crypto';
 import { promisify } from 'node:util';
 import { PasswordHasher } from '../../usecases/ports/password-hasher.port';
 
-const scryptAsync = promisify(scrypt);
+// @types/node não expõe uma sobrecarga __promisify__ para scrypt com
+// options; promisify(scrypt) por si só resolveria para a assinatura de 3
+// argumentos e perderia N/r/p.
+const scryptAsync = promisify(scrypt) as (
+  password: string,
+  salt: Buffer,
+  keylen: number,
+  options: ScryptOptions,
+) => Promise<Buffer>;
 
 // RNF-06: parâmetros do scrypt embutidos no próprio hash (AD-005), o que
 // permite endurecê-los depois sem migração de dados.
@@ -93,11 +102,6 @@ export class ScryptPasswordHasher implements PasswordHasher {
     r: number = BLOCK_SIZE_R,
     p: number = PARALLELIZATION_P,
   ): Promise<Buffer> {
-    const derivedKey = await scryptAsync(plain, salt, KEY_LENGTH_BYTES, {
-      N: n,
-      r,
-      p,
-    });
-    return derivedKey as Buffer;
+    return scryptAsync(plain, salt, KEY_LENGTH_BYTES, { N: n, r, p });
   }
 }
