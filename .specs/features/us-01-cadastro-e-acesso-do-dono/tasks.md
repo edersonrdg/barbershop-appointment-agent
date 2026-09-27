@@ -516,7 +516,7 @@ T31 -> T32
 
 ---
 
-### T23: TypeOrmUserRepository
+### T23: TypeOrmUserRepository ✅
 
 **What**: `findById(barbershopId, userId)` filtrando pelo tenant e `findByEmail(email)`.
 **Where**: `src/infrastructure/database/repositories/typeorm-user.repository.ts`
@@ -525,9 +525,9 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] `CA-01.4`: `findById(B, userDeA)` → `null`; `findById(A, userDeA)` → usuário
-- [ ] `findByEmail` acha pelo e-mail normalizado e devolve o `barbershopId`
-- [ ] Gate full passa
+- [x] `CA-01.4`: `findById(B, userDeA)` → `null`; `findById(A, userDeA)` → usuário
+- [x] `findByEmail` acha pelo e-mail normalizado e devolve o `barbershopId`
+- [x] Gate full passa
 
 **Tests**: e2e
 **Gate**: full
