@@ -201,7 +201,7 @@ T31 -> T32
 
 ---
 
-### T6: Entidade PasswordResetToken
+### T6: Entidade PasswordResetToken ✅
 
 **What**: `PasswordResetToken.issue({ id, userId, barbershopId, tokenHash, now })` com `expiresAt = now + 1 h`; `isRedeemable(now)`.
 **Where**: `src/domain/entities/password-reset-token.ts`
@@ -210,8 +210,8 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] Testes `CA-01.5`: resgatável em `now + 59 min 59 s`; não resgatável em `now + 1 h` nem depois; não resgatável com `usedAt` preenchido
-- [ ] Gate quick passa
+- [x] Testes `CA-01.5`: resgatável em `now + 59 min 59 s`; não resgatável em `now + 1 h` nem depois; não resgatável com `usedAt` preenchido
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
