@@ -4,6 +4,7 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import type { Registry } from 'prom-client';
 import { DataSource } from 'typeorm';
+import { AuthenticateUserUseCase } from '../../usecases/authenticate-user/authenticate-user.use-case';
 import { AuthController } from '../../interface-adapters/controllers/auth.controller';
 import {
   ACCESS_TOKEN_ISSUER,
@@ -29,7 +30,10 @@ import {
 } from '../../usecases/ports/password-hasher.port';
 import { PASSWORD_RESET_REPOSITORY } from '../../usecases/ports/password-reset.repository.port';
 import { RESET_TOKEN_GENERATOR } from '../../usecases/ports/reset-token-generator.port';
-import { USER_REPOSITORY } from '../../usecases/ports/user.repository.port';
+import {
+  UserRepository,
+  USER_REPOSITORY,
+} from '../../usecases/ports/user.repository.port';
 import { RegisterBarbershopUseCase } from '../../usecases/register-barbershop/register-barbershop.use-case';
 import type { Env } from '../config/env.schema';
 import { TypeOrmBarbershopRepository } from '../database/repositories/typeorm-barbershop.repository';
@@ -142,6 +146,16 @@ import { UuidIdGenerator } from '../security/uuid-id-generator';
           idGenerator,
           metrics,
         ),
+    },
+    {
+      provide: AuthenticateUserUseCase,
+      inject: [USER_REPOSITORY, PASSWORD_HASHER, ACCESS_TOKEN_ISSUER],
+      useFactory: (
+        users: UserRepository,
+        passwordHasher: PasswordHasher,
+        accessTokenIssuer: AccessTokenIssuer,
+      ) =>
+        new AuthenticateUserUseCase(users, passwordHasher, accessTokenIssuer),
     },
     { provide: APP_GUARD, useClass: SessionGuard },
     { provide: APP_FILTER, useClass: DomainErrorFilter },

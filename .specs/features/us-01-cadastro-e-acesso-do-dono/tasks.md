@@ -635,7 +635,7 @@ T31 -> T32
 
 ---
 
-### T29: POST /auth/login
+### T29: POST /auth/login ✅
 
 **What**: `AuthController.login`.
 **Where**: `src/interface-adapters/controllers/auth.controller.ts`
@@ -644,10 +644,10 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] Credenciais corretas (e-mail com caixa diferente) → 200 com token
-- [ ] Senha errada e e-mail inexistente → 401 com corpos idênticos `{ message: 'E-mail ou senha inválidos.' }`
-- [ ] Payload inválido → 400
-- [ ] Gate full passa
+- [x] Credenciais corretas (e-mail com caixa diferente) → 200 com token
+- [x] Senha errada e e-mail inexistente → 401 com corpos idênticos `{ message: 'E-mail ou senha inválidos.' }`
+- [x] Payload inválido → 400
+- [x] Gate full passa
 
 **Tests**: e2e
 **Gate**: full
