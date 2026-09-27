@@ -287,13 +287,14 @@ T11 -> T12
 
 **Done when**:
 
-- [ ] `CA-03.1`: devolve a barbearia do `barbershopId` informado, nunca a de outro tenant
-- [ ] Barbearia inexistente lança `InvalidCredentialsError`
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: ~2 tests novos passam (no silent deletions)
+- [x] `CA-03.1`: devolve a barbearia do `barbershopId` informado, nunca a de outro tenant
+- [x] Barbearia inexistente lança `InvalidCredentialsError`
+- [x] Gate check passes: `npm test`
+- [x] Test count: ~2 tests novos passam (no silent deletions)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
 **Commit**: `feat(US-03): add get barbershop settings use case`
 
 ---
