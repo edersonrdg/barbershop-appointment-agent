@@ -278,7 +278,7 @@ T31 -> T32
 
 ---
 
-### T10: Use case RequestPasswordReset
+### T10: Use case RequestPasswordReset ✅
 
 **What**: Gera token, grava o hash com validade de 1 h substituindo os anteriores e envia o e-mail pt-BR com `${appWebUrl}/redefinir-senha?token=<token>`. Cria os ports `PasswordResetRepository`, `ResetTokenGenerator`, `EmailSender`.
 **Where**: `src/usecases/request-password-reset/request-password-reset.use-case.ts`
@@ -287,11 +287,11 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] `CA-01.5`: usuário existente → um e-mail para o endereço normalizado contendo o link exato com o token gerado
-- [ ] `CA-01.5`: token gravado só como hash, `expiresAt = now + 1 h`, e o token anterior do usuário deixa de existir
-- [ ] `CA-01.5`: e-mail inexistente → resolve sem erro e sem e-mail enviado
-- [ ] `CA-01.5`: `EmailSender` lança → resolve sem erro
-- [ ] Gate quick passa
+- [x] `CA-01.5`: usuário existente → um e-mail para o endereço normalizado contendo o link exato com o token gerado
+- [x] `CA-01.5`: token gravado só como hash, `expiresAt = now + 1 h`, e o token anterior do usuário deixa de existir
+- [x] `CA-01.5`: e-mail inexistente → resolve sem erro e sem e-mail enviado
+- [x] `CA-01.5`: `EmailSender` lança → resolve sem erro
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
