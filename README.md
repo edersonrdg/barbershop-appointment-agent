@@ -92,6 +92,15 @@ As variáveis são validadas na inicialização; a aplicação não sobe se falt
 | `DB_NAME` | Nome do banco | — |
 | `GEMINI_API_KEY` | Chave da API do Gemini | — |
 | `GEMINI_MODEL` | Modelo do Gemini | — |
+| `JWT_SECRET` | Segredo do JWT de sessão (≥ 32 caracteres) | — |
+| `AUTH_SESSION_TTL_SECONDS` | Validade da sessão, em segundos | `604800` |
+| `APP_WEB_URL` | URL do painel web (usada nos links de e-mail) | — |
+| `SMTP_HOST` | Host do servidor SMTP | — |
+| `SMTP_PORT` | Porta do servidor SMTP | `1025` |
+| `SMTP_SECURE` | Usa TLS na conexão SMTP | `false` |
+| `SMTP_USER` | Usuário do SMTP | — |
+| `SMTP_PASSWORD` | Senha do SMTP | — |
+| `MAIL_FROM` | Remetente dos e-mails transacionais | — |
 
 ## Scripts
 

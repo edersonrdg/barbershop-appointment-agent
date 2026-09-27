@@ -25,11 +25,18 @@ services:
       NODE_ENV: production
       DB_HOST: postgres
       DB_PORT: 5432
+      SMTP_HOST: mailpit
     ports:
       - '${PORT:-3000}:3000'
     depends_on:
       postgres:
         condition: service_healthy
+
+  mailpit:
+    image: axllent/mailpit:v1.31
+    ports:
+      - '1025:1025'
+      - '8025:8025'
 
   prometheus:
     profiles: [observability]

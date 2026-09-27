@@ -319,7 +319,7 @@ T31 -> T32
 
 ### Phase 3: Configuração e banco
 
-### T12: Variáveis de ambiente
+### T12: Variáveis de ambiente ✅
 
 **What**: Adiciona `JWT_SECRET` (≥ 32), `AUTH_SESSION_TTL_SECONDS` (padrão 604800), `APP_WEB_URL` (URL), `SMTP_HOST`, `SMTP_PORT` (padrão 1025), `SMTP_SECURE` (padrão false), `SMTP_USER`/`SMTP_PASSWORD` (opcionais), `MAIL_FROM` ao schema e ao `.env.example`; Mailpit no `docker-compose.yml`. O `.env` local recebe as mesmas chaves (não versionado).
 **Where**: `src/infrastructure/config/env.schema.ts`
@@ -328,9 +328,9 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] `JWT_SECRET` ausente ou curto e `APP_WEB_URL` inválida falham a validação
-- [ ] Padrões aplicados quando as opcionais faltam
-- [ ] Gate quick passa
+- [x] `JWT_SECRET` ausente ou curto e `APP_WEB_URL` inválida falham a validação
+- [x] Padrões aplicados quando as opcionais faltam
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
