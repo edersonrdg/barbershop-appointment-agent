@@ -371,7 +371,7 @@ T31 -> T32
 
 ---
 
-### T15: Migration e harness do e2e
+### T15: Migration e harness do e2e ✅
 
 **What**: Migration `CreateAccountTables` (tabelas, índice único de e-mail e de hash do token); `globalSetup` do Jest e2e roda as migrations; e2e em série (`--runInBand`); helper que trunca as tabelas.
 **Where**: `src/infrastructure/database/migrations/<timestamp>-CreateAccountTables.ts`
@@ -380,10 +380,10 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] `npm run migration:run` e `migration:revert` funcionam no Postgres do compose
-- [ ] `npm run migration:generate` depois da migration não gera diferença
-- [ ] e2e existente continua passando com o `globalSetup`
-- [ ] Gate full passa
+- [x] `npm run migration:run` e `migration:revert` funcionam no Postgres do compose
+- [x] `npm run migration:generate` depois da migration não gera diferença
+- [x] e2e existente continua passando com o `globalSetup`
+- [x] Gate full passa
 
 **Tests**: e2e
 **Gate**: full
