@@ -148,14 +148,15 @@ T11 -> T12
 
 **Done when**:
 
-- [ ] `CA-03.2`: fechamento igual e anterior à abertura recusados com "Segunda-feira: o horário de fechamento deve ser depois do de abertura." (dia no rótulo certo)
-- [ ] `CA-03.2`: intervalo que começa na abertura, termina no fechamento, sai do expediente ou tem fim ≤ início recusado com a mensagem do CFG-09
-- [ ] `openPeriods()` devolve 1 período sem intervalo e 2 com intervalo
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: ~9 tests novos passam (no silent deletions)
+- [x] `CA-03.2`: fechamento igual e anterior à abertura recusados com "Segunda-feira: o horário de fechamento deve ser depois do de abertura." (dia no rótulo certo)
+- [x] `CA-03.2`: intervalo que começa na abertura, termina no fechamento, sai do expediente ou tem fim ≤ início recusado com a mensagem do CFG-09
+- [x] `openPeriods()` devolve 1 período sem intervalo e 2 com intervalo
+- [x] Gate check passes: `npm test`
+- [x] Test count: ~9 tests novos passam (no silent deletions)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
 **Commit**: `feat(US-03): add daily opening hours with CA-03.2 rules`
 
 ---
