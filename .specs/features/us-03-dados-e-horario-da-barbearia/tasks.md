@@ -370,13 +370,14 @@ T11 -> T12
 
 **Done when**:
 
-- [ ] e2e `CA-03.1`: Dono recém-cadastrado recebe 200 com endereço `null`, fuso `America/Sao_Paulo` e 7 dias `null`
-- [ ] e2e: Barbeiro recebe 403 `{ message: 'Acesso negado.' }`; sem token, 401
-- [ ] Gate check passes: `npm test && npm run test:e2e`
-- [ ] Test count: ~3 tests e2e novos passam (no silent deletions)
+- [x] e2e `CA-03.1`: Dono recém-cadastrado recebe 200 com endereço `null`, fuso `America/Sao_Paulo` e 7 dias `null`
+- [x] e2e: Barbeiro recebe 403 `{ message: 'Acesso negado.' }`; sem token, 401
+- [x] Gate check passes: `npm test && npm run test:e2e`
+- [x] Test count: ~3 tests e2e novos passam (no silent deletions)
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Done
 **Commit**: `feat(US-03): expose GET /settings/barbershop`
 
 ---
