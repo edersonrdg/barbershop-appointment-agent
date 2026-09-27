@@ -131,7 +131,7 @@ T31 -> T32
 
 ---
 
-### T2: Value object Email
+### T2: Value object Email ✅
 
 **What**: `Email.create(raw)` normaliza (trim + minúsculas) e valida formato e tamanho (≤ 254); `Email.isValid(raw)`; valor inválido em `create` lança `InvalidValueError`.
 **Where**: `src/domain/value-objects/email.ts`
@@ -140,9 +140,9 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] `'  Dono@Barbearia.COM '` vira `'dono@barbearia.com'`
-- [ ] Sem `@`, sem domínio, vazio e > 254 caracteres são inválidos
-- [ ] Gate quick passa
+- [x] `'  Dono@Barbearia.COM '` vira `'dono@barbearia.com'`
+- [x] Sem `@`, sem domínio, vazio e > 254 caracteres são inválidos
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
