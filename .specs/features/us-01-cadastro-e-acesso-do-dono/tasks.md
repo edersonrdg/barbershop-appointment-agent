@@ -113,7 +113,7 @@ T31 -> T32
 
 ### Phase 1: Domínio
 
-### T1: Erros de domínio
+### T1: Erros de domínio ✅
 
 **What**: `DomainError` abstrato (`code`, `rule?`) e `InvalidValueError`, `EmailAlreadyRegisteredError`, `InvalidCredentialsError`, `InvalidPasswordResetTokenError` com as mensagens pt-BR da spec.
 **Where**: `src/domain/errors/` (um arquivo por classe)
@@ -123,8 +123,8 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] Mensagens idênticas à spec: "Este e-mail já está cadastrado.", "E-mail ou senha inválidos.", "Link de redefinição inválido ou expirado."
-- [ ] Gate build passa
+- [x] Mensagens idênticas à spec: "Este e-mail já está cadastrado.", "E-mail ou senha inválidos.", "Link de redefinição inválido ou expirado."
+- [x] Gate build passa
 
 **Tests**: none
 **Gate**: build
