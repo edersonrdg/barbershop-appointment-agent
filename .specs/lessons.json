@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "promote_threshold": 2,
+  "window_days": 45,
+  "quarantine_threshold": 2,
+  "next_id": 2,
+  "lessons": [
+    {
+      "id": "L-001",
+      "key": "spec_precision_gap::um check que afirma contagem absoluta de linhas depois de uma acao negada precisa considerar as linhas que o proprio fixture grava afirme nada novo para o alvo e contagem inalterada em vez de n linhas",
+      "text": "Um check que afirma contagem absoluta de linhas depois de uma ação negada precisa considerar as linhas que o próprio fixture grava; afirme 'nada novo para o alvo e contagem inalterada' em vez de 'N linhas'.",
+      "signal": "spec_precision_gap",
+      "scope": "test/e2e",
+      "status": "candidate",
+      "features": [
+        "us-02-convite-de-barbeiros"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "checks.md C16 / test/users-permissions.e2e-spec.ts:128 (test/e2e)"
+      ],
+      "created": "2026-09-27T21:27:11Z",
+      "last_seen": "2026-09-27T21:27:11Z"
+    }
+  ]
+}

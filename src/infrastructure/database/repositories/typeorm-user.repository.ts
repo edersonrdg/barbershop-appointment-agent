@@ -32,4 +32,21 @@ export class TypeOrmUserRepository implements UserRepository {
     const row = await this.users.findOneBy({ email });
     return row ? toDomain(row) : null;
   }
+
+  async listByBarbershop(barbershopId: string): Promise<User[]> {
+    const rows = await this.users.find({
+      where: { barbershopId },
+      order: { createdAt: 'ASC', id: 'ASC' },
+    });
+    return rows.map(toDomain);
+  }
+
+  async removeBarber(barbershopId: string, userId: string): Promise<boolean> {
+    const result = await this.users.delete({
+      id: userId,
+      barbershopId,
+      role: 'barber',
+    });
+    return (result.affected ?? 0) > 0;
+  }
 }

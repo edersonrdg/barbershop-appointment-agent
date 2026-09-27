@@ -4,10 +4,14 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import type { Registry } from 'prom-client';
 import { DataSource } from 'typeorm';
+import { AcceptInvitationUseCase } from '../../usecases/accept-invitation/accept-invitation.use-case';
 import { AuthenticateUserUseCase } from '../../usecases/authenticate-user/authenticate-user.use-case';
 import { AuthController } from '../../interface-adapters/controllers/auth.controller';
 import { MeController } from '../../interface-adapters/controllers/me.controller';
+import { UsersController } from '../../interface-adapters/controllers/users.controller';
 import { GetMyAccountUseCase } from '../../usecases/get-my-account/get-my-account.use-case';
+import { InviteBarberUseCase } from '../../usecases/invite-barber/invite-barber.use-case';
+import { ListUsersUseCase } from '../../usecases/list-users/list-users.use-case';
 import {
   ACCESS_TOKEN_ISSUER,
   AccessTokenIssuer,
@@ -42,15 +46,21 @@ import {
   ResetTokenGenerator,
 } from '../../usecases/ports/reset-token-generator.port';
 import {
+  USER_INVITATION_REPOSITORY,
+  UserInvitationRepository,
+} from '../../usecases/ports/user-invitation.repository.port';
+import {
   UserRepository,
   USER_REPOSITORY,
 } from '../../usecases/ports/user.repository.port';
+import { RemoveBarberUseCase } from '../../usecases/remove-barber/remove-barber.use-case';
 import { RequestPasswordResetUseCase } from '../../usecases/request-password-reset/request-password-reset.use-case';
 import { ResetPasswordUseCase } from '../../usecases/reset-password/reset-password.use-case';
 import { RegisterBarbershopUseCase } from '../../usecases/register-barbershop/register-barbershop.use-case';
 import type { Env } from '../config/env.schema';
 import { TypeOrmBarbershopRepository } from '../database/repositories/typeorm-barbershop.repository';
 import { TypeOrmPasswordResetRepository } from '../database/repositories/typeorm-password-reset.repository';
+import { TypeOrmUserInvitationRepository } from '../database/repositories/typeorm-user-invitation.repository';
 import { TypeOrmUserRepository } from '../database/repositories/typeorm-user.repository';
 import {
   createSmtpTransport,
@@ -79,7 +89,7 @@ import { UuidIdGenerator } from '../security/uuid-id-generator';
     }),
     ObservabilityModule,
   ],
-  controllers: [AuthController, MeController],
+  controllers: [AuthController, MeController, UsersController],
   providers: [
     {
       provide: BARBERSHOP_REPOSITORY,
@@ -98,6 +108,12 @@ import { UuidIdGenerator } from '../security/uuid-id-generator';
       inject: [DataSource],
       useFactory: (dataSource: DataSource) =>
         new TypeOrmPasswordResetRepository(dataSource),
+    },
+    {
+      provide: USER_INVITATION_REPOSITORY,
+      inject: [DataSource],
+      useFactory: (dataSource: DataSource) =>
+        new TypeOrmUserInvitationRepository(dataSource),
     },
     { provide: PASSWORD_HASHER, useClass: ScryptPasswordHasher },
     { provide: RESET_TOKEN_GENERATOR, useClass: CryptoResetTokenGenerator },
@@ -226,6 +242,79 @@ import { UuidIdGenerator } from '../security/uuid-id-generator';
           passwordHasher,
           clock,
         ),
+    },
+    {
+      provide: InviteBarberUseCase,
+      inject: [
+        USER_REPOSITORY,
+        BARBERSHOP_REPOSITORY,
+        USER_INVITATION_REPOSITORY,
+        RESET_TOKEN_GENERATOR,
+        EMAIL_SENDER,
+        CLOCK,
+        ID_GENERATOR,
+        ConfigService,
+      ],
+      useFactory: (
+        users: UserRepository,
+        barbershops: BarbershopRepository,
+        invitations: UserInvitationRepository,
+        tokenGenerator: ResetTokenGenerator,
+        emailSender: EmailSender,
+        clock: Clock,
+        idGenerator: IdGenerator,
+        config: ConfigService<Env, true>,
+      ) =>
+        new InviteBarberUseCase(
+          users,
+          barbershops,
+          invitations,
+          tokenGenerator,
+          emailSender,
+          clock,
+          idGenerator,
+          config.get('APP_WEB_URL', { infer: true }),
+        ),
+    },
+    {
+      provide: AcceptInvitationUseCase,
+      inject: [
+        USER_INVITATION_REPOSITORY,
+        USER_REPOSITORY,
+        RESET_TOKEN_GENERATOR,
+        PASSWORD_HASHER,
+        ACCESS_TOKEN_ISSUER,
+        CLOCK,
+        ID_GENERATOR,
+      ],
+      useFactory: (
+        invitations: UserInvitationRepository,
+        users: UserRepository,
+        tokenGenerator: ResetTokenGenerator,
+        passwordHasher: PasswordHasher,
+        accessTokenIssuer: AccessTokenIssuer,
+        clock: Clock,
+        idGenerator: IdGenerator,
+      ) =>
+        new AcceptInvitationUseCase(
+          invitations,
+          users,
+          tokenGenerator,
+          passwordHasher,
+          accessTokenIssuer,
+          clock,
+          idGenerator,
+        ),
+    },
+    {
+      provide: ListUsersUseCase,
+      inject: [USER_REPOSITORY],
+      useFactory: (users: UserRepository) => new ListUsersUseCase(users),
+    },
+    {
+      provide: RemoveBarberUseCase,
+      inject: [USER_REPOSITORY],
+      useFactory: (users: UserRepository) => new RemoveBarberUseCase(users),
     },
     { provide: APP_GUARD, useClass: SessionGuard },
     { provide: APP_FILTER, useClass: DomainErrorFilter },

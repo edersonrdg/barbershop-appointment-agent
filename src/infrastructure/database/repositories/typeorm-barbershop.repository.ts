@@ -1,4 +1,4 @@
-import { DataSource, QueryFailedError } from 'typeorm';
+import { DataSource } from 'typeorm';
 import {
   Barbershop,
   SubscriptionStatus,
@@ -8,21 +8,7 @@ import { EmailAlreadyRegisteredError } from '../../../domain/errors/email-alread
 import { BarbershopRepository } from '../../../usecases/ports/barbershop.repository.port';
 import { BarbershopEntity } from '../entities/barbershop.entity';
 import { UserEntity } from '../entities/user.entity';
-
-const UNIQUE_VIOLATION = '23505';
-const USERS_EMAIL_UNIQUE = 'users_email_unique';
-
-function isEmailUniqueViolation(error: unknown): boolean {
-  if (!(error instanceof QueryFailedError)) return false;
-  const driverError: unknown = error.driverError;
-  if (typeof driverError !== 'object' || driverError === null) return false;
-  return (
-    'code' in driverError &&
-    driverError.code === UNIQUE_VIOLATION &&
-    'constraint' in driverError &&
-    driverError.constraint === USERS_EMAIL_UNIQUE
-  );
-}
+import { isEmailUniqueViolation } from './email-unique-violation';
 
 export class TypeOrmBarbershopRepository implements BarbershopRepository {
   constructor(private readonly dataSource: DataSource) {}

@@ -50,5 +50,13 @@
 - **Date**: 2026-09-27
 - **Status**: active
 
+### AD-007
+- **Decision**: O `SessionGuard` confere a sessão no banco a cada requisição autenticada: busca o usuário por `(barbershopId, sub)` do JWT, responde 401 se ele não existe e usa o `role` gravado no banco, não o do token. A autorização por perfil é negada por padrão: rota autenticada sem `@Roles(...)` aceita só `owner`; o barbeiro só entra onde houver `@Roles('owner', 'barber')`. Perfil fora da lista responde `403 { message: 'Acesso negado.' }`.
+- **Reason**: CA-02.3 exige revogar o acesso de um barbeiro removido na hora, o que o JWT sozinho não permite. Negar por padrão faz toda rota das próximas histórias nascer fechada para o Barbeiro (PRD seção 5), no mesmo espírito do AD-003.
+- **Trade-off**: Uma leitura por chave primária em toda requisição autenticada. Substitui o trade-off do AD-004 ("não dá para revogar um token antes de expirar"); a regra de tenant do AD-004 continua valendo.
+- **Scope**: Todos os controllers HTTP autenticados.
+- **Date**: 2026-09-27
+- **Status**: active
+
 ## Handoff
 

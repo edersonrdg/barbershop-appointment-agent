@@ -16,4 +16,21 @@ export class InMemoryUserRepository implements UserRepository {
     const found = this.store.users.find((user) => user.email === email);
     return Promise.resolve(found ?? null);
   }
+
+  listByBarbershop(barbershopId: string): Promise<User[]> {
+    return Promise.resolve(
+      this.store.users.filter((user) => user.barbershopId === barbershopId),
+    );
+  }
+
+  removeBarber(barbershopId: string, userId: string): Promise<boolean> {
+    const before = this.store.users.length;
+    this.store.users = this.store.users.filter(
+      (user) =>
+        user.barbershopId !== barbershopId ||
+        user.id !== userId ||
+        user.role !== 'barber',
+    );
+    return Promise.resolve(this.store.users.length < before);
+  }
 }

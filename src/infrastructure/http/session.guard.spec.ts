@@ -1,9 +1,17 @@
 import { randomUUID } from 'node:crypto';
-import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import {
+  ExecutionContext,
+  ForbiddenException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { AuthenticatedSession } from '../../interface-adapters/controllers/authenticated-session';
+import { User, UserRole } from '../../domain/entities/user';
 import { Public } from '../../interface-adapters/controllers/public.decorator';
+import { Roles } from '../../interface-adapters/controllers/roles.decorator';
+import { InMemoryAccountStore } from '../../usecases/testing/in-memory-account-store';
+import { InMemoryUserRepository } from '../../usecases/testing/in-memory-user.repository';
 import { SessionGuard } from './session.guard';
 
 const SECRET = 'this-is-a-test-secret-with-32-chars';
@@ -19,6 +27,16 @@ class MixedController {
 
 @Public()
 class PublicController {
+  handler(): void {}
+}
+
+class SharedHandlerController {
+  @Roles('owner', 'barber')
+  handler(): void {}
+}
+
+@Roles('owner', 'barber')
+class SharedController {
   handler(): void {}
 }
 
@@ -47,9 +65,34 @@ describe('SessionGuard', () => {
     secret: SECRET,
     signOptions: { algorithm: 'HS256' },
   });
-  const guard = new SessionGuard(new Reflector(), jwtService);
   const userId = randomUUID();
+  const barberId = randomUUID();
   const barbershopId = randomUUID();
+  const store = new InMemoryAccountStore();
+  store.users.push(
+    User.createOwner({
+      id: userId,
+      barbershopId,
+      name: 'Ana',
+      email: 'ana@exemplo.com',
+      phone: '+5511912345678',
+      passwordHash: 'hash',
+      now: new Date(),
+    }),
+    User.createBarber({
+      id: barberId,
+      barbershopId,
+      name: 'João',
+      email: 'joao@exemplo.com',
+      passwordHash: 'hash',
+      now: new Date(),
+    }),
+  );
+  const guard = new SessionGuard(
+    new Reflector(),
+    jwtService,
+    new InMemoryUserRepository(store),
+  );
 
   function sign(payload: object, secret = SECRET, expiresIn = 3600) {
     return jwtService.signAsync(payload, { secret, expiresIn });
@@ -129,5 +172,79 @@ describe('SessionGuard', () => {
 
     await expect(guard.canActivate(contextFor(request))).resolves.toBe(true);
     expect(request.session).toEqual({ userId, barbershopId, role: 'owner' });
+  });
+
+  async function requestAs(sub: string, role: UserRole): Promise<FakeRequest> {
+    const token = await sign({ sub, barbershopId, role });
+    return { headers: { authorization: `Bearer ${token}` } };
+  }
+
+  it('CA-02.2: denies a barber on a handler without @Roles (C18)', async () => {
+    const request = await requestAs(barberId, 'barber');
+
+    const attempt = guard.canActivate(contextFor(request));
+    await expect(attempt).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(attempt).rejects.toMatchObject({
+      response: { message: 'Acesso negado.' },
+      status: 403,
+    });
+  });
+
+  it('CA-02.2: lets a barber through a handler marked @Roles(owner, barber) (C18)', async () => {
+    const request = await requestAs(barberId, 'barber');
+
+    await expect(
+      guard.canActivate(contextFor(request, SharedHandlerController)),
+    ).resolves.toBe(true);
+    expect(request.session).toEqual({
+      userId: barberId,
+      barbershopId,
+      role: 'barber',
+    });
+  });
+
+  it('CA-02.2: applies @Roles on the class to its handlers (C18)', async () => {
+    const request = await requestAs(barberId, 'barber');
+
+    await expect(
+      guard.canActivate(contextFor(request, SharedController)),
+    ).resolves.toBe(true);
+  });
+
+  it('CA-02.3: rejects a valid token whose user no longer exists in the barbershop (C31)', async () => {
+    await expectUnauthorized(await requestAs(randomUUID(), 'owner'));
+  });
+
+  it('CA-02.3: rejects a token whose user exists only in another barbershop (C31)', async () => {
+    const token = await sign({
+      sub: userId,
+      barbershopId: randomUUID(),
+      role: 'owner',
+    });
+
+    await expectUnauthorized({ headers: { authorization: `Bearer ${token}` } });
+  });
+
+  it('CA-02.2: stores the role from the database, not the one in the token (C31)', async () => {
+    const barberClaimingOwner = await requestAs(barberId, 'owner');
+    await expect(
+      guard.canActivate(contextFor(barberClaimingOwner)),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+
+    const ownerClaimingBarber = await requestAs(userId, 'barber');
+    await expect(
+      guard.canActivate(contextFor(ownerClaimingBarber)),
+    ).resolves.toBe(true);
+    expect(ownerClaimingBarber.session).toEqual({
+      userId,
+      barbershopId,
+      role: 'owner',
+    });
+  });
+
+  it('CA-02.2: rejects a token whose role is neither owner nor barber', async () => {
+    await expectUnauthorized(
+      await requestAs(userId, 'admin' as unknown as UserRole),
+    );
   });
 });

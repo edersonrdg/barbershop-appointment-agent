@@ -1,4 +1,5 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { AcceptInvitationUseCase } from '../../usecases/accept-invitation/accept-invitation.use-case';
 import { AuthenticateUserUseCase } from '../../usecases/authenticate-user/authenticate-user.use-case';
 import { RequestPasswordResetUseCase } from '../../usecases/request-password-reset/request-password-reset.use-case';
 import { ResetPasswordUseCase } from '../../usecases/reset-password/reset-password.use-case';
@@ -8,6 +9,8 @@ import {
   SessionResponse,
 } from '../presenters/session.presenter';
 import { Public } from './public.decorator';
+import type { AcceptInvitationBody } from './schemas/accept-invitation.schema';
+import { acceptInvitationSchema } from './schemas/accept-invitation.schema';
 import type { ForgotPasswordBody } from './schemas/forgot-password.schema';
 import { forgotPasswordSchema } from './schemas/forgot-password.schema';
 import type { LoginBody } from './schemas/login.schema';
@@ -31,6 +34,7 @@ export class AuthController {
     private readonly authenticateUser: AuthenticateUserUseCase,
     private readonly requestPasswordReset: RequestPasswordResetUseCase,
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
+    private readonly acceptInvitation: AcceptInvitationUseCase,
   ) {}
 
   @Post('signup')
@@ -69,5 +73,16 @@ export class AuthController {
     @Body(new ZodValidationPipe(resetPasswordSchema)) body: ResetPasswordBody,
   ): Promise<void> {
     await this.resetPasswordUseCase.execute(body);
+  }
+
+  @Post('invitations/accept')
+  @HttpCode(HttpStatus.CREATED)
+  async acceptInvite(
+    @Body(new ZodValidationPipe(acceptInvitationSchema))
+    body: AcceptInvitationBody,
+  ): Promise<SessionResponse> {
+    return SessionPresenter.toResponse(
+      await this.acceptInvitation.execute(body),
+    );
   }
 }

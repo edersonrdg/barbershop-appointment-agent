@@ -1,11 +1,11 @@
-export type UserRole = 'owner';
+export type UserRole = 'owner' | 'barber';
 
 export interface UserProps {
   id: string;
   barbershopId: string;
   name: string;
   email: string;
-  phone: string;
+  phone: string | null;
   passwordHash: string;
   role: UserRole;
   createdAt: Date;
@@ -43,6 +43,33 @@ export class User {
     });
   }
 
+  static createBarber({
+    id,
+    barbershopId,
+    name,
+    email,
+    passwordHash,
+    now,
+  }: {
+    id: string;
+    barbershopId: string;
+    name: string;
+    email: string;
+    passwordHash: string;
+    now: Date;
+  }): User {
+    return new User({
+      id,
+      barbershopId,
+      name,
+      email,
+      phone: null,
+      passwordHash,
+      role: 'barber',
+      createdAt: now,
+    });
+  }
+
   static restore(props: UserProps): User {
     return new User(props);
   }
@@ -63,7 +90,7 @@ export class User {
     return this.props.email;
   }
 
-  get phone(): string {
+  get phone(): string | null {
     return this.props.phone;
   }
 

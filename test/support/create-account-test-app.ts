@@ -1,4 +1,4 @@
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, Type } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
@@ -14,10 +14,13 @@ export interface AccountTestApp {
 
 // The SMTP adapter is swapped for a capturing fake so no e2e suite talks to a
 // real mail server.
-export async function createAccountTestApp(): Promise<AccountTestApp> {
+export async function createAccountTestApp(
+  extraControllers: Type[] = [],
+): Promise<AccountTestApp> {
   const emailSender = new FakeEmailSender();
   const moduleFixture = await Test.createTestingModule({
     imports: [AppModule],
+    controllers: extraControllers,
   })
     .overrideProvider(EMAIL_SENDER)
     .useValue(emailSender)
