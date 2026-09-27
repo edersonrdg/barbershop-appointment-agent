@@ -220,7 +220,7 @@ T31 -> T32
 
 ### Phase 2: Use cases
 
-### T7: Use case RegisterBarbershop
+### T7: Use case RegisterBarbershop ✅
 
 **What**: Cria barbearia em teste + Dono, grava atomicamente, conta a métrica e devolve a sessão. Cria os ports `BarbershopRepository`, `PasswordHasher`, `AccessTokenIssuer`, `Clock`, `IdGenerator`, `AccountMetrics` em `src/usecases/ports/`.
 **Where**: `src/usecases/register-barbershop/register-barbershop.use-case.ts`
@@ -229,13 +229,13 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] `CA-01.1`: barbearia e Dono gravados, Dono com `role 'owner'` vinculado à barbearia, token emitido para esse usuário e tenant
-- [ ] `CA-01.1`: o Dono gravado tem o hash devolvido pelo hasher, nunca a senha em texto
-- [ ] `CA-01.2`: barbearia gravada com `trialing` e fim em `now + 14 dias`
-- [ ] `CA-01.3`: e-mail já usado (com outra caixa e espaços) → `EmailAlreadyRegisteredError`, nenhuma barbearia gravada, nenhum token emitido
-- [ ] E-mail e telefone gravados normalizados
-- [ ] Contador de cadastro incrementado só no sucesso
-- [ ] Gate quick passa
+- [x] `CA-01.1`: barbearia e Dono gravados, Dono com `role 'owner'` vinculado à barbearia, token emitido para esse usuário e tenant
+- [x] `CA-01.1`: o Dono gravado tem o hash devolvido pelo hasher, nunca a senha em texto
+- [x] `CA-01.2`: barbearia gravada com `trialing` e fim em `now + 14 dias`
+- [x] `CA-01.3`: e-mail já usado (com outra caixa e espaços) → `EmailAlreadyRegisteredError`, nenhuma barbearia gravada, nenhum token emitido
+- [x] E-mail e telefone gravados normalizados
+- [x] Contador de cadastro incrementado só no sucesso
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
