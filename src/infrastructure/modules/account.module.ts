@@ -6,6 +6,8 @@ import type { Registry } from 'prom-client';
 import { DataSource } from 'typeorm';
 import { AuthenticateUserUseCase } from '../../usecases/authenticate-user/authenticate-user.use-case';
 import { AuthController } from '../../interface-adapters/controllers/auth.controller';
+import { MeController } from '../../interface-adapters/controllers/me.controller';
+import { GetMyAccountUseCase } from '../../usecases/get-my-account/get-my-account.use-case';
 import {
   ACCESS_TOKEN_ISSUER,
   AccessTokenIssuer,
@@ -66,7 +68,7 @@ import { UuidIdGenerator } from '../security/uuid-id-generator';
     }),
     ObservabilityModule,
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, MeController],
   providers: [
     {
       provide: BARBERSHOP_REPOSITORY,
@@ -156,6 +158,12 @@ import { UuidIdGenerator } from '../security/uuid-id-generator';
         accessTokenIssuer: AccessTokenIssuer,
       ) =>
         new AuthenticateUserUseCase(users, passwordHasher, accessTokenIssuer),
+    },
+    {
+      provide: GetMyAccountUseCase,
+      inject: [USER_REPOSITORY, BARBERSHOP_REPOSITORY],
+      useFactory: (users: UserRepository, barbershops: BarbershopRepository) =>
+        new GetMyAccountUseCase(users, barbershops),
     },
     { provide: APP_GUARD, useClass: SessionGuard },
     { provide: APP_FILTER, useClass: DomainErrorFilter },

@@ -654,7 +654,7 @@ T31 -> T32
 
 ---
 
-### T30: GET /me
+### T30: GET /me ✅
 
 **What**: `MeController` + `MyAccountPresenter`.
 **Where**: `src/interface-adapters/controllers/me.controller.ts`
@@ -663,10 +663,10 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] `CA-01.4`: token de A → 200 só com usuário e barbearia de A (`trialing`, `trialEndsAt` = +14 dias)
-- [ ] `CA-01.4`: token de A com `barbershopId` de B na query, em header `x-barbershop-id` e no corpo → sempre dados de A
-- [ ] Sem token, token malformado, token assinado com outro segredo e token expirado → 401
-- [ ] Gate full passa
+- [x] `CA-01.4`: token de A → 200 só com usuário e barbearia de A (`trialing`, `trialEndsAt` = +14 dias)
+- [x] `CA-01.4`: token de A com `barbershopId` de B na query, em header `x-barbershop-id` e no corpo → sempre dados de A
+- [x] Sem token, token malformado, token assinado com outro segredo e token expirado → 401
+- [x] Gate full passa
 
 **Tests**: e2e
 **Gate**: full
