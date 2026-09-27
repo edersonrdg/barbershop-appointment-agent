@@ -410,7 +410,7 @@ T31 -> T32
 
 ---
 
-### T17: CryptoResetTokenGenerator
+### T17: CryptoResetTokenGenerator ✅
 
 **What**: Implementa `ResetTokenGenerator`: 32 bytes aleatórios em base64url; hash SHA-256 hex.
 **Where**: `src/infrastructure/security/crypto-reset-token-generator.ts`
@@ -419,8 +419,8 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] `CA-01.5`: token decodifica para 32 bytes; `tokenHash` = SHA-256 hex do token e diferente dele; `hashOf(token)` = `tokenHash`
-- [ ] Gate quick passa
+- [x] `CA-01.5`: token decodifica para 32 bytes; `tokenHash` = SHA-256 hex do token e diferente dele; `hashOf(token)` = `tokenHash`
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
