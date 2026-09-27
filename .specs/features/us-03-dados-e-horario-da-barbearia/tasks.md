@@ -230,15 +230,16 @@ T11 -> T12
 
 **Done when**:
 
-- [ ] Unit `CA-03.1`: barbearia nova tem endereço `null` e 7 dias fechados; `openIntervalsOn` de segunda (09:00–19:00, intervalo 12:00–13:00, São Paulo) = `12:00Z–15:00Z` e `16:00Z–22:00Z`; dia fechado = `[]`; dia sem intervalo = 1 período
-- [ ] Unit `CA-03.3`: mesma semana depois de `updateSettings` com `America/Manaus` começa às `13:00Z`; sem troca, o fuso é `America/Sao_Paulo`
-- [ ] e2e: `findById` devolve endereço e dias gravados por SQL, com `HH:mm`
-- [ ] Testes existentes de `GET /me` e convite seguem passando
-- [ ] Gate check passes: `npm test && npm run test:e2e`
-- [ ] Test count: ~7 tests novos passam (no silent deletions)
+- [x] Unit `CA-03.1`: barbearia nova tem endereço `null` e 7 dias fechados; `openIntervalsOn` de segunda (09:00–19:00, intervalo 12:00–13:00, São Paulo) = `12:00Z–15:00Z` e `16:00Z–22:00Z`; dia fechado = `[]`; dia sem intervalo = 1 período
+- [x] Unit `CA-03.3`: mesma semana depois de `updateSettings` com `America/Manaus` começa às `13:00Z`; sem troca, o fuso é `America/Sao_Paulo`
+- [x] e2e: `findById` devolve endereço e dias gravados por SQL, com `HH:mm`
+- [x] Testes existentes de `GET /me` e convite seguem passando
+- [x] Gate check passes: `npm test && npm run test:e2e`
+- [x] Test count: ~7 tests novos passam (no silent deletions)
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Done
 **Commit**: `feat(US-03): carry address and opening hours in Barbershop`
 
 ---

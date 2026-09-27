@@ -97,6 +97,59 @@ describe('TypeOrmBarbershopRepository (e2e)', () => {
     expect(await repository.findById(randomUUID())).toBeNull();
   });
 
+  it('CA-03.1: findById reads the address and the opening hours as HH:mm, with missing days closed', async () => {
+    const barbershop = buildBarbershop();
+    await repository.createWithOwner(
+      barbershop,
+      buildOwner(barbershop.id, 'dono@barbearia.com'),
+    );
+    await dataSource.query(
+      `UPDATE barbershops SET address = 'Rua das Flores, 123 - Centro, Campinas/SP', timezone = 'America/Manaus' WHERE id = $1`,
+      [barbershop.id],
+    );
+    await dataSource.query(
+      `INSERT INTO barbershop_opening_hours (barbershop_id, weekday, opens_at, closes_at, break_starts_at, break_ends_at)
+       VALUES ($1, 1, '09:00', '19:00', '12:00', '13:00'), ($1, 6, '08:30', '14:00', NULL, NULL)`,
+      [barbershop.id],
+    );
+
+    const found = await repository.findById(barbershop.id);
+
+    expect(found?.address).toBe('Rua das Flores, 123 - Centro, Campinas/SP');
+    expect(found?.timezone).toBe('America/Manaus');
+    const monday = found?.openingHours.forDay('monday');
+    expect(monday?.opensAt.toString()).toBe('09:00');
+    expect(monday?.closesAt.toString()).toBe('19:00');
+    expect(monday?.break?.startsAt.toString()).toBe('12:00');
+    expect(monday?.break?.endsAt.toString()).toBe('13:00');
+    const saturday = found?.openingHours.forDay('saturday');
+    expect(saturday?.opensAt.toString()).toBe('08:30');
+    expect(saturday?.closesAt.toString()).toBe('14:00');
+    expect(saturday?.break).toBeNull();
+    for (const weekday of [
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'sunday',
+    ] as const) {
+      expect(found?.openingHours.forDay(weekday)).toBeNull();
+    }
+  });
+
+  it('CA-03.1: findById of a barbershop that never saved settings has no address and every day closed', async () => {
+    const barbershop = buildBarbershop();
+    await repository.createWithOwner(
+      barbershop,
+      buildOwner(barbershop.id, 'dono@barbearia.com'),
+    );
+
+    const found = await repository.findById(barbershop.id);
+
+    expect(found?.address).toBeNull();
+    expect(found?.openIntervalsOn('2026-10-05')).toEqual([]);
+  });
+
   it('CA-01.3: a repeated e-mail throws EmailAlreadyRegisteredError and the second barbershop is not persisted', async () => {
     const first = buildBarbershop('Primeira');
     await repository.createWithOwner(
