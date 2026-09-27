@@ -1,0 +1,9 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: barbershop-api
+    metrics_path: /metrics
+    static_configs:
+      # app no compose (--profile app) ou rodando no host (npm run start:dev)
+      - targets: ['app:3000', 'host.docker.internal:3000']
