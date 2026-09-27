@@ -176,13 +176,14 @@ T11 -> T12
 
 **Done when**:
 
-- [ ] `allClosed()` devolve `null` nos 7 dias
-- [ ] `forDay` devolve o dia aberto ou `null` para o fechado
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: ~4 tests novos passam (no silent deletions)
+- [x] `allClosed()` devolve `null` nos 7 dias
+- [x] `forDay` devolve o dia aberto ou `null` para o fechado
+- [x] Gate check passes: `npm test`
+- [x] Test count: ~4 tests novos passam (no silent deletions)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
 **Commit**: `feat(US-03): add weekly opening hours`
 
 ---
