@@ -242,7 +242,7 @@ T31 -> T32
 
 ---
 
-### T8: Use case AuthenticateUser
+### T8: Use case AuthenticateUser ✅
 
 **What**: Login por e-mail e senha. Cria o port `UserRepository` (`findById(barbershopId, userId)`, `findByEmail(email)`).
 **Where**: `src/usecases/authenticate-user/authenticate-user.use-case.ts`
@@ -251,9 +251,9 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] Credenciais corretas (e-mail com maiúsculas/espaços) → token com o `userId` e o `barbershopId` do usuário
-- [ ] E-mail inexistente e senha errada → `InvalidCredentialsError` com a mesma mensagem
-- [ ] Gate quick passa
+- [x] Credenciais corretas (e-mail com maiúsculas/espaços) → token com o `userId` e o `barbershopId` do usuário
+- [x] E-mail inexistente e senha errada → `InvalidCredentialsError` com a mesma mensagem
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
