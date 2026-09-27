@@ -397,15 +397,16 @@ T11 -> T12
 
 **Done when**:
 
-- [ ] e2e `CA-03.1`: `PUT` válido → 200 com o estado salvo; `GET` devolve o mesmo (dia fechado `null`, intervalo e `break: null`); repetir o `PUT` → 200 e mesmo estado; reabrir → fechar dia funciona
-- [ ] e2e `CA-03.2`: segunda 18:00–09:00 → 400 "Segunda-feira: o horário de fechamento deve ser depois do de abertura."; intervalo fora → 400 com a mensagem do CFG-09; payload malformado → 400 com `errors`; nos três, o `GET` seguinte devolve o estado anterior
-- [ ] e2e `CA-03.3`: `America/Manaus` gravado aparece no `GET /settings/barbershop` e no `GET /me`; `Europe/Lisbon` → 400
-- [ ] e2e `RN-26`: `PUT` de A com `barbershopId` de B no corpo altera só A; Barbeiro → 403 e nada muda
-- [ ] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
-- [ ] Test count: ~10 tests e2e novos passam (no silent deletions)
+- [x] e2e `CA-03.1`: `PUT` válido → 200 com o estado salvo; `GET` devolve o mesmo (dia fechado `null`, intervalo e `break: null`); repetir o `PUT` → 200 e mesmo estado; reabrir → fechar dia funciona
+- [x] e2e `CA-03.2`: segunda 18:00–09:00 → 400 "Segunda-feira: o horário de fechamento deve ser depois do de abertura."; intervalo fora → 400 com a mensagem do CFG-09; payload malformado → 400 com `errors`; nos três, o `GET` seguinte devolve o estado anterior
+- [x] e2e `CA-03.3`: `America/Manaus` gravado aparece no `GET /settings/barbershop` e no `GET /me`; `Europe/Lisbon` → 400
+- [x] e2e `RN-26`: `PUT` de A com `barbershopId` de B no corpo altera só A; Barbeiro → 403 e nada muda
+- [x] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+- [x] Test count: ~10 tests e2e novos passam (no silent deletions)
 
 **Tests**: e2e
 **Gate**: build
+**Status**: ✅ Done
 **Commit**: `feat(US-03): expose PUT /settings/barbershop`
 
 ---

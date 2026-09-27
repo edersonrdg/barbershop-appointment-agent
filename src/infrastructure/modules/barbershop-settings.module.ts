@@ -5,6 +5,7 @@ import {
   BARBERSHOP_REPOSITORY,
   BarbershopRepository,
 } from '../../usecases/ports/barbershop.repository.port';
+import { UpdateBarbershopSettingsUseCase } from '../../usecases/update-barbershop-settings/update-barbershop-settings.use-case';
 import { AccountModule } from './account.module';
 
 @Module({
@@ -16,6 +17,12 @@ import { AccountModule } from './account.module';
       inject: [BARBERSHOP_REPOSITORY],
       useFactory: (barbershops: BarbershopRepository) =>
         new GetBarbershopSettingsUseCase(barbershops),
+    },
+    {
+      provide: UpdateBarbershopSettingsUseCase,
+      inject: [BARBERSHOP_REPOSITORY],
+      useFactory: (barbershops: BarbershopRepository) =>
+        new UpdateBarbershopSettingsUseCase(barbershops),
     },
   ],
 })
