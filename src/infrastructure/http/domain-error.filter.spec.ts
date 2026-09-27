@@ -2,6 +2,7 @@ import { ArgumentsHost, Logger } from '@nestjs/common';
 import { DomainError } from '../../domain/errors/domain.error';
 import { EmailAlreadyRegisteredError } from '../../domain/errors/email-already-registered.error';
 import { InvalidCredentialsError } from '../../domain/errors/invalid-credentials.error';
+import { InvalidOpeningHoursError } from '../../domain/errors/invalid-opening-hours.error';
 import { InvalidPasswordResetTokenError } from '../../domain/errors/invalid-password-reset-token.error';
 import { InvalidValueError } from '../../domain/errors/invalid-value.error';
 import { DomainErrorFilter } from './domain-error.filter';
@@ -58,6 +59,16 @@ describe('DomainErrorFilter', () => {
     expect(handle(new InvalidPasswordResetTokenError())).toEqual({
       statusCode: 400,
       body: { message: 'Link de redefinição inválido ou expirado.' },
+    });
+  });
+
+  it('CA-03.2: maps InvalidOpeningHoursError to 400 with its message', () => {
+    const message =
+      'Segunda-feira: o horário de fechamento deve ser depois do de abertura.';
+
+    expect(handle(new InvalidOpeningHoursError(message))).toEqual({
+      statusCode: 400,
+      body: { message },
     });
   });
 

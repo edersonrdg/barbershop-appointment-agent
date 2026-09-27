@@ -1,3 +1,6 @@
+import { BarbershopTimezone } from '../value-objects/barbershop-timezone';
+import { WeeklyOpeningHours } from '../value-objects/weekly-opening-hours';
+
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 // RN-24: todo teste gratuito dura exatamente 14 dias.
@@ -9,14 +12,21 @@ export type SubscriptionStatus = 'trialing';
 export interface BarbershopProps {
   id: string;
   name: string;
-  timezone: string;
+  address: string | null;
+  timezone: BarbershopTimezone;
+  openingHours: WeeklyOpeningHours;
   subscriptionStatus: SubscriptionStatus;
   trialEndsAt: Date;
   createdAt: Date;
 }
 
+export interface UtcPeriod {
+  start: Date;
+  end: Date;
+}
+
 export class Barbershop {
-  private constructor(private readonly props: BarbershopProps) {}
+  private constructor(private props: BarbershopProps) {}
 
   static startTrial({
     id,
@@ -33,7 +43,9 @@ export class Barbershop {
     return new Barbershop({
       id,
       name,
-      timezone: DEFAULT_TIMEZONE,
+      address: null,
+      timezone: BarbershopTimezone.create(DEFAULT_TIMEZONE),
+      openingHours: WeeklyOpeningHours.allClosed(),
       subscriptionStatus: 'trialing',
       trialEndsAt,
       createdAt: now,
@@ -52,8 +64,16 @@ export class Barbershop {
     return this.props.name;
   }
 
+  get address(): string | null {
+    return this.props.address;
+  }
+
   get timezone(): string {
-    return this.props.timezone;
+    return this.props.timezone.value;
+  }
+
+  get openingHours(): WeeklyOpeningHours {
+    return this.props.openingHours;
   }
 
   get subscriptionStatus(): SubscriptionStatus {
@@ -66,5 +86,31 @@ export class Barbershop {
 
   get createdAt(): Date {
     return this.props.createdAt;
+  }
+
+  updateSettings({
+    name,
+    address,
+    timezone,
+    openingHours,
+  }: {
+    name: string;
+    address: string;
+    timezone: BarbershopTimezone;
+    openingHours: WeeklyOpeningHours;
+  }): void {
+    this.props = { ...this.props, name, address, timezone, openingHours };
+  }
+
+  // CA-03.3: os horários são hora local de parede; o instante UTC depende do
+  // fuso atual da barbearia e da própria data.
+  openIntervalsOn(localDate: string): UtcPeriod[] {
+    const { timezone, openingHours } = this.props;
+    const day = openingHours.forDay(timezone.weekdayOf(localDate));
+    if (!day) return [];
+    return day.openPeriods().map((period) => ({
+      start: timezone.toUtc(localDate, period.start),
+      end: timezone.toUtc(localDate, period.end),
+    }));
   }
 }
