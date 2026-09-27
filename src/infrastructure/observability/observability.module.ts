@@ -22,6 +22,7 @@ import {
       useFactory: (registry: Registry) => createHttpRequestDuration(registry),
     },
   ],
+  exports: [METRICS_REGISTRY],
 })
 export class ObservabilityModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {

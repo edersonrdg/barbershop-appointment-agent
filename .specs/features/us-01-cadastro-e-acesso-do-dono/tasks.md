@@ -611,7 +611,7 @@ T31 -> T32
 
 ### Phase 7: Endpoints
 
-### T28: AccountModule + POST /auth/signup
+### T28: AccountModule + POST /auth/signup ✅
 
 **What**: `AccountModule` (JWT, ports, use cases, guard e filtro globais) importado no `AppModule`; `AuthController.signup` com schema Zod e `SessionPresenter`; e2e com `EMAIL_SENDER` fake e tabelas truncadas.
 **Where**: `src/interface-adapters/controllers/auth.controller.ts`
@@ -620,15 +620,15 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] `CA-01.1`: 201 com `accessToken`, `tokenType 'Bearer'`, `expiresIn`; o token decodifica para o Dono e a barbearia criados
-- [ ] `CA-01.1`: `password_hash` no banco ≠ senha; corpo da resposta não contém a senha
-- [ ] `CA-01.1`: cada campo ausente ou inválido → 400 com o campo listado e nada gravado
-- [ ] `CA-01.2`: barbearia com `trialing` e `trial_ends_at - created_at = 14 dias`; payload sem pagamento aceito
-- [ ] `CA-01.3`: e-mail repetido (com caixa/espaços diferentes) → 409 "Este e-mail já está cadastrado." e nada novo gravado
-- [ ] `CA-01.3`: dois signups simultâneos → um 201, um 409, sem barbearia órfã
-- [ ] Campos extras (`role`, `barbershopId`, cartão) ignorados: usuário é `owner` de barbearia nova
-- [ ] Telefone mascarado gravado em E.164
-- [ ] Gate full passa
+- [x] `CA-01.1`: 201 com `accessToken`, `tokenType 'Bearer'`, `expiresIn`; o token decodifica para o Dono e a barbearia criados
+- [x] `CA-01.1`: `password_hash` no banco ≠ senha; corpo da resposta não contém a senha
+- [x] `CA-01.1`: cada campo ausente ou inválido → 400 com o campo listado e nada gravado
+- [x] `CA-01.2`: barbearia com `trialing` e `trial_ends_at - created_at = 14 dias`; payload sem pagamento aceito
+- [x] `CA-01.3`: e-mail repetido (com caixa/espaços diferentes) → 409 "Este e-mail já está cadastrado." e nada novo gravado
+- [x] `CA-01.3`: dois signups simultâneos → um 201, um 409, sem barbearia órfã
+- [x] Campos extras (`role`, `barbershopId`, cartão) ignorados: usuário é `owner` de barbearia nova
+- [x] Telefone mascarado gravado em E.164
+- [x] Gate full passa
 
 **Tests**: e2e
 **Gate**: full
