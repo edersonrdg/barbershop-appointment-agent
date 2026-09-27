@@ -298,7 +298,7 @@ T31 -> T32
 
 ---
 
-### T11: Use case ResetPassword
+### T11: Use case ResetPassword ✅
 
 **What**: Resgata o token pelo hash e troca a senha.
 **Where**: `src/usecases/reset-password/reset-password.use-case.ts`
@@ -307,10 +307,10 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] `CA-01.5`: token válido → hash da senha nova gravado e token marcado como usado no instante `now`
-- [ ] `CA-01.5`: token expirado, usado, substituído ou inexistente → `InvalidPasswordResetTokenError` e senha inalterada
-- [ ] `CA-01.5`: `redeem` devolve `false` (corrida) → `InvalidPasswordResetTokenError`
-- [ ] Gate quick passa
+- [x] `CA-01.5`: token válido → hash da senha nova gravado e token marcado como usado no instante `now`
+- [x] `CA-01.5`: token expirado, usado, substituído ou inexistente → `InvalidPasswordResetTokenError` e senha inalterada
+- [x] `CA-01.5`: `redeem` devolve `false` (corrida) → `InvalidPasswordResetTokenError`
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
