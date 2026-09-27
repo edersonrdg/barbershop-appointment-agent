@@ -427,7 +427,7 @@ T31 -> T32
 
 ---
 
-### T18: JwtAccessTokenIssuer
+### T18: JwtAccessTokenIssuer ✅
 
 **What**: Implementa `AccessTokenIssuer` com `@nestjs/jwt@11` (HS256, `expiresIn = AUTH_SESSION_TTL_SECONDS`). Instala `@nestjs/jwt@^11.0.2`.
 **Where**: `src/infrastructure/security/jwt-access-token-issuer.ts`
@@ -436,8 +436,8 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] Token verificado com o mesmo segredo traz `sub`, `barbershopId`, `role` e `exp - iat` igual ao TTL; `expiresIn` devolvido igual ao TTL
-- [ ] Gate quick passa
+- [x] Token verificado com o mesmo segredo traz `sub`, `barbershopId`, `role` e `exp - iat` igual ao TTL; `expiresIn` devolvido igual ao TTL
+- [x] Gate quick passa
 
 **Tests**: unit
 **Gate**: quick
