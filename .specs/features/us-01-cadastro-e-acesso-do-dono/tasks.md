@@ -444,7 +444,7 @@ T31 -> T32
 
 ---
 
-### T19: Relógio e gerador de UUID
+### T19: Relógio e gerador de UUID ✅
 
 **What**: `SystemClock` (`new Date()`) e `UuidIdGenerator` (`randomUUID`).
 **Where**: `src/infrastructure/security/` (um arquivo por classe)
@@ -453,7 +453,7 @@ T31 -> T32
 
 **Done when**:
 
-- [ ] Gate build passa
+- [x] Gate build passa
 
 **Tests**: none
 **Gate**: build
