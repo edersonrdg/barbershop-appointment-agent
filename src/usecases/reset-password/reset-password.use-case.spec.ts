@@ -15,7 +15,9 @@ const OLD_HASH = 'hashed(senha-antiga-123)';
 // Simulates a concurrent request redeeming the same token between the lookup
 // and this request's redeem.
 class RacingPasswordResetRepository extends InMemoryPasswordResetRepository {
-  async findByTokenHash(tokenHash: string): Promise<PasswordResetToken | null> {
+  override async findByTokenHash(
+    tokenHash: string,
+  ): Promise<PasswordResetToken | null> {
     const token = await super.findByTokenHash(tokenHash);
     if (token) {
       await super.redeem({
