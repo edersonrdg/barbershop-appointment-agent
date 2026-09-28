@@ -109,13 +109,15 @@ T14
 
 **Done when**:
 
-- [ ] `create` com nome `'  João  '` e telefone `PhoneNumber.create('11987654321')` → nome `'João'`, telefone `'+5511987654321'`
-- [ ] Nome com 2 e 80 caracteres aceito; com 1 ou 81 (depois do trim) → `InvalidValueError('Informe o nome do cliente, com 2 a 80 caracteres.')`
-- [ ] `restore` devolve os mesmos valores
-- [ ] Gate check passes: `npm test`
+- [x] `create` com nome `'  João  '` e telefone `PhoneNumber.create('11987654321')` → nome `'João'`, telefone `'+5511987654321'`
+- [x] Nome com 2 e 80 caracteres aceito; com 1 ou 81 (depois do trim) → `InvalidValueError('Informe o nome do cliente, com 2 a 80 caracteres.')`
+- [x] `restore` devolve os mesmos valores
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
+
+**Status**: ✅ Done
 
 **Commit**: `feat(US-10): add client entity`
 
