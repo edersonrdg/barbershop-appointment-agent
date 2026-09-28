@@ -224,12 +224,14 @@ T13
 
 **Done when**:
 
-- [ ] Agendamento que começa antes e termina dentro do período entra; o que atravessa a meia-noite entra na folga do dia em que começa
-- [ ] Agendamento que só encosta (fim = início do período, ou início = fim) fica de fora (BLQ-16)
-- [ ] Agendamentos de outro barbeiro e de outra barbearia ficam de fora
-- [ ] Ordem por início; serviços na ordem gravada; cliente ou `null`
-- [ ] Testes de `listStartingIn` seguem verdes
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] Agendamento que começa antes e termina dentro do período entra; o que atravessa a meia-noite entra na folga do dia em que começa
+- [x] Agendamento que só encosta (fim = início do período, ou início = fim) fica de fora (BLQ-16)
+- [x] Agendamentos de outro barbeiro e de outra barbearia ficam de fora
+- [x] Ordem por início; serviços na ordem gravada; cliente ou `null`
+- [x] Testes de `listStartingIn` seguem verdes
+- [x] Gate check passes: `npm test && npm run test:e2e`
+
+**Status**: ✅ Done
 
 **Tests**: e2e
 **Gate**: full

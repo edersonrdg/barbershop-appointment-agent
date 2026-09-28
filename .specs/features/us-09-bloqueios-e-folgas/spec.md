@@ -182,11 +182,11 @@ O motor da US-07 já respeita bloqueios e folgas (RN-05), mas não há como cri�
 | BLQ-09 | P1 Folga — motor sem horários no dia | - | Pending |
 | BLQ-10 | P1 Folga — outros dias e barbeiros intactos | - | Pending |
 | BLQ-11 | P1 Folga — Barbeiro na própria agenda | - | Pending |
-| BLQ-12 | P1 Conflito — 409 com lista, sem gravar | - | Pending |
+| BLQ-12 | P1 Conflito — 409 com lista, sem gravar | T5 | Implementing |
 | BLQ-13 | P1 Conflito — confirmação grava | - | Pending |
 | BLQ-14 | P1 Conflito — agendamentos intactos | - | Pending |
-| BLQ-15 | P1 Conflito — formato da lista | - | Pending |
-| BLQ-16 | P1 Conflito — encostar não conflita | - | Pending |
+| BLQ-15 | P1 Conflito — formato da lista | T5 | Implementing |
+| BLQ-16 | P1 Conflito — encostar não conflita | T5 | Implementing |
 | BLQ-17 | P1 Conflito — sem conflito, lista vazia | - | Pending |
 | BLQ-18 | P1 Listar — Dono por período | T4 | Implementing |
 | BLQ-19 | P1 Validação — 400 e mensagens | - | Pending |
@@ -195,7 +195,7 @@ O motor da US-07 já respeita bloqueios e folgas (RN-05), mas não há como cri�
 | BLQ-22 | P1 Remover — motor volta a oferecer | - | Pending |
 | BLQ-23 | P1 Remover — Barbeiro só os próprios | - | Pending |
 | BLQ-24 | P1 Remover — inexistente 404 | T2, T4 | Implementing |
-| BLQ-25 | P1 Isolamento — RN-26 | T3, T4 | Implementing |
+| BLQ-25 | P1 Isolamento — RN-26 | T3, T4, T5 | Implementing |
 | BLQ-26 | P1 Isolamento — 401 | - | Pending |
 | BLQ-27 | P1 Dados — tipo e motivo, migration | T2, T3, T4 | Implementing |
 | BLQ-28 | P1 Swagger | - | Pending |
