@@ -152,15 +152,15 @@ T13 -> T15
 
 **Done when**:
 
-- [ ] Nasce ativo, sem serviços e sem usuário
-- [ ] `changeServices`: ordem preservada; vazio, outro tenant e inativo recusados com as mensagens do design
-- [ ] `linkUser`: Dono e Barbeiro do tenant aceitos; outro tenant recusado; `null` desvincula
-- [ ] `update` não muda `active`; `activate`/`deactivate` idempotentes e não mexem em nome, usuário, serviços e jornada
-- [ ] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+- [x] Nasce ativo, sem serviços e sem usuário
+- [x] `changeServices`: ordem preservada; vazio, outro tenant e inativo recusados com as mensagens do design
+- [x] `linkUser`: Dono e Barbeiro do tenant aceitos; outro tenant recusado; `null` desvincula
+- [x] `update` não muda `active`; `activate`/`deactivate` idempotentes e não mexem em nome, usuário, serviços e jornada
+- [x] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
 
 **Tests**: unit
 **Gate**: build
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-05): add Barber entity with service and user rules`
 
 ---
