@@ -375,11 +375,13 @@ T13
 
 **Done when**:
 
-- [ ] Cada entrada inválida de BLQ-19 recusada com a mensagem exata da spec
-- [ ] `start = 24:00` recusado; `end = 24:00` aceito; `end = start` recusado
-- [ ] `day_off` com `start`/`end` aceito e sem esses campos na saída
-- [ ] Motivo com 120 caracteres aceito; 121 recusado
-- [ ] Gate check passes: `npm test`
+- [x] Cada entrada inválida de BLQ-19 recusada com a mensagem exata da spec
+- [x] `start = 24:00` recusado; `end = 24:00` aceito; `end = start` recusado
+- [x] `day_off` com `start`/`end` aceito e sem esses campos na saída
+- [x] Motivo com 120 caracteres aceito; 121 recusado
+- [x] Gate check passes: `npm test`
+
+**Status**: ✅ Done
 
 **Tests**: unit
 **Gate**: quick

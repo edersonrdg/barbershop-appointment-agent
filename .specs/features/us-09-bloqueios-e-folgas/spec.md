@@ -189,7 +189,7 @@ O motor da US-07 já respeita bloqueios e folgas (RN-05), mas não há como cri�
 | BLQ-16 | P1 Conflito — encostar não conflita | T5 | Implementing |
 | BLQ-17 | P1 Conflito — sem conflito, lista vazia | T7 | Implementing |
 | BLQ-18 | P1 Listar — Dono por período | T4, T8 | Implementing |
-| BLQ-19 | P1 Validação — 400 e mensagens | - | Pending |
+| BLQ-19 | P1 Validação — 400 e mensagens | T10 | Implementing |
 | BLQ-20 | P1 Listar — Barbeiro só os próprios | T6, T8 | Implementing |
 | BLQ-21 | P1 Remover — Dono 204 | T4, T9 | Implementing |
 | BLQ-22 | P1 Remover — motor volta a oferecer | - | Pending |
