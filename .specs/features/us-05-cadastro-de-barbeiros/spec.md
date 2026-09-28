@@ -206,44 +206,44 @@ A barbearia já tem horário de funcionamento (US-03) e serviços (US-04), mas a
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| BRB-01 | P1 Cadastrar — CA-05.1 `POST` cria ativo | Design | Pending |
-| BRB-02 | P1 Cadastrar — CA-05.1 `GET` lista | Design | Pending |
-| BRB-03 | P1 Cadastrar — CA-05.1 leitura de disponíveis | Design | Pending |
-| BRB-04 | P1 Cadastrar — CA-05.1 `PUT` edita | Design | Pending |
-| BRB-05 | P1 Cadastrar — CA-05.1 nome repetido 409 | Design | Pending |
-| BRB-06 | P1 Cadastrar — CA-05.1 índice único do nome | Design | Pending |
-| BRB-07 | P1 Serviços — CA-05.1 grava a relação | Design | Pending |
-| BRB-08 | P1 Serviços — CA-05.1 vazio, mais de 50 ou repetidos | Design | Pending |
-| BRB-09 | P1 Serviços — CA-05.1 serviço inexistente/outro tenant | Design | Pending |
-| BRB-10 | P1 Serviços — CA-05.1 serviço inativo | Design | Pending |
-| BRB-11 | P1 Serviços — RN-26 tenant da relação no banco | Design | Pending |
-| BRB-12 | P1 Jornada — CA-05.1 grava os 7 dias | Design | Pending |
-| BRB-13 | P1 Jornada — CA-05.1 jornada incoerente | Design | Pending |
-| BRB-14 | P1 Jornada — CA-05.1 payload malformado | Design | Pending |
-| BRB-15 | P1 Jornada — CA-05.3 aviso de trecho fora | Design | Pending |
-| BRB-16 | P1 Jornada — CA-05.3 aviso de dia fechado | Design | Pending |
-| BRB-17 | P1 Jornada — CA-05.3 sem aviso | Design | Pending |
-| BRB-18 | P1 Jornada — CA-05.1 `CHECK` no banco | Design | Pending |
-| BRB-19 | P1 Vínculo — CA-05.2 grava o vínculo | Design | Pending |
-| BRB-20 | P1 Vínculo — CA-05.2 barbeiro do usuário | Design | Pending |
-| BRB-21 | P1 Vínculo — CA-05.2 desvincular | Design | Pending |
-| BRB-22 | P1 Vínculo — CA-05.2 usuário inexistente/outro tenant | Design | Pending |
-| BRB-23 | P1 Vínculo — CA-05.2 usuário já vinculado 409 | Design | Pending |
-| BRB-24 | P1 Vínculo — CA-05.2 índice único e FK composta | Design | Pending |
-| BRB-25 | P1 Vínculo — CA-05.2 remoção do usuário desvincula | Design | Pending |
-| BRB-26 | P1 Desativar — desativa | Design | Pending |
-| BRB-27 | P1 Desativar — some dos disponíveis, fica na lista | Design | Pending |
-| BRB-28 | P1 Desativar — nada além do flag muda | Design | Pending |
-| BRB-29 | P1 Desativar — reativa | Design | Pending |
-| BRB-30 | P1 Desativar — idempotente | Design | Pending |
-| BRB-31 | P1 Desativar — barbeiro inexistente 404 | Design | Pending |
-| BRB-32 | P1 Permissão — Barbeiro 403 | Design | Pending |
-| BRB-33 | P1 Permissão — sem sessão 401 | Design | Pending |
-| BRB-34 | P1 Permissão — RN-26 tenant da sessão | Design | Pending |
+| BRB-01 | P1 Cadastrar — CA-05.1 `POST` cria ativo | T3, T6, T13 | Verified |
+| BRB-02 | P1 Cadastrar — CA-05.1 `GET` lista | T5, T9, T13 | Verified |
+| BRB-03 | P1 Cadastrar — CA-05.1 leitura de disponíveis | T5, T10, T13 | Verified |
+| BRB-04 | P1 Cadastrar — CA-05.1 `PUT` edita | T7, T14 | Verified |
+| BRB-05 | P1 Cadastrar — CA-05.1 nome repetido 409 | T5, T6, T7, T13, T14 | Verified |
+| BRB-06 | P1 Cadastrar — CA-05.1 índice único do nome | T4, T5 | Verified |
+| BRB-07 | P1 Serviços — CA-05.1 grava a relação | T3, T6, T13 | Verified |
+| BRB-08 | P1 Serviços — CA-05.1 vazio, mais de 50 ou repetidos | T12, T13 | Verified |
+| BRB-09 | P1 Serviços — CA-05.1 serviço inexistente/outro tenant | T3, T6, T13 | Verified |
+| BRB-10 | P1 Serviços — CA-05.1 serviço inativo | T3, T6, T13 | Verified |
+| BRB-11 | P1 Serviços — RN-26 tenant da relação no banco | T4 | Verified |
+| BRB-12 | P1 Jornada — CA-05.1 grava os 7 dias | T1, T5, T6, T13 | Verified |
+| BRB-13 | P1 Jornada — CA-05.1 jornada incoerente | T1, T6, T13 | Verified |
+| BRB-14 | P1 Jornada — CA-05.1 payload malformado | T12, T13 | Verified |
+| BRB-15 | P1 Jornada — CA-05.3 aviso de trecho fora | T2, T6, T13 | Verified |
+| BRB-16 | P1 Jornada — CA-05.3 aviso de dia fechado | T2, T6, T13 | Verified |
+| BRB-17 | P1 Jornada — CA-05.3 sem aviso | T2, T6, T13 | Verified |
+| BRB-18 | P1 Jornada — CA-05.1 `CHECK` no banco | T4 | Verified |
+| BRB-19 | P1 Vínculo — CA-05.2 grava o vínculo | T3, T6, T13 | Verified |
+| BRB-20 | P1 Vínculo — CA-05.2 barbeiro do usuário | T5, T11, T13 | Verified |
+| BRB-21 | P1 Vínculo — CA-05.2 desvincular | T3, T7, T11, T14 | Verified |
+| BRB-22 | P1 Vínculo — CA-05.2 usuário inexistente/outro tenant | T3, T6, T13 | Verified |
+| BRB-23 | P1 Vínculo — CA-05.2 usuário já vinculado 409 | T5, T6, T7, T13, T14 | Verified |
+| BRB-24 | P1 Vínculo — CA-05.2 índice único e FK composta | T4 | Verified |
+| BRB-25 | P1 Vínculo — CA-05.2 remoção do usuário desvincula | T4, T13 | Verified |
+| BRB-26 | P1 Desativar — desativa | T3, T8, T15 | Verified |
+| BRB-27 | P1 Desativar — some dos disponíveis, fica na lista | T5, T9, T10, T15 | Verified |
+| BRB-28 | P1 Desativar — nada além do flag muda | T3, T8, T15 | Verified |
+| BRB-29 | P1 Desativar — reativa | T3, T8, T10, T15 | Verified |
+| BRB-30 | P1 Desativar — idempotente | T3, T8, T15 | Verified |
+| BRB-31 | P1 Desativar — barbeiro inexistente 404 | T7, T8, T14, T15 | Verified |
+| BRB-32 | P1 Permissão — Barbeiro 403 | T13, T14, T15 | Verified |
+| BRB-33 | P1 Permissão — sem sessão 401 | T13, T15 | Verified |
+| BRB-34 | P1 Permissão — RN-26 tenant da sessão | T5, T9, T13, T14 | Verified |
 
 **ID format:** `BRB-NN` (Barbeiros, épico E2). Cada teste cita o `CA-05.x` (ou o `RN`) no nome, conforme o CLAUDE.md.
 
-**Coverage:** 34 total, 0 mapped to tasks, 34 unmapped ⚠️ (mapeados na fase Tasks)
+**Coverage:** 34 total, 34 mapped to tasks, 0 unmapped
 
 ---
 

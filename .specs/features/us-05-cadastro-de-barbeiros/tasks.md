@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/us-05-cadastro-de-barbeiros/design.md`
-**Status**: In Progress
+**Status**: Done
 
 Toda task cita US-05, RF-34 e, quando couber, RN-26. Commits: `feat(US-05): ...` (ou `test` quando couber), só locais, na branch `feat/us-05-barbers`.
 
