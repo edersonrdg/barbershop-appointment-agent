@@ -1,18 +1,40 @@
+import { z } from 'zod';
 import { Barbershop } from '../../domain/entities/barbershop';
 import { Weekday, WEEKDAYS } from '../../domain/value-objects/weekday';
 
-export interface DayOpeningHoursResponse {
-  opensAt: string;
-  closesAt: string;
-  break: { startsAt: string; endsAt: string } | null;
-}
+const timeField = z.string().meta({ description: 'HH:mm', example: '09:00' });
 
-export interface BarbershopSettingsResponse {
-  name: string;
-  address: string | null;
-  timezone: string;
-  openingHours: Record<Weekday, DayOpeningHoursResponse | null>;
-}
+const dayOpeningHoursResponseSchema = z
+  .object({
+    opensAt: timeField,
+    closesAt: timeField,
+    break: z
+      .object({ startsAt: timeField, endsAt: timeField })
+      .nullable()
+      .meta({ description: 'Intervalo do dia; null quando não há.' }),
+  })
+  .nullable()
+  .meta({ description: 'Horário do dia; null quando a barbearia fecha.' });
+
+export const barbershopSettingsResponseSchema = z.object({
+  name: z.string().meta({ example: 'Barbearia do Zé' }),
+  address: z.string().nullable().meta({ example: 'Rua das Flores, 123' }),
+  timezone: z.string().meta({ example: 'America/Sao_Paulo' }),
+  openingHours: z.object({
+    monday: dayOpeningHoursResponseSchema,
+    tuesday: dayOpeningHoursResponseSchema,
+    wednesday: dayOpeningHoursResponseSchema,
+    thursday: dayOpeningHoursResponseSchema,
+    friday: dayOpeningHoursResponseSchema,
+    saturday: dayOpeningHoursResponseSchema,
+    sunday: dayOpeningHoursResponseSchema,
+  }),
+});
+
+export type BarbershopSettingsResponse = z.infer<
+  typeof barbershopSettingsResponseSchema
+>;
+type DayOpeningHoursResponse = z.infer<typeof dayOpeningHoursResponseSchema>;
 
 export class BarbershopSettingsPresenter {
   static toResponse(barbershop: Barbershop): BarbershopSettingsResponse {
@@ -34,7 +56,7 @@ export class BarbershopSettingsPresenter {
           },
         ];
       }),
-    ) as Record<Weekday, DayOpeningHoursResponse | null>;
+    ) as Record<Weekday, DayOpeningHoursResponse>;
 
     return {
       name: barbershop.name,
