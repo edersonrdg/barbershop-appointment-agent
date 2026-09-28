@@ -122,13 +122,14 @@ T12 -> T14
 
 **Done when**:
 
-- [ ] 5 e 480 aceitos; 0, 4, 485, 7, 30.5 e `NaN` recusados (`InvalidValueError` / `isValid` falso)
-- [ ] `minutes` de `create(30)` é 30
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: ~9 tests novos passam (no silent deletions)
+- [x] 5 e 480 aceitos; 0, 4, 485, 7, 30.5 e `NaN` recusados (`InvalidValueError` / `isValid` falso)
+- [x] `minutes` de `create(30)` é 30
+- [x] Gate check passes: `npm test`
+- [x] Test count: ~9 tests novos passam (no silent deletions)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
 **Commit**: `feat(US-04): add ServiceDuration value object`
 
 ---
