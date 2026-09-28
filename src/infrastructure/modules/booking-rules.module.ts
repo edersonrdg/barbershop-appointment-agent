@@ -31,5 +31,6 @@ import { TypeOrmBookingRulesRepository } from '../database/repositories/typeorm-
         new UpdateBookingRulesUseCase(bookingRules),
     },
   ],
+  exports: [BOOKING_RULES_REPOSITORY],
 })
 export class BookingRulesModule {}
