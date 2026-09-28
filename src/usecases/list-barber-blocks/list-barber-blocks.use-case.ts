@@ -5,12 +5,14 @@ import {
   SchedulePeriod,
   ScheduleView,
 } from '../../domain/value-objects/schedule-period';
-import { BarberRepository } from '../ports/barber.repository.port';
+import {
+  BarberBlockRepository,
+  BarberBlockView,
+} from '../ports/barber-block.repository.port';
 import { BarbershopRepository } from '../ports/barbershop.repository.port';
-import { ScheduleEntry, ScheduleQuery } from '../ports/schedule.query.port';
 import { BarberAccessPolicy } from '../shared/barber-access-policy';
 
-export interface ListScheduleInput {
+export interface ListBarberBlocksInput {
   barbershopId: string;
   userId: string;
   role: UserRole;
@@ -19,24 +21,20 @@ export interface ListScheduleInput {
   barberId?: string;
 }
 
-export interface Schedule {
+export interface BarberBlockList {
   period: SchedulePeriod;
   timezone: string;
-  entries: ScheduleEntry[];
+  blocks: BarberBlockView[];
 }
 
-export class ListScheduleUseCase {
-  private readonly access: BarberAccessPolicy;
-
+export class ListBarberBlocksUseCase {
   constructor(
     private readonly barbershops: BarbershopRepository,
-    barbers: BarberRepository,
-    private readonly schedule: ScheduleQuery,
-  ) {
-    this.access = new BarberAccessPolicy(barbers);
-  }
+    private readonly access: BarberAccessPolicy,
+    private readonly blocks: BarberBlockRepository,
+  ) {}
 
-  async execute(input: ListScheduleInput): Promise<Schedule> {
+  async execute(input: ListBarberBlocksInput): Promise<BarberBlockList> {
     const barbershop = await this.barbershops.findById(input.barbershopId);
     if (!barbershop) {
       throw new InvalidCredentialsError();
@@ -48,14 +46,14 @@ export class ListScheduleUseCase {
       timezone,
     });
     const barberId = await this.access.readScope(input);
-    const entries =
+    const blocks =
       barberId === undefined
         ? []
-        : await this.schedule.listStartingIn(
+        : await this.blocks.listStartingIn(
             input.barbershopId,
             period.utc,
             barberId,
           );
-    return { period, timezone: timezone.value, entries };
+    return { period, timezone: timezone.value, blocks };
   }
 }

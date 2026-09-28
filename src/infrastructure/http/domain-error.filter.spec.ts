@@ -1,4 +1,5 @@
 import { ArgumentsHost, Logger } from '@nestjs/common';
+import { BarberBlockNotFoundError } from '../../domain/errors/barber-block-not-found.error';
 import { BarberNameAlreadyExistsError } from '../../domain/errors/barber-name-already-exists.error';
 import { BarberNotFoundError } from '../../domain/errors/barber-not-found.error';
 import { BarberUserAlreadyLinkedError } from '../../domain/errors/barber-user-already-linked.error';
@@ -149,6 +150,13 @@ describe('DomainErrorFilter', () => {
     expect(handle(new ServiceNotFoundError())).toEqual({
       statusCode: 404,
       body: { message: 'Serviço não encontrado.' },
+    });
+  });
+
+  it('RN-26: maps BarberBlockNotFoundError to 404 with the spec message', () => {
+    expect(handle(new BarberBlockNotFoundError())).toEqual({
+      statusCode: 404,
+      body: { message: 'Bloqueio não encontrado.' },
     });
   });
 

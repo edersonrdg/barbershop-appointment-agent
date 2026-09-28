@@ -7,6 +7,11 @@ export class InMemoryScheduleQuery implements ScheduleQuery {
     range: UtcPeriod;
     barberId: string | null;
   }[] = [];
+  readonly overlappingCalls: {
+    barbershopId: string;
+    barberId: string;
+    range: UtcPeriod;
+  }[] = [];
   private readonly stored: { barbershopId: string; entry: ScheduleEntry }[] =
     [];
 
@@ -43,6 +48,27 @@ export class InMemoryScheduleQuery implements ScheduleQuery {
             entry.startsAt >= range.start &&
             entry.startsAt < range.end &&
             (barberId === null || entry.barber.id === barberId),
+        )
+        .map(({ entry }) => entry)
+        .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime()),
+    );
+  }
+
+  listOverlapping(
+    barbershopId: string,
+    barberId: string,
+    range: UtcPeriod,
+  ): Promise<ScheduleEntry[]> {
+    this.overlappingCalls.push({ barbershopId, barberId, range });
+    return Promise.resolve(
+      this.stored
+        .filter(
+          ({ barbershopId: tenant, entry }) =>
+            tenant === barbershopId &&
+            entry.barber.id === barberId &&
+            entry.status === 'confirmed' &&
+            entry.startsAt < range.end &&
+            range.start < entry.endsAt,
         )
         .map(({ entry }) => entry)
         .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime()),

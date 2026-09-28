@@ -26,6 +26,15 @@ interface ServiceRow {
   name: string;
 }
 
+const SELECT_APPOINTMENTS = `SELECT a.id, a.starts_at, a.ends_at, a.status, a.origin,
+              b.id AS barber_id, b.name AS barber_name,
+              CASE WHEN c.id IS NULL THEN NULL
+                   ELSE json_build_object('id', c.id, 'name', c.name, 'phone', c.phone)
+              END AS client
+       FROM appointments a
+       JOIN barbers b ON b.id = a.barber_id AND b.barbershop_id = a.barbershop_id
+       LEFT JOIN clients c ON c.id = a.client_id AND c.barbershop_id = a.barbershop_id`;
+
 // Every join also matches barbershop_id, so a row of another barbershop never
 // reaches the schedule (RN-26).
 export class TypeOrmScheduleQuery implements ScheduleQuery {
@@ -37,20 +46,37 @@ export class TypeOrmScheduleQuery implements ScheduleQuery {
     barberId: string | null,
   ): Promise<ScheduleEntry[]> {
     const rows = await this.dataSource.query<AppointmentRow[]>(
-      `SELECT a.id, a.starts_at, a.ends_at, a.status, a.origin,
-              b.id AS barber_id, b.name AS barber_name,
-              CASE WHEN c.id IS NULL THEN NULL
-                   ELSE json_build_object('id', c.id, 'name', c.name, 'phone', c.phone)
-              END AS client
-       FROM appointments a
-       JOIN barbers b ON b.id = a.barber_id AND b.barbershop_id = a.barbershop_id
-       LEFT JOIN clients c ON c.id = a.client_id AND c.barbershop_id = a.barbershop_id
+      `${SELECT_APPOINTMENTS}
        WHERE a.barbershop_id = $1
          AND a.starts_at >= $2 AND a.starts_at < $3
          AND ($4::uuid IS NULL OR a.barber_id = $4::uuid)
        ORDER BY a.starts_at, lower(b.name), a.id`,
       [barbershopId, range.start, range.end, barberId],
     );
+    return this.withServices(barbershopId, rows);
+  }
+
+  async listOverlapping(
+    barbershopId: string,
+    barberId: string,
+    range: UtcPeriod,
+  ): Promise<ScheduleEntry[]> {
+    const rows = await this.dataSource.query<AppointmentRow[]>(
+      `${SELECT_APPOINTMENTS}
+       WHERE a.barbershop_id = $1
+         AND a.barber_id = $2
+         AND a.status = 'confirmed'
+         AND a.starts_at < $4 AND a.ends_at > $3
+       ORDER BY a.starts_at, a.id`,
+      [barbershopId, barberId, range.start, range.end],
+    );
+    return this.withServices(barbershopId, rows);
+  }
+
+  private async withServices(
+    barbershopId: string,
+    rows: AppointmentRow[],
+  ): Promise<ScheduleEntry[]> {
     if (rows.length === 0) return [];
     const services = await this.dataSource.query<ServiceRow[]>(
       `SELECT s.appointment_id, sv.id, sv.name

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const VIEW_MESSAGE = 'Escolha a visão: day ou week.';
-const DATE_MESSAGE = 'Informe uma data válida no formato AAAA-MM-DD.';
+export const DATE_MESSAGE = 'Informe uma data válida no formato AAAA-MM-DD.';
 const LOCAL_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 export const scheduleQuerySchema = z.object({
@@ -31,7 +31,7 @@ export type ScheduleQueryParams = z.infer<typeof scheduleQuerySchema>;
 
 // Date.UTC rolls 2026-02-30 over to March, so a date that changes on the round
 // trip does not exist in the calendar.
-function isCalendarDate(value: string): boolean {
+export function isCalendarDate(value: string): boolean {
   if (!LOCAL_DATE_PATTERN.test(value)) return false;
   const [year, month, day] = value.split('-').map(Number);
   const date = new Date(Date.UTC(year, month - 1, day));

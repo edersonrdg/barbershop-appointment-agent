@@ -325,4 +325,165 @@ describe('TypeOrmScheduleQuery (e2e)', () => {
       ).toEqual([]);
     });
   });
+
+  describe('listOverlapping', () => {
+    // A 10:30-11:30 block on Monday 2026-10-05 in America/Sao_Paulo.
+    const BLOCK = {
+      start: new Date('2026-10-05T13:30:00.000Z'),
+      end: new Date('2026-10-05T14:30:00.000Z'),
+    };
+
+    it('CA-09.3: returns the appointments of the barber that overlap the block, by start', async () => {
+      const ana = await insertBarber(barbershopA, 'Ana');
+      const haircut = await insertService(barbershopA, 'Corte');
+      const endsInside = await insertAppointment({
+        barberId: ana,
+        startsAt: '2026-10-05T13:00:00Z',
+        endsAt: '2026-10-05T13:45:00Z',
+        serviceIds: [haircut],
+      });
+      const crossesEnd = await insertAppointment({
+        barberId: ana,
+        startsAt: '2026-10-05T14:15:00Z',
+        endsAt: '2026-10-05T15:00:00Z',
+        serviceIds: [haircut],
+      });
+      const inside = await insertAppointment({
+        barberId: ana,
+        startsAt: '2026-10-05T13:45:00Z',
+        endsAt: '2026-10-05T14:15:00Z',
+        serviceIds: [haircut],
+      });
+
+      const entries = await query.listOverlapping(barbershopA, ana, BLOCK);
+
+      expect(entries.map((entry) => entry.id)).toEqual([
+        endsInside,
+        inside,
+        crossesEnd,
+      ]);
+    });
+
+    it('CA-09.3: leaves out the appointments that only touch the block', async () => {
+      const ana = await insertBarber(barbershopA, 'Ana');
+      const haircut = await insertService(barbershopA, 'Corte');
+      await insertAppointment({
+        barberId: ana,
+        startsAt: '2026-10-05T13:00:00Z',
+        endsAt: '2026-10-05T13:30:00Z',
+        serviceIds: [haircut],
+      });
+      await insertAppointment({
+        barberId: ana,
+        startsAt: '2026-10-05T14:30:00Z',
+        endsAt: '2026-10-05T15:00:00Z',
+        serviceIds: [haircut],
+      });
+
+      expect(await query.listOverlapping(barbershopA, ana, BLOCK)).toEqual([]);
+    });
+
+    it('CA-09.3: a day off catches the appointment that starts at 23:30 and crosses midnight', async () => {
+      const ana = await insertBarber(barbershopA, 'Ana');
+      const haircut = await insertService(barbershopA, 'Corte');
+      const lateNight = await insertAppointment({
+        barberId: ana,
+        startsAt: '2026-10-06T02:30:00Z',
+        endsAt: '2026-10-06T03:15:00Z',
+        serviceIds: [haircut],
+      });
+      await insertAppointment({
+        barberId: ana,
+        startsAt: '2026-10-05T02:30:00Z',
+        endsAt: '2026-10-05T03:00:00Z',
+        serviceIds: [haircut],
+      });
+
+      const entries = await query.listOverlapping(barbershopA, ana, MONDAY);
+
+      expect(entries.map((entry) => entry.id)).toEqual([lateNight]);
+    });
+
+    it('CA-09.3: returns barber, client, services in booked order, times, status and origin', async () => {
+      const ana = await insertBarber(barbershopA, 'Ana');
+      const haircut = await insertService(barbershopA, 'Corte');
+      const beard = await insertService(barbershopA, 'Barba');
+      const joao = await insertClient(barbershopA, 'João', '+5511987654321');
+      const withClient = await insertAppointment({
+        barberId: ana,
+        startsAt: '2026-10-05T13:00:00Z',
+        endsAt: '2026-10-05T13:45:00Z',
+        serviceIds: [beard, haircut],
+        clientId: joao,
+        origin: 'manual',
+      });
+      const withoutClient = await insertAppointment({
+        barberId: ana,
+        startsAt: '2026-10-05T14:00:00Z',
+        endsAt: '2026-10-05T14:30:00Z',
+        serviceIds: [haircut],
+        origin: 'bot',
+      });
+
+      const entries = await query.listOverlapping(barbershopA, ana, BLOCK);
+
+      expect(entries).toEqual([
+        {
+          id: withClient,
+          barber: { id: ana, name: 'Ana' },
+          client: { id: joao, name: 'João', phone: '+5511987654321' },
+          services: [
+            { id: beard, name: 'Barba' },
+            { id: haircut, name: 'Corte' },
+          ],
+          startsAt: new Date('2026-10-05T13:00:00.000Z'),
+          endsAt: new Date('2026-10-05T13:45:00.000Z'),
+          status: 'confirmed',
+          origin: 'manual',
+        },
+        {
+          id: withoutClient,
+          barber: { id: ana, name: 'Ana' },
+          client: null,
+          services: [{ id: haircut, name: 'Corte' }],
+          startsAt: new Date('2026-10-05T14:00:00.000Z'),
+          endsAt: new Date('2026-10-05T14:30:00.000Z'),
+          status: 'confirmed',
+          origin: 'bot',
+        },
+      ]);
+    });
+
+    it('CA-09.3: leaves out the appointments of another barber', async () => {
+      const ana = await insertBarber(barbershopA, 'Ana');
+      const bruno = await insertBarber(barbershopA, 'Bruno');
+      const haircut = await insertService(barbershopA, 'Corte');
+      await insertAppointment({
+        barberId: bruno,
+        startsAt: '2026-10-05T13:45:00Z',
+        endsAt: '2026-10-05T14:15:00Z',
+        serviceIds: [haircut],
+      });
+
+      expect(await query.listOverlapping(barbershopA, ana, BLOCK)).toEqual([]);
+    });
+
+    it('RN-26: never returns appointments of another barbershop', async () => {
+      const foreignBarber = await insertBarber(barbershopB, 'Ana');
+      await insertAppointment({
+        barbershopId: barbershopB,
+        barberId: foreignBarber,
+        startsAt: '2026-10-05T13:45:00Z',
+        endsAt: '2026-10-05T14:15:00Z',
+        serviceIds: [await insertService(barbershopB, 'Corte')],
+      });
+
+      expect(
+        await query.listOverlapping(barbershopA, foreignBarber, BLOCK),
+      ).toEqual([]);
+      expect(
+        await query.listOverlapping(barbershopB, foreignBarber, BLOCK),
+      ).toHaveLength(1);
+    });
+  });
 });

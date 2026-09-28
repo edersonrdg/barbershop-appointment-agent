@@ -28,4 +28,15 @@ export interface ScheduleQuery {
     range: UtcPeriod,
     barberId: string | null,
   ): Promise<ScheduleEntry[]>;
+
+  /**
+   * The confirmed appointments of `barberId` in the barbershop whose
+   * `[start, end)` overlaps `range`, ordered by start; touching ones are left
+   * out. Same entry format as `listStartingIn`.
+   */
+  listOverlapping(
+    barbershopId: string,
+    barberId: string,
+    range: UtcPeriod,
+  ): Promise<ScheduleEntry[]>;
 }

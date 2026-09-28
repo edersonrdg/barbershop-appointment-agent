@@ -183,7 +183,7 @@ flowchart TD
 |---|---|---|
 | RF-24 | Exibir a agenda por dia e semana, filtrável por barbeiro (o Dono vê todos; o Barbeiro, só a própria). | Must |
 | RF-25 | Criar agendamento manual (cliente que liga ou chega na hora), com as mesmas validações de conflito do bot. | Must |
-| RF-26 | Criar bloqueios de horário (almoço, compromisso) e folgas. | Must |
+| RF-26 | Criar, listar e remover bloqueios de horário (almoço, compromisso) e folgas. | Must |
 | RF-27 | Marcar agendamento como atendido ou falta. | Must |
 | RF-28 | Identificar a origem do agendamento (bot ou manual). | Should |
 

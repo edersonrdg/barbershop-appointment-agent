@@ -39,5 +39,6 @@ import { BarbersModule } from './barbers.module';
       ) => new ListScheduleUseCase(barbershops, barbers, schedule),
     },
   ],
+  exports: [SCHEDULE_QUERY],
 })
 export class ScheduleModule {}
