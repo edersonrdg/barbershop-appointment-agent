@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/us-04-cadastro-de-servicos/design.md`
-**Status**: Approved
+**Status**: In Progress
 
 Toda task cita US-04, RF-33 e, quando couber, RN-26. Commits: `feat(US-04): ...` (ou `test` quando couber), só locais.
 
@@ -95,13 +95,14 @@ T12 -> T14
 
 **Done when**:
 
-- [ ] 0 e 1.000.000 aceitos; -1, 1.000.001, 45.5, `NaN` e `Infinity` recusados (`InvalidValueError` / `isValid` falso)
-- [ ] `cents` de `create(4500)` é 4500
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: ~8 tests novos passam (no silent deletions)
+- [x] 0 e 1.000.000 aceitos; -1, 1.000.001, 45.5, `NaN` e `Infinity` recusados (`InvalidValueError` / `isValid` falso)
+- [x] `cents` de `create(4500)` é 4500
+- [x] Gate check passes: `npm test`
+- [x] Test count: ~8 tests novos passam (no silent deletions)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
 **Commit**: `feat(US-04): add ServicePrice value object`
 
 ---

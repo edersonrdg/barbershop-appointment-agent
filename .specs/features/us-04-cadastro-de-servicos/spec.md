@@ -173,36 +173,36 @@ A barbearia ainda não tem serviços cadastrados, então o motor de disponibilid
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| SVC-01 | P1 Criar — CA-04.1 `POST` cria ativo | Specify | Pending |
-| SVC-02 | P1 Criar — CA-04.1 `GET` lista | Specify | Pending |
-| SVC-03 | P1 Criar — CA-04.1 leitura de disponíveis | Specify | Pending |
-| SVC-04 | P1 Criar — CA-04.1 `PUT` edita | Specify | Pending |
-| SVC-05 | P1 Criar — CA-04.1 nome repetido 409 | Specify | Pending |
-| SVC-06 | P1 Criar — CA-04.1 índice único no banco | Specify | Pending |
-| SVC-07 | P1 Adicionais — CA-04.2 grava a relação | Specify | Pending |
-| SVC-08 | P1 Adicionais — CA-04.2 substitui a lista | Specify | Pending |
-| SVC-09 | P1 Adicionais — CA-04.2 adicional inexistente/outro tenant | Specify | Pending |
-| SVC-10 | P1 Adicionais — CA-04.2 adicional de si mesmo | Specify | Pending |
-| SVC-11 | P1 Adicionais — CA-04.2 adicional inativo | Specify | Pending |
-| SVC-12 | P1 Adicionais — CA-04.2 mais de 5 ou repetidos | Specify | Pending |
-| SVC-13 | P1 Desativar — CA-04.3 desativa | Specify | Pending |
-| SVC-14 | P1 Desativar — CA-04.3 some dos disponíveis, fica na lista | Specify | Pending |
-| SVC-15 | P1 Desativar — CA-04.3 nada além do flag muda | Specify | Pending |
-| SVC-16 | P1 Desativar — CA-04.3 reativa | Specify | Pending |
-| SVC-17 | P1 Desativar — CA-04.3 idempotente | Specify | Pending |
-| SVC-18 | P1 Desativar — CA-04.3 serviço inexistente 404 | Specify | Pending |
-| SVC-19 | P1 Recusar — CA-04.4 preço negativo | Specify | Pending |
-| SVC-20 | P1 Recusar — CA-04.4 duração zero | Specify | Pending |
-| SVC-21 | P1 Recusar — CA-04.4 limites e formato | Specify | Pending |
-| SVC-22 | P1 Recusar — CA-04.4 invariante no domínio | Specify | Pending |
-| SVC-23 | P1 Recusar — CA-04.4 `CHECK` no banco | Specify | Pending |
-| SVC-24 | P1 Permissão — Barbeiro 403 | Specify | Pending |
-| SVC-25 | P1 Permissão — sem sessão 401 | Specify | Pending |
-| SVC-26 | P1 Permissão — RN-26 tenant da sessão | Specify | Pending |
+| SVC-01 | P1 Criar — CA-04.1 `POST` cria ativo | T3, T5, T6, T12 | In Progress |
+| SVC-02 | P1 Criar — CA-04.1 `GET` lista | T5, T9, T12 | In Progress |
+| SVC-03 | P1 Criar — CA-04.1 leitura de disponíveis | T5, T10 | In Progress |
+| SVC-04 | P1 Criar — CA-04.1 `PUT` edita | T3, T7, T13 | In Progress |
+| SVC-05 | P1 Criar — CA-04.1 nome repetido 409 | T5, T6, T7, T12, T13 | In Progress |
+| SVC-06 | P1 Criar — CA-04.1 índice único no banco | T4, T5 | In Progress |
+| SVC-07 | P1 Adicionais — CA-04.2 grava a relação | T3, T5, T6, T12 | In Progress |
+| SVC-08 | P1 Adicionais — CA-04.2 substitui a lista | T5, T7, T13 | In Progress |
+| SVC-09 | P1 Adicionais — CA-04.2 adicional inexistente/outro tenant | T3, T6, T7, T12 | In Progress |
+| SVC-10 | P1 Adicionais — CA-04.2 adicional de si mesmo | T3, T4, T7, T13 | In Progress |
+| SVC-11 | P1 Adicionais — CA-04.2 adicional inativo | T3, T6, T7, T12 | In Progress |
+| SVC-12 | P1 Adicionais — CA-04.2 mais de 5 ou repetidos | T11, T12 | In Progress |
+| SVC-13 | P1 Desativar — CA-04.3 desativa | T3, T8, T14 | In Progress |
+| SVC-14 | P1 Desativar — CA-04.3 some dos disponíveis, fica na lista | T5, T9, T10, T14 | In Progress |
+| SVC-15 | P1 Desativar — CA-04.3 nada além do flag muda | T3, T5, T8, T14 | In Progress |
+| SVC-16 | P1 Desativar — CA-04.3 reativa | T3, T8, T10, T14 | In Progress |
+| SVC-17 | P1 Desativar — CA-04.3 idempotente | T3, T8, T14 | In Progress |
+| SVC-18 | P1 Desativar — CA-04.3 serviço inexistente 404 | T7, T8, T13, T14 | In Progress |
+| SVC-19 | P1 Recusar — CA-04.4 preço negativo | T1, T11, T12 | In Progress |
+| SVC-20 | P1 Recusar — CA-04.4 duração zero | T2, T11, T12 | In Progress |
+| SVC-21 | P1 Recusar — CA-04.4 limites e formato | T1, T2, T11, T12 | In Progress |
+| SVC-22 | P1 Recusar — CA-04.4 invariante no domínio | T1, T2, T3, T6 | In Progress |
+| SVC-23 | P1 Recusar — CA-04.4 `CHECK` no banco | T4 | In Progress |
+| SVC-24 | P1 Permissão — Barbeiro 403 | T12, T13, T14 | In Progress |
+| SVC-25 | P1 Permissão — sem sessão 401 | T12, T14 | In Progress |
+| SVC-26 | P1 Permissão — RN-26 tenant da sessão | T5, T6, T7, T8, T9, T10, T12, T13 | In Progress |
 
 **ID format:** `SVC-NN` (Serviços, épico E2). Cada teste cita o `CA-04.x` (ou o `RN`) no nome, conforme o CLAUDE.md.
 
-**Coverage:** 26 total, 0 mapped to tasks, 26 unmapped ⚠️ (mapeados na fase Tasks)
+**Coverage:** 26 total, 26 mapped to tasks, 0 unmapped
 
 ---
 
