@@ -6,7 +6,8 @@ import { passwordField } from './password.field';
 export const resetPasswordSchema = z.object({
   token: z
     .string({ error: 'Informe o token de redefinição.' })
-    .min(1, 'Informe o token de redefinição.'),
+    .min(1, 'Informe o token de redefinição.')
+    .meta({ description: 'Token recebido no link enviado por e-mail.' }),
   newPassword: passwordField,
 });
 

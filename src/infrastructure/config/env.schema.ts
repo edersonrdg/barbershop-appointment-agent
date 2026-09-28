@@ -35,6 +35,10 @@ export const envSchema = z.object({
     z.string().min(1).optional(),
   ),
   MAIL_FROM: z.string().min(1),
+  API_DOCS_ENABLED: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((value) => value === 'true'),
 });
 
 export type Env = z.infer<typeof envSchema>;

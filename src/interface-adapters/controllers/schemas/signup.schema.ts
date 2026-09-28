@@ -14,14 +14,21 @@ function nameField(message: string) {
 }
 
 export const signupSchema = z.object({
-  barbershopName: nameField(BARBERSHOP_NAME_MESSAGE),
-  ownerName: nameField(OWNER_NAME_MESSAGE),
+  barbershopName: nameField(BARBERSHOP_NAME_MESSAGE).meta({
+    example: 'Barbearia do José',
+  }),
+  ownerName: nameField(OWNER_NAME_MESSAGE).meta({ example: 'José da Silva' }),
   email: z
     .string({ error: EMAIL_MESSAGE })
-    .refine((value) => Email.isValid(value), EMAIL_MESSAGE),
+    .refine((value) => Email.isValid(value), EMAIL_MESSAGE)
+    .meta({ format: 'email', example: 'dono@barbearia.com' }),
   phone: z
     .string({ error: PHONE_MESSAGE })
-    .refine((value) => PhoneNumber.isValid(value), PHONE_MESSAGE),
+    .refine((value) => PhoneNumber.isValid(value), PHONE_MESSAGE)
+    .meta({
+      description: 'Telefone brasileiro com DDD; aceita máscara e +55.',
+      example: '(11) 91234-5678',
+    }),
   password: passwordField,
 });
 

@@ -14,7 +14,9 @@ export interface AccountTestApp {
 
 // The SMTP adapter is swapped for a capturing fake so no e2e suite talks to a
 // real mail server.
-export async function createAccountTestApp(): Promise<AccountTestApp> {
+export async function createAccountTestApp(
+  options: { beforeInit?: (app: INestApplication<App>) => void } = {},
+): Promise<AccountTestApp> {
   const emailSender = new FakeEmailSender();
   const moduleFixture = await Test.createTestingModule({
     imports: [AppModule],
@@ -24,6 +26,7 @@ export async function createAccountTestApp(): Promise<AccountTestApp> {
     .compile();
 
   const app = moduleFixture.createNestApplication<INestApplication<App>>();
+  options.beforeInit?.(app);
   await app.init();
 
   return { app, dataSource: app.get(DataSource), emailSender };

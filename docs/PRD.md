@@ -20,7 +20,8 @@ Este PRD é a fonte única de verdade para o desenvolvimento. O trabalho é orga
 3. Se o campo **Pendências** apontar uma questão em aberto que bloqueia a implementação, pare e pergunte ao responsável. Valores marcados como "sugestão, a validar" podem ser usados como padrão configurável.
 4. Quebre a história em tasks técnicas (ex.: modelo de dados, API, interface, integração, testes). Cada task deve citar o ID da história e os `RF`/`RN` que implementa.
 5. Implemente as tasks e escreva testes automatizados que cubram **cada critério de aceite** (`CA-xx.y`).
-6. Marque a história como concluída apenas quando ela atender à **Definição de Pronto** (seção 11.1).
+6. Documente no Swagger/OpenAPI (`GET /docs`) toda rota criada ou alterada, na mesma mudança: autorização (pública ou sessão, e o perfil exigido), payload, respostas de sucesso e cada erro possível, com exemplos. As convenções estão na seção "Documentação da API" do `CLAUDE.md`.
+7. Marque a história como concluída apenas quando ela atender à **Definição de Pronto** (seção 11.1).
 
 **Não faça:**
 - Não implemente comportamento que não esteja descrito nos `RF`/`RN`/`CA`. Se faltar informação, registre como questão em aberto (seção 19).
@@ -335,6 +336,7 @@ Cada história é uma unidade de entrega que pode ser testada. O agente cria as 
 - [ ] Os `RF` e `RN` referenciados foram implementados sem comportamento extra não documentado.
 - [ ] O isolamento entre barbearias (RN-26) é respeitado em toda consulta e gravação nova.
 - [ ] As permissões por perfil (seção 5) são respeitadas nas telas e endpoints novos.
+- [ ] Toda rota nova ou alterada está documentada no OpenAPI (`/docs`), com autorização, payload e respostas atualizados.
 - [ ] As telas novas funcionam em celular (360 px) e desktop (RNF-03).
 - [ ] O código foi revisado e integrado à branch principal, sem quebrar testes existentes.
 

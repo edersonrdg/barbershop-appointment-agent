@@ -17,6 +17,7 @@ Este repositório é **público**. Nunca versione segredos, dados reais de clien
 - Docker Compose para orquestração local
 - Jest (unitário e e2e)
 - ESLint + Prettier (`singleQuote`, `trailingComma: all`) + `eslint-plugin-boundaries`
+- Documentação da API: OpenAPI via `@nestjs/swagger@11`, com schemas gerados a partir do Zod
 
 ## Comandos
 
@@ -26,6 +27,7 @@ docker compose up -d postgres          # banco local
 npm run start:dev                      # API em modo watch (usa o Postgres do compose)
 docker compose --profile app up --build            # API + banco em containers
 docker compose --profile observability up -d       # Prometheus em http://localhost:9090
+# Swagger UI em http://localhost:3000/docs (OpenAPI em /docs/openapi.json); desligue com API_DOCS_ENABLED=false
 
 npm run build          # compila para dist/
 npm run typecheck      # tsc --noEmit
@@ -85,6 +87,22 @@ src/
 - A ligação entre ports e implementações é feita por injeção de dependência do NestJS, nos módulos em `infrastructure/`.
 - Validação com Zod acontece na borda (controllers, payloads de integrações externas e respostas do Gemini). Invariantes de negócio ficam nas entidades e value objects.
 - **Um arquivo por classe**, com nomes de arquivo em kebab-case no padrão do Nest (`create-appointment.use-case.ts`, `appointment.entity.ts`, `appointments.controller.ts`).
+
+## Documentação da API (Swagger/OpenAPI)
+
+**Toda rota nova ou alterada atualiza a documentação na mesma mudança.** Rota sem documentação ou com documentação desatualizada não está pronta (PRD 11.1).
+
+- O documento é montado em [api-docs.ts](src/infrastructure/http/api-docs.ts) e servido em `GET /docs` (UI) e `GET /docs/openapi.json`.
+- **O Zod é a fonte do contrato.** Não crie DTO com `@ApiProperty` duplicando um schema. Use os helpers de [api-docs.decorators.ts](src/interface-adapters/controllers/openapi/api-docs.decorators.ts):
+  - `@ApiZodBody(schema)`: o mesmo schema passado ao `ZodValidationPipe`.
+  - `@ApiZodResponse(status, descrição, schema?)`: a resposta de sucesso. O presenter exporta o schema da resposta (`xxxResponseSchema`) e o tipo vem de `z.infer`, então mudar o formato da resposta sem mudar o schema não compila.
+  - `@ApiValidationErrorResponse()`: o 400 do `ZodValidationPipe`. Se um erro de domínio também virar 400, passe-o como argumento (o OpenAPI só guarda uma resposta por status).
+  - `@ApiMessageResponse(status, descrição, mensagem)`: cada erro de domínio mapeado no `DomainErrorFilter` que a rota pode devolver, com a mensagem exata.
+  - `@ApiSessionAuth()`: em todo controller ou rota sem `@Public()`. Declara o Bearer e o 401 do `SessionGuard`.
+- Cada controller tem `@ApiTags(...)` e cada rota tem `@ApiOperation({ summary })`. Descreva regras que o consumidor precisa saber (ex.: tenant vindo só do token, respostas que não revelam se o e-mail existe) e o perfil exigido quando houver restrição por perfil.
+- Descrições, resumos e exemplos em português do Brasil. Exemplos com dados fictícios; nunca dados reais de clientes.
+- Descrição e exemplo dos campos ficam no próprio schema Zod, com `.meta({ description, example })`.
+- O teste [openapi.e2e-spec.ts](test/openapi.e2e-spec.ts) percorre todas as rotas registradas e falha se alguma não tiver tag, `summary`, resposta 2xx, corpo documentado (quando lê `@Body`) ou, se não for `@Public()`, o esquema `session` e o 401. Não relaxe esse teste para fazer uma rota passar.
 
 ## Regras de domínio que atravessam todo o código
 
