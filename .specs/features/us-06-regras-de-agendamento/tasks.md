@@ -151,14 +151,14 @@ T7 -> T8
 
 **Done when**:
 
-- [ ] `CA-06.2`: depois de `save`, `findByBarbershopId` devolve os novos valores
-- [ ] `CA-06.2`: `save` não altera a linha da barbearia em `barbershops`
-- [ ] `RN-26`: `save` de A não altera as regras de B; `findByBarbershopId` de barbearia sem regras devolve `null`
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] `CA-06.2`: depois de `save`, `findByBarbershopId` devolve os novos valores
+- [x] `CA-06.2`: `save` não altera a linha da barbearia em `barbershops`
+- [x] `RN-26`: `save` de A não altera as regras de B; `findByBarbershopId` de barbearia sem regras devolve `null`
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-06): add booking rules repository`
 
 ---
