@@ -461,20 +461,22 @@ T14
 
 **Done when**:
 
-- [ ] CA-10.1: Dono agenda → `201` no formato da agenda; `GET /appointments` do dia mostra o agendamento com cliente e origem `manual`
-- [ ] CA-10.2: segundo agendamento com o mesmo telefone em outro formato e outro nome → mesmo `client.id`, nome original; recusa por conflito com telefone novo → nenhuma linha nova em `clients`
-- [ ] CA-10.2: dois `POST` em paralelo, horários livres diferentes, mesmo telefone novo → dois `201`, um cliente
-- [ ] CA-10.3: horário a menos que a antecedência mínima → `201`; a consulta devolve o início a partir de agora
-- [ ] CA-10.4: sobreposição → `409`; dois `POST` sobrepostos em paralelo → um `201` e um `409`; fora do funcionamento e sobre bloqueio → `422` com a mensagem; serviço inexistente → `404`
-- [ ] CA-10.5: Barbeiro para outro → `403`, nada gravado; Barbeiro consulta outro → `403`
-- [ ] Início devolvido pela consulta → `POST` com ele → `201` (AGM-24)
-- [ ] `400` com mensagem para body e query inválidos; sem token → `401` nas duas rotas
-- [ ] Dados de outra barbearia não aparecem nem são usados (RN-26)
-- [ ] `test/api-docs.e2e-spec.ts` passa com as rotas novas
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] CA-10.1: Dono agenda → `201` no formato da agenda; `GET /appointments` do dia mostra o agendamento com cliente e origem `manual`
+- [x] CA-10.2: segundo agendamento com o mesmo telefone em outro formato e outro nome → mesmo `client.id`, nome original; recusa por conflito com telefone novo → nenhuma linha nova em `clients`
+- [x] CA-10.2: dois `POST` em paralelo, horários livres diferentes, mesmo telefone novo → dois `201`, um cliente
+- [x] CA-10.3: horário a menos que a antecedência mínima → `201`; a consulta devolve o início a partir de agora
+- [x] CA-10.4: sobreposição → `409`; dois `POST` sobrepostos em paralelo → um `201` e um `409`; fora do funcionamento e sobre bloqueio → `422` com a mensagem; serviço inexistente → `404`
+- [x] CA-10.5: Barbeiro para outro → `403`, nada gravado; Barbeiro consulta outro → `403`
+- [x] Início devolvido pela consulta → `POST` com ele → `201` (AGM-24)
+- [x] `400` com mensagem para body e query inválidos; sem token → `401` nas duas rotas
+- [x] Dados de outra barbearia não aparecem nem são usados (RN-26)
+- [x] `test/api-docs.e2e-spec.ts` passa com as rotas novas
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
+
+**Status**: ✅ Done
 
 **Commit**: `feat(US-10): expose manual booking routes`
 
