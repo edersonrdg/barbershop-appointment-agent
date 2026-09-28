@@ -317,10 +317,12 @@ T13
 
 **Done when**:
 
-- [ ] Dono sem filtro → todos; com `barberId` → só dele; devolve período, datas locais e fuso
-- [ ] Barbeiro → só os próprios; com `barberId` de outro → `ScheduleAccessDeniedError`; sem ficha → lista vazia sem consultar
-- [ ] O port recebe o `barbershopId` da sessão e o intervalo UTC do `SchedulePeriod`
-- [ ] Gate check passes: `npm test`
+- [x] Dono sem filtro → todos; com `barberId` → só dele; devolve período, datas locais e fuso
+- [x] Barbeiro → só os próprios; com `barberId` de outro → `ScheduleAccessDeniedError`; sem ficha → lista vazia sem consultar
+- [x] O port recebe o `barbershopId` da sessão e o intervalo UTC do `SchedulePeriod`
+- [x] Gate check passes: `npm test`
+
+**Status**: ✅ Done
 
 **Tests**: unit
 **Gate**: quick
