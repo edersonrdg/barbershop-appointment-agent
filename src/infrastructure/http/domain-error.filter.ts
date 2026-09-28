@@ -6,6 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import { BarberBlockNotFoundError } from '../../domain/errors/barber-block-not-found.error';
 import { BarberNameAlreadyExistsError } from '../../domain/errors/barber-name-already-exists.error';
 import { BarberNotFoundError } from '../../domain/errors/barber-not-found.error';
 import { BarberUserAlreadyLinkedError } from '../../domain/errors/barber-user-already-linked.error';
@@ -43,6 +44,7 @@ const STATUS_BY_ERROR = new Map<unknown, HttpStatus>([
   [BarberNotFoundError, HttpStatus.NOT_FOUND],
   [InvitationDeliveryFailedError, HttpStatus.BAD_GATEWAY],
   [ScheduleAccessDeniedError, HttpStatus.FORBIDDEN],
+  [BarberBlockNotFoundError, HttpStatus.NOT_FOUND],
 ]);
 
 @Catch(DomainError)

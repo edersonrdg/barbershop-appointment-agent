@@ -133,11 +133,13 @@ T13
 
 **Done when**:
 
-- [ ] Motivo com espaços nas pontas é aparado; vazio ou só espaços vira `null`; ausente vira `null`
-- [ ] Motivo com 120 caracteres aceito; com 121 → `InvalidValueError`
-- [ ] Período com fim não depois do início → `InvalidValueError`
-- [ ] `DomainErrorFilter` responde `404 { message: 'Bloqueio não encontrado.' }` para `BarberBlockNotFoundError`
-- [ ] Gate check passes: `npm test`
+- [x] Motivo com espaços nas pontas é aparado; vazio ou só espaços vira `null`; ausente vira `null`
+- [x] Motivo com 120 caracteres aceito; com 121 → `InvalidValueError`
+- [x] Período com fim não depois do início → `InvalidValueError`
+- [x] `DomainErrorFilter` responde `404 { message: 'Bloqueio não encontrado.' }` para `BarberBlockNotFoundError`
+- [x] Gate check passes: `npm test`
+
+**Status**: ✅ Done
 
 **Tests**: unit
 **Gate**: quick
