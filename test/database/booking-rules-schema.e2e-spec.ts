@@ -145,11 +145,11 @@ describe('Booking rules schema (e2e)', () => {
 
       await migration.up(queryRunner);
 
-      const rows = await queryRunner.query<(RulesRow & { id: string })[]>(
+      const rows = (await queryRunner.query(
         `SELECT b.id, r.minimum_advance_minutes, r.cancellation_deadline_minutes, r.no_show_limit, r.waitlist_offer_minutes, r.return_reminder_days
          FROM barbershops b LEFT JOIN barbershop_booking_rules r ON r.barbershop_id = b.id
          ORDER BY b.id`,
-      );
+      )) as (RulesRow & { id: string })[];
       expect(rows).toEqual(
         [barbershopId, otherId].sort().map((id) => ({
           id,
