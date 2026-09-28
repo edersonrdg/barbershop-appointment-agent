@@ -125,13 +125,13 @@ T7 -> T8
 
 **Done when**:
 
-- [ ] `CA-06.3`: o banco aceita cada limite exato e recusa com `CHECK` cada passo além e cada negativo
-- [ ] `CA-06.1`: rodar o `up` sobre uma barbearia sem regras grava os cinco padrões (teste em transação revertida)
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] `CA-06.3`: o banco aceita cada limite exato e recusa com `CHECK` cada passo além e cada negativo
+- [x] `CA-06.1`: rodar o `up` sobre uma barbearia sem regras grava os cinco padrões (teste em transação revertida)
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-06): add booking rules table with checks and backfill`
 
 ---

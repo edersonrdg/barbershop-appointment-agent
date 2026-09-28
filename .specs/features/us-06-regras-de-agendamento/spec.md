@@ -144,7 +144,7 @@ As regras que o bot e a agenda vão aplicar (antecedência mínima, prazo de can
 | -------------- | ----- | ----- | ------ |
 | RUL-01 | P1 Padrões — CA-06.1 barbearia nova nasce com padrões | - | Pending |
 | RUL-02 | P1 Padrões — CA-06.1 `GET` devolve os padrões | - | Pending |
-| RUL-03 | P1 Padrões — CA-06.1 migration preenche barbearias existentes | - | Pending |
+| RUL-03 | P1 Padrões — CA-06.1 migration preenche barbearias existentes | T2 | Done |
 | RUL-04 | P1 Alterar — CA-06.2 `PUT` substitui as regras | - | Pending |
 | RUL-05 | P1 Alterar — CA-06.2 `GET` devolve o que foi salvo | - | Pending |
 | RUL-06 | P1 Alterar — CA-06.2 leitura vigente pelo repositório | - | Pending |
@@ -154,7 +154,7 @@ As regras que o bot e a agenda vão aplicar (antecedência mínima, prazo de can
 | RUL-10 | P1 Recusar — CA-06.3 vazio | - | Pending |
 | RUL-11 | P1 Recusar — CA-06.3 limites e formato | - | Pending |
 | RUL-12 | P1 Recusar — CA-06.3 invariante no domínio | T1 | Done |
-| RUL-13 | P1 Recusar — CA-06.3 `CHECK` no banco | - | Pending |
+| RUL-13 | P1 Recusar — CA-06.3 `CHECK` no banco | T2 | Done |
 | RUL-14 | P1 Permissão — Barbeiro 403 | - | Pending |
 | RUL-15 | P1 Permissão — sem sessão 401 | - | Pending |
 | RUL-16 | P1 Permissão — RN-26 tenant da sessão | - | Pending |
