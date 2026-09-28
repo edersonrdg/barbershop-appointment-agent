@@ -76,7 +76,7 @@ O motor da US-07 grava agendamentos, mas ninguém consegue vê-los: o Dono não 
 6. **AGD-06 · CA-08.1** — The sistema SHALL ordenar os agendamentos por início crescente, depois por nome do barbeiro sem diferenciar maiúsculas, depois por id.
 7. **AGD-07 · CA-08.1** — WHEN nenhum agendamento começa no período THEN o sistema SHALL responder `200` com lista vazia.
 
-**Independent Test**: e2e: barbearia em `America/Sao_Paulo`, Ana e Bruno com agendamentos na segunda 29/09 às 10:00 (Ana), na quarta 01/10 às 09:00 (Bruno) e na segunda seguinte 06/10 (Ana); o Dono pede `week` com data 01/10 → recebe os dois primeiros, período `2026-09-29` a `2026-10-05`; pede `day` 29/09 → só o da Ana; pede `week` com `barberId` do Bruno → só o de quarta.
+**Independent Test**: e2e: barbearia em `America/Sao_Paulo`, Ana e Bruno com agendamentos na segunda 28/09 às 10:00 (Ana), na quarta 30/09 às 09:00 (Bruno) e na segunda seguinte 05/10 (Ana); o Dono pede `week` com data 30/09 → recebe os dois primeiros, período `2026-09-28` a `2026-10-04`; pede `day` 28/09 → só o da Ana; pede `week` com `barberId` do Bruno → só o de quarta.
 
 ---
 
@@ -164,11 +164,11 @@ O motor da US-07 grava agendamentos, mas ninguém consegue vê-los: o Dono não 
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| AGD-01 | P1 Dono — visão dia | Design | Pending |
-| AGD-02 | P1 Dono — visão semana segunda a domingo | Design | Pending |
+| AGD-01 | P1 Dono — visão dia | T1 | Implementing |
+| AGD-02 | P1 Dono — visão semana segunda a domingo | T1 | Implementing |
 | AGD-03 | P1 Dono — filtro por barbeiro | Design | Pending |
 | AGD-04 | P1 Dono — barbeiro inexistente | Design | Pending |
-| AGD-05 | P1 Dono — período e fuso na resposta | Design | Pending |
+| AGD-05 | P1 Dono — período e fuso na resposta | T1 | Implementing |
 | AGD-06 | P1 Dono — ordem | Design | Pending |
 | AGD-07 | P1 Dono — período vazio | Design | Pending |
 | AGD-08 | P1 Barbeiro — só os próprios | Design | Pending |

@@ -82,11 +82,13 @@ T5 -> T6
 
 **Done when**:
 
-- [ ] `day` 2026-09-29 em São Paulo → `[2026-09-29T03:00Z, 2026-09-30T03:00Z)`, `startDate = endDate = 2026-09-29`
-- [ ] `week` numa quarta → segunda a domingo; `week` num domingo → segunda anterior até esse domingo; `week` numa segunda → começa nela
-- [ ] Semana que cruza o mês (e o ano) calcula as datas certas
-- [ ] Data inexistente → `InvalidValueError('Data inválida.')`
-- [ ] Gate check passes: `npm test`
+- [x] `day` 2026-09-29 em São Paulo → `[2026-09-29T03:00Z, 2026-09-30T03:00Z)`, `startDate = endDate = 2026-09-29`
+- [x] `week` numa quarta → segunda a domingo; `week` num domingo → segunda anterior até esse domingo; `week` numa segunda → começa nela
+- [x] Semana que cruza o mês (e o ano) calcula as datas certas
+- [x] Data inexistente → `InvalidValueError('Data inválida.')`
+- [x] Gate check passes: `npm test`
+
+**Status**: ✅ Done
 
 **Tests**: unit
 **Gate**: quick
