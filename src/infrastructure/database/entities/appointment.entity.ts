@@ -4,6 +4,7 @@ import {
   Entity,
   Exclusion,
   ForeignKey,
+  Index,
   PrimaryColumn,
   Unique,
 } from 'typeorm';
@@ -13,19 +14,27 @@ import type {
 } from '../../../domain/entities/appointment';
 import { BarberEntity } from './barber.entity';
 import { BarbershopEntity } from './barbershop.entity';
+import { ClientEntity } from './client.entity';
 
 // RN-07: the database refuses two confirmed appointments of the same barber
 // whose [start, end) ranges overlap, even through a direct INSERT; touching
 // ranges are allowed. The btree_gist extension it needs is created only in the
 // migration. The barber FK is composite so the barber belongs to the same
-// barbershop (RN-26).
+// barbershop (RN-26), and so is the client FK; a null client skips it.
 @Entity({ name: 'appointments' })
+@Index('appointments_barbershop_starts_idx', ['barbershopId', 'startsAt'])
 @Unique('appointments_id_barbershop_unique', ['id', 'barbershopId'])
 @ForeignKey(
   () => BarberEntity,
   ['barberId', 'barbershopId'],
   ['id', 'barbershopId'],
   { name: 'appointments_barber_fk' },
+)
+@ForeignKey(
+  () => ClientEntity,
+  ['clientId', 'barbershopId'],
+  ['id', 'barbershopId'],
+  { name: 'appointments_client_fk' },
 )
 @Check('appointments_ends_after_starts_check', '"ends_at" > "starts_at"')
 @Check('appointments_status_check', `"status" IN ('confirmed')`)
@@ -44,6 +53,9 @@ export class AppointmentEntity {
 
   @Column({ name: 'barber_id', type: 'uuid' })
   barberId!: string;
+
+  @Column({ name: 'client_id', type: 'uuid', nullable: true })
+  clientId!: string | null;
 
   @Column({ name: 'starts_at', type: 'timestamptz' })
   startsAt!: Date;

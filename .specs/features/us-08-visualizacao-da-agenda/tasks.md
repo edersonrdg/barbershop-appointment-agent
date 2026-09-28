@@ -140,12 +140,14 @@ T5 -> T6
 
 **Done when**:
 
-- [ ] Telefone repetido na mesma barbearia é recusado; o mesmo telefone em outra barbearia é aceito
-- [ ] Agendamento com cliente de outra barbearia é recusado; com cliente da mesma é aceito
-- [ ] Agendamento sem cliente é aceito
-- [ ] `TypeOrmAppointmentRepository.create` grava o agendamento com `client_id` nulo
-- [ ] `migration:revert` desfaz sem erro
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] Telefone repetido na mesma barbearia é recusado; o mesmo telefone em outra barbearia é aceito
+- [x] Agendamento com cliente de outra barbearia é recusado; com cliente da mesma é aceito
+- [x] Agendamento sem cliente é aceito
+- [x] `TypeOrmAppointmentRepository.create` grava o agendamento com `client_id` nulo
+- [x] `migration:revert` desfaz sem erro
+- [x] Gate check passes: `npm test && npm run test:e2e`
+
+**Status**: ✅ Done
 
 **Tests**: e2e
 **Gate**: full

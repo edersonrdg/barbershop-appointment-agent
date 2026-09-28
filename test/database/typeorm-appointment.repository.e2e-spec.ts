@@ -97,6 +97,26 @@ describe('TypeOrmAppointmentRepository (e2e)', () => {
   });
 
   describe('create', () => {
+    it('CA-08.3: the engine keeps booking without a client (AGD-20)', async () => {
+      const barberId = await insertBarber(barbershopA);
+      const haircut = await insertService(barbershopA);
+      const appointment = book({
+        barbershopId: barbershopA,
+        barberId,
+        serviceIds: [haircut],
+        startsAt: '2026-10-05T13:00:00.000Z',
+        durationMinutes: 30,
+        origin: 'manual',
+      });
+
+      await repository.create(appointment);
+
+      const rows = await dataSource.query<Record<string, unknown>[]>(
+        'SELECT id, client_id FROM appointments',
+      );
+      expect(rows).toEqual([{ id: appointment.id, client_id: null }]);
+    });
+
     it('CA-07.5: persists the appointment and its services in the requested order', async () => {
       const barberId = await insertBarber(barbershopA);
       const beard = await insertService(barbershopA);

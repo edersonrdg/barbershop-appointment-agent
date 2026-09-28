@@ -181,10 +181,10 @@ O motor da US-07 grava agendamentos, mas ninguém consegue vê-los: o Dono não 
 | AGD-14 | P1 Detalhe — cliente | Design | Pending |
 | AGD-15 | P1 Detalhe — sem cliente | Design | Pending |
 | AGD-16 | P1 Detalhe — RF-28 origem | Design | Pending |
-| AGD-17 | P1 Cliente — telefone único por barbearia | Design | Pending |
-| AGD-18 | P1 Cliente — FK composta por barbearia | Design | Pending |
-| AGD-19 | P1 Cliente — cliente opcional | Design | Pending |
-| AGD-20 | P1 Cliente — motor segue gravando | Design | Pending |
+| AGD-17 | P1 Cliente — telefone único por barbearia | T3 | Implementing |
+| AGD-18 | P1 Cliente — FK composta por barbearia | T3 | Implementing |
+| AGD-19 | P1 Cliente — cliente opcional | T3 | Implementing |
+| AGD-20 | P1 Cliente — motor segue gravando | T3 | Implementing |
 | AGD-21 | P1 Isolamento — RN-26 leitura | T2 | Implementing |
 | AGD-22 | P1 Isolamento — barbeiro de outra barbearia | T2 | Implementing |
 | AGD-23 | P1 Isolamento — 401 | Design | Pending |
