@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { DataSource } from 'typeorm';
 import { Barbershop } from '../../src/domain/entities/barbershop';
 import { User } from '../../src/domain/entities/user';
+import { BookingRules } from '../../src/domain/value-objects/booking-rules';
 import { validateEnv } from '../../src/infrastructure/config/env.schema';
 import { TypeOrmBarbershopRepository } from '../../src/infrastructure/database/repositories/typeorm-barbershop.repository';
 import { TypeOrmUserRepository } from '../../src/infrastructure/database/repositories/typeorm-user.repository';
@@ -30,7 +31,11 @@ describe('TypeOrmUserRepository (e2e)', () => {
       passwordHash: 'scrypt$16384$8$1$salt$hash',
       now: NOW,
     });
-    await barbershopRepository.createWithOwner(barbershop, owner);
+    await barbershopRepository.createWithOwner(
+      barbershop,
+      owner,
+      BookingRules.defaults(),
+    );
     return owner;
   }
 

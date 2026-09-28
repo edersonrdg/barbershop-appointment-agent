@@ -8,6 +8,7 @@ import { FakePasswordHasher } from '../testing/fake-password-hasher';
 import { FixedClock } from '../testing/fixed-clock';
 import { InMemoryAccountStore } from '../testing/in-memory-account-store';
 import { InMemoryBarbershopRepository } from '../testing/in-memory-barbershop.repository';
+import { InMemoryBookingRulesRepository } from '../testing/in-memory-booking-rules.repository';
 import { SequentialIdGenerator } from '../testing/sequential-id-generator';
 import {
   RegisterBarbershopInput,
@@ -41,6 +42,31 @@ function setup() {
 }
 
 describe('RegisterBarbershopUseCase', () => {
+  it('CA-06.1: the new barbershop gets 60 min advance, 120 min cancellation, 2 no-shows, 15 min offer and 30 days return', async () => {
+    const { store, useCase } = setup();
+
+    await useCase.execute(validInput);
+
+    const [barbershop] = store.barbershops;
+    const rules = await new InMemoryBookingRulesRepository(
+      store,
+    ).findByBarbershopId(barbershop.id);
+    expect(rules).not.toBeNull();
+    expect({
+      minimumAdvanceMinutes: rules?.minimumAdvanceMinutes,
+      cancellationDeadlineMinutes: rules?.cancellationDeadlineMinutes,
+      noShowLimit: rules?.noShowLimit,
+      waitlistOfferMinutes: rules?.waitlistOfferMinutes,
+      returnReminderDays: rules?.returnReminderDays,
+    }).toEqual({
+      minimumAdvanceMinutes: 60,
+      cancellationDeadlineMinutes: 120,
+      noShowLimit: 2,
+      waitlistOfferMinutes: 15,
+      returnReminderDays: 30,
+    });
+  });
+
   it('CA-01.1: persists the barbershop and an owner linked to it, and issues a session for that user and tenant', async () => {
     const { store, tokenIssuer, useCase } = setup();
 

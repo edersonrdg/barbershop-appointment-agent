@@ -3,6 +3,7 @@ import { DataSource } from 'typeorm';
 import { Barbershop } from '../../src/domain/entities/barbershop';
 import { PasswordResetToken } from '../../src/domain/entities/password-reset-token';
 import { User } from '../../src/domain/entities/user';
+import { BookingRules } from '../../src/domain/value-objects/booking-rules';
 import { validateEnv } from '../../src/infrastructure/config/env.schema';
 import { TypeOrmBarbershopRepository } from '../../src/infrastructure/database/repositories/typeorm-barbershop.repository';
 import { TypeOrmPasswordResetRepository } from '../../src/infrastructure/database/repositories/typeorm-password-reset.repository';
@@ -37,7 +38,11 @@ describe('TypeOrmPasswordResetRepository (e2e)', () => {
       passwordHash: ORIGINAL_HASH,
       now: NOW,
     });
-    await barbershopRepository.createWithOwner(barbershop, owner);
+    await barbershopRepository.createWithOwner(
+      barbershop,
+      owner,
+      BookingRules.defaults(),
+    );
     return owner;
   }
 
