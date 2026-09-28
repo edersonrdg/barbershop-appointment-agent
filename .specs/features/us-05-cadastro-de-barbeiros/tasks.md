@@ -289,13 +289,13 @@ T13 -> T15
 
 **Done when**:
 
-- [ ] Desativa e reativa; repetir não muda nada; nada além do flag muda
-- [ ] Barbeiro inexistente ou de outro tenant → `BarberNotFoundError`
-- [ ] Gate check passes: `npm test`
+- [x] Desativa e reativa; repetir não muda nada; nada além do flag muda
+- [x] Barbeiro inexistente ou de outro tenant → `BarberNotFoundError`
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-05): add set barber active use case`
 
 ---
