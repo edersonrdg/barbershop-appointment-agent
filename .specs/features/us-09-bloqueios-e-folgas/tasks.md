@@ -405,9 +405,11 @@ T13
 
 **Done when**:
 
-- [ ] Schemas com `.meta()` (descrição e exemplo) para o Swagger; tipos via `z.infer`
-- [ ] `SchedulePresenter.toResponse` usa `toAppointment`, e o e2e da agenda (US-08) segue verde
-- [ ] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+- [x] Schemas com `.meta()` (descrição e exemplo) para o Swagger; tipos via `z.infer`
+- [x] `SchedulePresenter.toResponse` usa `toAppointment`, e o e2e da agenda (US-08) segue verde
+- [x] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+
+**Status**: ✅ Done
 
 **Tests**: none
 **Gate**: build
