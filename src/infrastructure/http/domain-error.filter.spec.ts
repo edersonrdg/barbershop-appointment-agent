@@ -92,7 +92,7 @@ describe('DomainErrorFilter', () => {
       'Barbeiro não encontrado.',
     ],
   ])(
-    'US-05: maps %s to %i with the spec message',
+    'US-05: maps %s to its status with the spec message',
     (_name, error, statusCode, message) => {
       expect(handle(error)).toEqual({ statusCode, body: { message } });
     },
