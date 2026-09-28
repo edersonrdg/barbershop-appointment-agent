@@ -229,7 +229,7 @@ O motor da US-07 valida e grava agendamentos, e a agenda da US-08 os mostra, mas
 | AGM-27 | P1 Isolamento — RN-26 | T4, T5, T6, T8, T9, T13 | Implementing |
 | AGM-28 | P1 Isolamento — 401 | T13 | Implementing |
 | AGM-29 | P1 Swagger | T12, T13 | Implementing |
-| AGM-30 | P1 PRD — forçar como questão em aberto | T14 | In Tasks |
+| AGM-30 | P1 PRD — forçar como questão em aberto | T14 | Implementing |
 
 **ID format:** `AGM-NN` (Agendamento Manual, épico E3). Cada teste cita o `CA-10.x` (ou o `RN`) no nome, conforme o CLAUDE.md.
 

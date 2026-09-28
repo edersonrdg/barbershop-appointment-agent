@@ -497,11 +497,13 @@ T14
 
 **Done when**:
 
-- [ ] Item novo na seção 19 cita RN-05 e diz que nenhuma história implementa o forçar
-- [ ] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+- [x] Item novo na seção 19 cita RN-05 e diz que nenhuma história implementa o forçar
+- [x] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
 
 **Tests**: none
 **Gate**: build
+
+**Status**: ✅ Done
 
 **Commit**: `docs(US-10): record the rn-05 override as an open question`
 
