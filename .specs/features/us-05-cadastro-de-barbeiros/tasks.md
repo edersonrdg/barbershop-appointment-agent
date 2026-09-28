@@ -315,12 +315,12 @@ T13 -> T15
 
 **Done when**:
 
-- [ ] Ativos e inativos, ordem sem diferenciar maiúsculas, sem outro tenant; lista vazia
-- [ ] Gate check passes: `npm test`
+- [x] Ativos e inativos, ordem sem diferenciar maiúsculas, sem outro tenant; lista vazia
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-05): add list barbers use case`
 
 ---
