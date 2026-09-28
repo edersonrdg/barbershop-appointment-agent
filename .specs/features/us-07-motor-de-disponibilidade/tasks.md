@@ -229,17 +229,19 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] `CA-07.5`: gravação válida persiste status, origem, barbeiro, serviços em ordem, início e fim; devolve o agendamento
-- [ ] `CA-07.5`: um teste por regra (antecedência RN-02, passado, funcionamento RN-05, jornada RN-05, bloqueio RN-05, sobreposição RN-03), cada um com classe, mensagem, `rule` e zero agendamentos gravados
-- [ ] `CA-07.5`: violação dupla informa a primeira na ordem
-- [ ] `CA-07.1`/`CA-07.5`: cada horário devolvido pela consulta é aceito pela gravação com o mesmo `agora`
-- [ ] Painel (`manual`) aceita início antes da antecedência; início com segundos → `InvalidValueError`; mesma gravação duas vezes → conflito e um agendamento
-- [ ] Conflito vindo do repositório (RN-07) propaga e conta na métrica de conflito
-- [ ] Métricas: gravação aceita incrementa `booked` com a origem; conflito incrementa `conflict` com a origem
-- [ ] Gate check passes: `npm test`
+- [x] `CA-07.5`: gravação válida persiste status, origem, barbeiro, serviços em ordem, início e fim; devolve o agendamento
+- [x] `CA-07.5`: um teste por regra (antecedência RN-02, passado, funcionamento RN-05, jornada RN-05, bloqueio RN-05, sobreposição RN-03), cada um com classe, mensagem, `rule` e zero agendamentos gravados
+- [x] `CA-07.5`: violação dupla informa a primeira na ordem
+- [x] `CA-07.1`/`CA-07.5`: cada horário devolvido pela consulta é aceito pela gravação com o mesmo `agora`
+- [x] Painel (`manual`) aceita início antes da antecedência; início com segundos → `InvalidValueError`; mesma gravação duas vezes → conflito e um agendamento
+- [x] Conflito vindo do repositório (RN-07) propaga e conta na métrica de conflito
+- [x] Métricas: gravação aceita incrementa `booked` com a origem; conflito incrementa `conflict` com a origem
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: build
+**Status**: ✅ Done
+**Commit**: `feat(US-07): add appointment booking with rule validation and metrics`
 
 ---
 

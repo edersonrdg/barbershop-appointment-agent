@@ -1,3 +1,4 @@
+import { Appointment } from '../../domain/entities/appointment';
 import { UtcPeriod } from '../../domain/entities/barbershop';
 
 export const APPOINTMENT_REPOSITORY = Symbol('AppointmentRepository');
@@ -18,4 +19,11 @@ export interface AppointmentRepository {
     barberIds: readonly string[],
     range: UtcPeriod,
   ): Promise<BusyPeriod[]>;
+  /**
+   * Persists the appointment and its services atomically. Throws
+   * `AppointmentConflictError` (RN-07) when the database refuses a confirmed
+   * appointment overlapping another of the same barber; then nothing is
+   * persisted.
+   */
+  create(appointment: Appointment): Promise<void>;
 }
