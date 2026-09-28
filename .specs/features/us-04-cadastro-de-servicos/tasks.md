@@ -350,13 +350,14 @@ T12 -> T14
 
 **Done when**:
 
-- [ ] devolve só os ativos da barbearia, com `priceCents` e `durationMinutes`; um serviço desativado some; reativado volta
-- [ ] não devolve serviços de outra barbearia
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: ~3 tests novos passam (no silent deletions)
+- [x] devolve só os ativos da barbearia, com `priceCents` e `durationMinutes`; um serviço desativado some; reativado volta
+- [x] não devolve serviços de outra barbearia
+- [x] Gate check passes: `npm test`
+- [x] Test count: ~3 tests novos passam (no silent deletions)
 
 **Tests**: unit
 **Gate**: build
+**Status**: ✅ Done
 **Commit**: `feat(US-04): add list bookable services use case`
 
 ---
