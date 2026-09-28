@@ -4,7 +4,9 @@ import { EmailAlreadyRegisteredError } from '../../domain/errors/email-already-r
 import { InvalidCredentialsError } from '../../domain/errors/invalid-credentials.error';
 import { InvalidOpeningHoursError } from '../../domain/errors/invalid-opening-hours.error';
 import { InvalidPasswordResetTokenError } from '../../domain/errors/invalid-password-reset-token.error';
+import { InvalidServiceAddOnError } from '../../domain/errors/invalid-service-add-on.error';
 import { InvalidValueError } from '../../domain/errors/invalid-value.error';
+import { ServiceNameAlreadyExistsError } from '../../domain/errors/service-name-already-exists.error';
 import { DomainErrorFilter } from './domain-error.filter';
 
 interface CapturedResponse {
@@ -67,6 +69,22 @@ describe('DomainErrorFilter', () => {
       'Segunda-feira: o horário de fechamento deve ser depois do de abertura.';
 
     expect(handle(new InvalidOpeningHoursError(message))).toEqual({
+      statusCode: 400,
+      body: { message },
+    });
+  });
+
+  it('CA-04.1: maps ServiceNameAlreadyExistsError to 409 with the spec message', () => {
+    expect(handle(new ServiceNameAlreadyExistsError())).toEqual({
+      statusCode: 409,
+      body: { message: 'Já existe um serviço com esse nome.' },
+    });
+  });
+
+  it('CA-04.2: maps InvalidServiceAddOnError to 400 with its message', () => {
+    const message = 'Os serviços adicionais devem estar ativos.';
+
+    expect(handle(new InvalidServiceAddOnError(message))).toEqual({
       statusCode: 400,
       body: { message },
     });

@@ -407,17 +407,18 @@ T12 -> T14
 
 **Done when**:
 
-- [ ] unit `domain-error.filter.spec.ts`: 409 e 400 com as mensagens da spec
-- [ ] e2e `test/services.e2e-spec.ts`: `POST` "Corte" 4500/30 → 201 com o corpo exato e `active: true`; `GET` lista; lista vazia sem serviços; ordem por nome
-- [ ] `POST` "corte" → 409 com a mensagem; `GET` não mostra serviço novo
-- [ ] `POST` com adicional ativo → 201 com `suggestedAddOnIds`; `GET` devolve a relação; adicional inexistente, de outra barbearia e inativo → 400 com cada mensagem, nada gravado
-- [ ] `priceCents: -1` e `durationMinutes: 0` → 400 no campo; nada gravado
-- [ ] Barbeiro → 403 no `GET` e no `POST`; sem sessão → 401; `GET` de A não lista serviços de B; `barbershopId` no corpo, query e header é ignorado
-- [ ] `test/api-docs.e2e-spec.ts` continua passando (summary e resposta de sucesso nas rotas novas)
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] unit `domain-error.filter.spec.ts`: 409 e 400 com as mensagens da spec
+- [x] e2e `test/services.e2e-spec.ts`: `POST` "Corte" 4500/30 → 201 com o corpo exato e `active: true`; `GET` lista; lista vazia sem serviços; ordem por nome
+- [x] `POST` "corte" → 409 com a mensagem; `GET` não mostra serviço novo
+- [x] `POST` com adicional ativo → 201 com `suggestedAddOnIds`; `GET` devolve a relação; adicional inexistente, de outra barbearia e inativo → 400 com cada mensagem, nada gravado
+- [x] `priceCents: -1` e `durationMinutes: 0` → 400 no campo; nada gravado
+- [x] Barbeiro → 403 no `GET` e no `POST`; sem sessão → 401; `GET` de A não lista serviços de B; `barbershopId` no corpo, query e header é ignorado
+- [x] `test/api-docs.e2e-spec.ts` continua passando (summary e resposta de sucesso nas rotas novas)
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Done
 **Commit**: `feat(US-04): expose GET and POST /settings/services`
 
 ---
