@@ -4,11 +4,14 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
+  Put,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateServiceUseCase } from '../../usecases/create-service/create-service.use-case';
 import { ListServicesUseCase } from '../../usecases/list-services/list-services.use-case';
+import { UpdateServiceUseCase } from '../../usecases/update-service/update-service.use-case';
 import {
   ServiceListResponse,
   serviceListResponseSchema,
@@ -20,6 +23,8 @@ import { ApiErrorResponse } from './api-docs/api-error-response.decorator';
 import { ApiZodResponse } from './api-docs/api-zod-response.decorator';
 import type { AuthenticatedSession } from './authenticated-session';
 import { CurrentSession } from './current-session.decorator';
+import type { ServiceIdParams } from './schemas/service-id.params.schema';
+import { serviceIdParamsSchema } from './schemas/service-id.params.schema';
 import type { ServiceBody } from './schemas/service.schema';
 import { serviceSchema } from './schemas/service.schema';
 import { ZodValidationPipe } from './zod-validation.pipe';
@@ -32,6 +37,7 @@ export class ServicesController {
   constructor(
     private readonly listServices: ListServicesUseCase,
     private readonly createService: CreateServiceUseCase,
+    private readonly updateService: UpdateServiceUseCase,
   ) {}
 
   @Get()
@@ -82,6 +88,50 @@ export class ServicesController {
     return ServicePresenter.toResponse(
       await this.createService.execute({
         barbershopId: session.barbershopId,
+        name: body.name,
+        priceCents: body.priceCents,
+        durationMinutes: body.durationMinutes,
+        suggestedAddOnIds: body.suggestedAddOnIds,
+      }),
+    );
+  }
+
+  @Put(':serviceId')
+  @ApiOperation({
+    summary: 'Edita um serviço (US-04)',
+    description:
+      'Substitui nome, preço, duração e a lista de adicionais; não muda o status ativo/inativo.',
+  })
+  @ApiZodResponse({
+    status: HttpStatus.OK,
+    description: 'Serviço salvo.',
+    schema: serviceResponseSchema,
+  })
+  @ApiErrorResponse(
+    HttpStatus.NOT_FOUND,
+    'Não há serviço com esse id nesta barbearia (RN-26).',
+    'Serviço não encontrado.',
+  )
+  @ApiErrorResponse(
+    HttpStatus.CONFLICT,
+    'Outro serviço da barbearia já tem esse nome (sem diferenciar maiúsculas).',
+    'Já existe um serviço com esse nome.',
+  )
+  @ApiErrorResponse(
+    HttpStatus.BAD_REQUEST,
+    'Adicional inexistente, de outra barbearia, inativo ou o próprio serviço (RF-33).',
+    'Um serviço não pode ser adicional de si mesmo.',
+  )
+  async update(
+    @CurrentSession() session: AuthenticatedSession,
+    @Param(new ZodValidationPipe(serviceIdParamsSchema))
+    params: ServiceIdParams,
+    @Body(new ZodValidationPipe(serviceSchema)) body: ServiceBody,
+  ): Promise<ServiceResponse> {
+    return ServicePresenter.toResponse(
+      await this.updateService.execute({
+        barbershopId: session.barbershopId,
+        serviceId: params.serviceId,
         name: body.name,
         priceCents: body.priceCents,
         durationMinutes: body.durationMinutes,

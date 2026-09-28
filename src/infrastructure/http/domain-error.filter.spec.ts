@@ -7,6 +7,7 @@ import { InvalidPasswordResetTokenError } from '../../domain/errors/invalid-pass
 import { InvalidServiceAddOnError } from '../../domain/errors/invalid-service-add-on.error';
 import { InvalidValueError } from '../../domain/errors/invalid-value.error';
 import { ServiceNameAlreadyExistsError } from '../../domain/errors/service-name-already-exists.error';
+import { ServiceNotFoundError } from '../../domain/errors/service-not-found.error';
 import { DomainErrorFilter } from './domain-error.filter';
 
 interface CapturedResponse {
@@ -87,6 +88,13 @@ describe('DomainErrorFilter', () => {
     expect(handle(new InvalidServiceAddOnError(message))).toEqual({
       statusCode: 400,
       body: { message },
+    });
+  });
+
+  it('CA-04.3: maps ServiceNotFoundError to 404 with the spec message', () => {
+    expect(handle(new ServiceNotFoundError())).toEqual({
+      statusCode: 404,
+      body: { message: 'Serviço não encontrado.' },
     });
   });
 

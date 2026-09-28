@@ -438,15 +438,16 @@ T12 -> T14
 
 **Done when**:
 
-- [ ] unit `domain-error.filter.spec.ts`: 404 com a mensagem da spec
-- [ ] e2e: `PUT` válido → 200 com o serviço salvo e `active` mantido; `GET` confirma; mesmo `PUT` duas vezes → 200 e mesmo estado
-- [ ] trocar a lista de adicionais (inclusive por `[]`) substitui a anterior
-- [ ] mesmo nome com maiúsculas diferentes → 200; nome de outro serviço → 409; própria id na lista → 400 com a mensagem; nada muda nesses casos
-- [ ] `serviceId` inexistente e de outra barbearia → 404 com a mensagem, nada muda; Barbeiro → 403
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] unit `domain-error.filter.spec.ts`: 404 com a mensagem da spec
+- [x] e2e: `PUT` válido → 200 com o serviço salvo e `active` mantido; `GET` confirma; mesmo `PUT` duas vezes → 200 e mesmo estado
+- [x] trocar a lista de adicionais (inclusive por `[]`) substitui a anterior
+- [x] mesmo nome com maiúsculas diferentes → 200; nome de outro serviço → 409; própria id na lista → 400 com a mensagem; nada muda nesses casos
+- [x] `serviceId` inexistente e de outra barbearia → 404 com a mensagem, nada muda; Barbeiro → 403
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Done
 **Commit**: `feat(US-04): expose PUT /settings/services/:serviceId`
 
 ---

@@ -51,6 +51,17 @@ describe('/settings/services (e2e)', () => {
     ).send(body as object);
   }
 
+  function putService(
+    token: string | undefined,
+    serviceId: string,
+    body: unknown,
+  ) {
+    return authorized(
+      request(app.getHttpServer()).put(`/settings/services/${serviceId}`),
+      token,
+    ).send(body as object);
+  }
+
   async function currentServices(
     token: string = ownerToken,
   ): Promise<ServiceBody[]> {
@@ -334,6 +345,200 @@ describe('/settings/services (e2e)', () => {
         ],
       });
       expect(await currentServices()).toEqual([]);
+    });
+  });
+
+  describe('PUT', () => {
+    it('CA-04.1: replaces name, price, duration and add-ons, keeps active, answers 200 and GET confirms', async () => {
+      const beard = await created({ ...HAIRCUT, name: 'Barba' });
+      const haircut = await created(HAIRCUT);
+
+      const response = await putService(ownerToken, haircut.id, {
+        name: 'Corte Degradê',
+        priceCents: 5000,
+        durationMinutes: 45,
+        suggestedAddOnIds: [beard.id],
+      });
+
+      const expected = {
+        id: haircut.id,
+        name: 'Corte Degradê',
+        priceCents: 5000,
+        durationMinutes: 45,
+        active: true,
+        suggestedAddOnIds: [beard.id],
+      };
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(expected);
+      expect(await currentServices()).toEqual([beard, expected]);
+    });
+
+    it('CA-04.1: an inactive service stays inactive after a PUT', async () => {
+      const brows = await created({ ...HAIRCUT, name: 'Sobrancelha' });
+      await dataSource.query(
+        'UPDATE services SET active = false WHERE id = $1',
+        [brows.id],
+      );
+
+      const response = await putService(ownerToken, brows.id, {
+        ...HAIRCUT,
+        name: 'Sobrancelha',
+        priceCents: 2500,
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({ active: false, priceCents: 2500 });
+    });
+
+    it('CA-04.1: sending the same PUT twice answers 200 both times and ends in the same state', async () => {
+      const haircut = await created(HAIRCUT);
+      const body = { ...HAIRCUT, name: 'Corte Degradê', priceCents: 5000 };
+
+      const first = await putService(ownerToken, haircut.id, body);
+      const second = await putService(ownerToken, haircut.id, body);
+
+      expect(first.status).toBe(200);
+      expect(second.status).toBe(200);
+      expect(second.body).toEqual(first.body);
+      expect(await currentServices()).toEqual([first.body]);
+    });
+
+    it('CA-04.2: another add-on list, including an empty one, replaces the previous list', async () => {
+      const beard = await created({ ...HAIRCUT, name: 'Barba' });
+      const brows = await created({ ...HAIRCUT, name: 'Sobrancelha' });
+      const haircut = await created({
+        ...HAIRCUT,
+        suggestedAddOnIds: [beard.id],
+      });
+
+      const replaced = await putService(ownerToken, haircut.id, {
+        ...HAIRCUT,
+        suggestedAddOnIds: [brows.id],
+      });
+      expect(replaced.status).toBe(200);
+      expect((replaced.body as ServiceBody).suggestedAddOnIds).toEqual([
+        brows.id,
+      ]);
+
+      const emptied = await putService(ownerToken, haircut.id, {
+        ...HAIRCUT,
+        suggestedAddOnIds: [],
+      });
+      expect(emptied.status).toBe(200);
+      const listed = await currentServices();
+      expect(
+        listed.find((service) => service.id === haircut.id)?.suggestedAddOnIds,
+      ).toEqual([]);
+    });
+
+    it('CA-04.1: keeping its own name with another case answers 200', async () => {
+      const haircut = await created(HAIRCUT);
+
+      const response = await putService(ownerToken, haircut.id, {
+        ...HAIRCUT,
+        name: 'CORTE',
+      });
+
+      expect(response.status).toBe(200);
+      expect((response.body as ServiceBody).name).toBe('CORTE');
+    });
+
+    it('CA-04.1: the name of another service answers 409 and nothing changes', async () => {
+      await created(HAIRCUT);
+      const beard = await created({ ...HAIRCUT, name: 'Barba' });
+      const before = await currentServices();
+
+      const response = await putService(ownerToken, beard.id, {
+        ...HAIRCUT,
+        name: 'corte',
+      });
+
+      expect(response.status).toBe(409);
+      expect(response.body).toEqual({
+        message: 'Já existe um serviço com esse nome.',
+      });
+      expect(await currentServices()).toEqual(before);
+    });
+
+    it('CA-04.2: its own id in the add-on list answers 400 and nothing changes', async () => {
+      const beard = await created({ ...HAIRCUT, name: 'Barba' });
+      const haircut = await created(HAIRCUT);
+      const before = await currentServices();
+
+      const response = await putService(ownerToken, haircut.id, {
+        ...HAIRCUT,
+        name: 'Corte Novo',
+        suggestedAddOnIds: [beard.id, haircut.id],
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: 'Um serviço não pode ser adicional de si mesmo.',
+      });
+      expect(await currentServices()).toEqual(before);
+    });
+
+    it('CA-04.3: an unknown serviceId answers 404 and nothing changes', async () => {
+      const haircut = await created(HAIRCUT);
+
+      const response = await putService(ownerToken, randomUUID(), {
+        ...HAIRCUT,
+        name: 'Corte Novo',
+      });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({ message: 'Serviço não encontrado.' });
+      expect(await currentServices()).toEqual([haircut]);
+    });
+
+    it('RN-26: a PUT from A on a service of B answers 404 and B stays the same', async () => {
+      const { accessToken: tokenB } = await signupOwner(
+        app,
+        'dono@barbearia-b.com',
+        'Barbearia B',
+      );
+      const foreign = await created(HAIRCUT, tokenB);
+
+      const response = await putService(ownerToken, foreign.id, {
+        ...HAIRCUT,
+        name: 'Tomado',
+      });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({ message: 'Serviço não encontrado.' });
+      expect(await currentServices(tokenB)).toEqual([foreign]);
+    });
+
+    it('a malformed serviceId answers 400 on the serviceId field', async () => {
+      const response = await putService(ownerToken, 'corte', HAIRCUT);
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: 'Dados inválidos.',
+        errors: [
+          { field: 'serviceId', message: 'Informe um id de serviço válido.' },
+        ],
+      });
+    });
+
+    it('a barber gets 403 on PUT and nothing changes', async () => {
+      const haircut = await created(HAIRCUT);
+      const barberToken = await createBarber(
+        app,
+        emailSender,
+        appWebUrl,
+        ownerToken,
+        'joao@exemplo.com',
+      );
+
+      const response = await putService(barberToken, haircut.id, {
+        ...HAIRCUT,
+        priceCents: 1,
+      });
+
+      expect(response.status).toBe(403);
+      expect(response.body).toEqual(FORBIDDEN);
+      expect(await currentServices()).toEqual([haircut]);
     });
   });
 

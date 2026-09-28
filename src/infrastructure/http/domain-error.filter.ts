@@ -15,6 +15,7 @@ import { InvalidServiceAddOnError } from '../../domain/errors/invalid-service-ad
 import { InvalidPasswordResetTokenError } from '../../domain/errors/invalid-password-reset-token.error';
 import { InvitationDeliveryFailedError } from '../../domain/errors/invitation-delivery-failed.error';
 import { ServiceNameAlreadyExistsError } from '../../domain/errors/service-name-already-exists.error';
+import { ServiceNotFoundError } from '../../domain/errors/service-not-found.error';
 import { UserNotFoundError } from '../../domain/errors/user-not-found.error';
 
 const STATUS_BY_ERROR = new Map<unknown, HttpStatus>([
@@ -25,6 +26,7 @@ const STATUS_BY_ERROR = new Map<unknown, HttpStatus>([
   [InvalidOpeningHoursError, HttpStatus.BAD_REQUEST],
   [ServiceNameAlreadyExistsError, HttpStatus.CONFLICT],
   [InvalidServiceAddOnError, HttpStatus.BAD_REQUEST],
+  [ServiceNotFoundError, HttpStatus.NOT_FOUND],
   [UserNotFoundError, HttpStatus.NOT_FOUND],
   [InvitationDeliveryFailedError, HttpStatus.BAD_GATEWAY],
 ]);
