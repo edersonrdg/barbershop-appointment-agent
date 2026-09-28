@@ -434,11 +434,13 @@ T14
 
 **Done when**:
 
-- [ ] Schema exporta o tipo com `z.infer`, sem DTO paralelo
-- [ ] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+- [x] Schema exporta o tipo com `z.infer`, sem DTO paralelo
+- [x] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
 
 **Tests**: none
 **Gate**: build
+
+**Status**: ✅ Done
 
 **Commit**: `feat(US-10): add available slots presenter`
 
