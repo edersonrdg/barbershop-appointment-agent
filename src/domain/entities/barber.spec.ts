@@ -1,5 +1,6 @@
 import { InvalidBarberServiceError } from '../errors/invalid-barber-service.error';
 import { InvalidBarberUserError } from '../errors/invalid-barber-user.error';
+import { BarbershopTimezone } from '../value-objects/barbershop-timezone';
 import { DayWorkingHours } from '../value-objects/day-working-hours';
 import { ServiceDuration } from '../value-objects/service-duration';
 import { ServicePrice } from '../value-objects/service-price';
@@ -236,6 +237,70 @@ describe('Barber', () => {
       barber.deactivate();
       barber.deactivate();
       expect(barber.active).toBe(false);
+    });
+  });
+
+  describe('CA-07.1: working periods of a local date in UTC', () => {
+    // 2026-10-05 is a monday and 2026-10-06 a tuesday.
+    const t = (raw: string) => TimeOfDay.create(raw);
+    const days: Record<Weekday, DayWorkingHours | null> = {
+      monday: DayWorkingHours.create({
+        weekday: 'monday',
+        startsAt: t('10:00'),
+        endsAt: t('17:00'),
+        break: { startsAt: t('12:00'), endsAt: t('13:00') },
+      }),
+      tuesday: null,
+      wednesday: null,
+      thursday: null,
+      friday: null,
+      saturday: null,
+      sunday: null,
+    };
+    const barber = Barber.restore({
+      id: 'barber-1',
+      barbershopId: 'barbershop-a',
+      name: 'João',
+      active: true,
+      userId: null,
+      serviceIds: [],
+      workingHours: WeeklyWorkingHours.create(days),
+      createdAt: NOW,
+    });
+    const iso = (periods: { start: Date; end: Date }[]) =>
+      periods.map((p) => [p.start.toISOString(), p.end.toISOString()]);
+
+    it('AVL-01: a day with a break has two UTC periods', () => {
+      const periods = barber.workIntervalsOn(
+        '2026-10-05',
+        BarbershopTimezone.create('America/Sao_Paulo'),
+      );
+
+      expect(iso(periods)).toEqual([
+        ['2026-10-05T13:00:00.000Z', '2026-10-05T15:00:00.000Z'],
+        ['2026-10-05T16:00:00.000Z', '2026-10-05T20:00:00.000Z'],
+      ]);
+    });
+
+    it('AVL-07: a day without working hours has no periods', () => {
+      expect(
+        barber.workIntervalsOn(
+          '2026-10-06',
+          BarbershopTimezone.create('America/Sao_Paulo'),
+        ),
+      ).toEqual([]);
+    });
+
+    it('AVL-09: the same working hours give other UTC instants in another timezone', () => {
+      const periods = barber.workIntervalsOn(
+        '2026-10-05',
+        BarbershopTimezone.create('America/Manaus'),
+      );
+
+      expect(iso(periods)).toEqual([
+        ['2026-10-05T14:00:00.000Z', '2026-10-05T16:00:00.000Z'],
+        ['2026-10-05T17:00:00.000Z', '2026-10-05T21:00:00.000Z'],
+      ]);
     });
   });
 });

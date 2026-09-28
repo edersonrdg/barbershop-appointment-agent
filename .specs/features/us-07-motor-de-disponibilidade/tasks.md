@@ -118,12 +118,14 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] Dia com intervalo devolve dois períodos UTC; dia sem jornada devolve `[]`
-- [ ] Mesma jornada em fusos diferentes gera instantes UTC diferentes
-- [ ] Gate check passes: `npm test`
+- [x] Dia com intervalo devolve dois períodos UTC; dia sem jornada devolve `[]`
+- [x] Mesma jornada em fusos diferentes gera instantes UTC diferentes
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
+**Commit**: `feat(US-07): add barber working periods in utc`
 
 ---
 

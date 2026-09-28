@@ -210,15 +210,15 @@ O painel (US-10) e o bot (US-17) vão oferecer e gravar horários, mas ainda nã
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| AVL-01 | P1 Barbeiro — CA-07.1 cabe inteiro no funcionamento e na jornada | - | Pending |
+| AVL-01 | P1 Barbeiro — CA-07.1 cabe inteiro no funcionamento e na jornada | T2 | Implementing |
 | AVL-02 | P1 Barbeiro — RN-04 duração somada | - | Pending |
 | AVL-03 | P1 Barbeiro — grade de 30 min por período livre | - | Pending |
 | AVL-04 | P1 Barbeiro — fora de bloqueios e folgas | - | Pending |
 | AVL-05 | P1 Barbeiro — fora de agendamentos | - | Pending |
 | AVL-06 | P1 Barbeiro — intervalos encostados são livres | - | Pending |
-| AVL-07 | P1 Barbeiro — dia fechado ou sem jornada | - | Pending |
+| AVL-07 | P1 Barbeiro — dia fechado ou sem jornada | T2 | Implementing |
 | AVL-08 | P1 Barbeiro — formato e ordem do resultado | - | Pending |
-| AVL-09 | P1 Barbeiro — fuso da barbearia | T1 | Implementing |
+| AVL-09 | P1 Barbeiro — fuso da barbearia | T1, T2 | Implementing |
 | AVL-10 | P1 Qualquer — todos os aptos | - | Pending |
 | AVL-11 | P1 Qualquer — um barbeiro por início, ordem de nome | - | Pending |
 | AVL-12 | P1 Qualquer — sem inativos e sem inaptos | - | Pending |

@@ -1,6 +1,8 @@
 import { InvalidBarberServiceError } from '../errors/invalid-barber-service.error';
 import { InvalidBarberUserError } from '../errors/invalid-barber-user.error';
+import { BarbershopTimezone } from '../value-objects/barbershop-timezone';
 import { WeeklyWorkingHours } from '../value-objects/weekly-working-hours';
+import { UtcPeriod } from './barbershop';
 import { BarbershopService } from './barbershop-service';
 import { User } from './user';
 
@@ -83,6 +85,18 @@ export class Barber {
 
   get createdAt(): Date {
     return this.props.createdAt;
+  }
+
+  workIntervalsOn(
+    localDate: string,
+    timezone: BarbershopTimezone,
+  ): UtcPeriod[] {
+    const day = this.props.workingHours.forDay(timezone.weekdayOf(localDate));
+    if (!day) return [];
+    return day.workPeriods().map((period) => ({
+      start: timezone.toUtc(localDate, period.start),
+      end: timezone.toUtc(localDate, period.end),
+    }));
   }
 
   update({
