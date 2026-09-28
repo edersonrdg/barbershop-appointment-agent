@@ -1,7 +1,5 @@
 import { UserRole } from '../../domain/entities/user';
-import { BarberNotFoundError } from '../../domain/errors/barber-not-found.error';
 import { InvalidCredentialsError } from '../../domain/errors/invalid-credentials.error';
-import { ScheduleAccessDeniedError } from '../../domain/errors/schedule-access-denied.error';
 import { BarbershopTimezone } from '../../domain/value-objects/barbershop-timezone';
 import {
   SchedulePeriod,
@@ -10,6 +8,7 @@ import {
 import { BarberRepository } from '../ports/barber.repository.port';
 import { BarbershopRepository } from '../ports/barbershop.repository.port';
 import { ScheduleEntry, ScheduleQuery } from '../ports/schedule.query.port';
+import { BarberAccessPolicy } from '../shared/barber-access-policy';
 
 export interface ListScheduleInput {
   barbershopId: string;
@@ -27,11 +26,15 @@ export interface Schedule {
 }
 
 export class ListScheduleUseCase {
+  private readonly access: BarberAccessPolicy;
+
   constructor(
     private readonly barbershops: BarbershopRepository,
-    private readonly barbers: BarberRepository,
+    barbers: BarberRepository,
     private readonly schedule: ScheduleQuery,
-  ) {}
+  ) {
+    this.access = new BarberAccessPolicy(barbers);
+  }
 
   async execute(input: ListScheduleInput): Promise<Schedule> {
     const barbershop = await this.barbershops.findById(input.barbershopId);
@@ -44,10 +47,7 @@ export class ListScheduleUseCase {
       localDate: input.date,
       timezone,
     });
-    const barberId =
-      input.role === 'barber'
-        ? await this.ownBarberId(input)
-        : await this.filteredBarberId(input);
+    const barberId = await this.access.readScope(input);
     const entries =
       barberId === undefined
         ? []
@@ -57,34 +57,5 @@ export class ListScheduleUseCase {
             barberId,
           );
     return { period, timezone: timezone.value, entries };
-  }
-
-  // CA-08.2: a barber sees only the barber linked to their user; without one
-  // there is no schedule of their own (CA-05.2).
-  private async ownBarberId(
-    input: ListScheduleInput,
-  ): Promise<string | undefined> {
-    const own = await this.barbers.findByUserId(
-      input.barbershopId,
-      input.userId,
-    );
-    if (input.barberId !== undefined && input.barberId !== own?.id) {
-      throw new ScheduleAccessDeniedError();
-    }
-    return own?.id;
-  }
-
-  private async filteredBarberId(
-    input: ListScheduleInput,
-  ): Promise<string | null> {
-    if (input.barberId === undefined) return null;
-    const barber = await this.barbers.findById(
-      input.barbershopId,
-      input.barberId,
-    );
-    if (!barber) {
-      throw new BarberNotFoundError();
-    }
-    return barber.id;
   }
 }

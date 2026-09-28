@@ -255,11 +255,13 @@ T13
 
 **Done when**:
 
-- [ ] `readScope`: Dono sem filtro → `null`; Dono com barbeiro da barbearia → id; inexistente → `BarberNotFoundError`; Barbeiro → o próprio; outro → `ScheduleAccessDeniedError`; sem ficha → `undefined`
-- [ ] `targetBarber`: Dono → barbeiro da barbearia (inclusive inativo) ou `BarberNotFoundError`; Barbeiro → só o próprio; outro ou sem ficha → `ScheduleAccessDeniedError`
-- [ ] `assertCanManage`: Dono sempre passa; Barbeiro só no próprio barbeiro; outro ou sem ficha → `ScheduleAccessDeniedError`
-- [ ] Testes da US-08 (`list-schedule.use-case.spec.ts`, `test/schedule.e2e-spec.ts`) passam sem alteração
-- [ ] Gate check passes: `npm test`
+- [x] `readScope`: Dono sem filtro → `null`; Dono com barbeiro da barbearia → id; inexistente → `BarberNotFoundError`; Barbeiro → o próprio; outro → `ScheduleAccessDeniedError`; sem ficha → `undefined`
+- [x] `targetBarber`: Dono → barbeiro da barbearia (inclusive inativo) ou `BarberNotFoundError`; Barbeiro → só o próprio; outro ou sem ficha → `ScheduleAccessDeniedError`
+- [x] `assertCanManage`: Dono sempre passa; Barbeiro só no próprio barbeiro; outro ou sem ficha → `ScheduleAccessDeniedError`
+- [x] Testes da US-08 (`list-schedule.use-case.spec.ts`, `test/schedule.e2e-spec.ts`) passam sem alteração
+- [x] Gate check passes: `npm test`
+
+**Status**: ✅ Done
 
 **Tests**: unit
 **Gate**: build

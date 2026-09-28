@@ -176,8 +176,8 @@ O motor da US-07 já respeita bloqueios e folgas (RN-05), mas não há como cri�
 | BLQ-03 | P1 Bloqueio — motor não oferece | - | Pending |
 | BLQ-04 | P1 Bloqueio — motor recusa (RN-05) | - | Pending |
 | BLQ-05 | P1 Bloqueio — Dono para qualquer barbeiro | - | Pending |
-| BLQ-06 | P1 Bloqueio — Barbeiro em outro barbeiro 403 | - | Pending |
-| BLQ-07 | P1 Bloqueio — barbeiro inexistente 404 | - | Pending |
+| BLQ-06 | P1 Bloqueio — Barbeiro em outro barbeiro 403 | T6 | Implementing |
+| BLQ-07 | P1 Bloqueio — barbeiro inexistente 404 | T6 | Implementing |
 | BLQ-08 | P1 Folga — dia inteiro no fuso | T1 | Implementing |
 | BLQ-09 | P1 Folga — motor sem horários no dia | - | Pending |
 | BLQ-10 | P1 Folga — outros dias e barbeiros intactos | - | Pending |
@@ -190,10 +190,10 @@ O motor da US-07 já respeita bloqueios e folgas (RN-05), mas não há como cri�
 | BLQ-17 | P1 Conflito — sem conflito, lista vazia | - | Pending |
 | BLQ-18 | P1 Listar — Dono por período | T4 | Implementing |
 | BLQ-19 | P1 Validação — 400 e mensagens | - | Pending |
-| BLQ-20 | P1 Listar — Barbeiro só os próprios | - | Pending |
+| BLQ-20 | P1 Listar — Barbeiro só os próprios | T6 | Implementing |
 | BLQ-21 | P1 Remover — Dono 204 | T4 | Implementing |
 | BLQ-22 | P1 Remover — motor volta a oferecer | - | Pending |
-| BLQ-23 | P1 Remover — Barbeiro só os próprios | - | Pending |
+| BLQ-23 | P1 Remover — Barbeiro só os próprios | T6 | Implementing |
 | BLQ-24 | P1 Remover — inexistente 404 | T2, T4 | Implementing |
 | BLQ-25 | P1 Isolamento — RN-26 | T3, T4, T5 | Implementing |
 | BLQ-26 | P1 Isolamento — 401 | - | Pending |
