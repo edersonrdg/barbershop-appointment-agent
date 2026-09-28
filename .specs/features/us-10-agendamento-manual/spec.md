@@ -201,7 +201,7 @@ O motor da US-07 valida e grava agendamentos, e a agenda da US-08 os mostra, mas
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
 | AGM-01 | P1 Criar — grava manual, 201 | T2, T6, T7, T8, T13 | Implementing |
-| AGM-02 | P1 Criar — fim e ordem dos serviços | T8 | In Tasks |
+| AGM-02 | P1 Criar — fim e ordem dos serviços | T8 | Implementing |
 | AGM-03 | P1 Criar — aparece na agenda | T6, T13 | Implementing |
 | AGM-04 | P1 Criar — sem antecedência mínima | T7, T8, T13 | Implementing |
 | AGM-05 | P1 Cliente — cria pelo telefone | T1, T2, T5, T7, T8 | Implementing |
@@ -214,11 +214,11 @@ O motor da US-07 valida e grava agendamentos, e a agenda da US-08 os mostra, mas
 | AGM-12 | P1 Recusa — RN-05 422 | T3, T8, T13 | Implementing |
 | AGM-13 | P1 Recusa — passado 422 | T3, T8 | Implementing |
 | AGM-14 | P1 Recusa — serviço não realizado 400 | T3, T8 | Implementing |
-| AGM-15 | P1 Recusa — barbeiro ou serviço 404 | T8, T13 | In Tasks |
+| AGM-15 | P1 Recusa — barbeiro ou serviço 404 | T8, T13 | Implementing |
 | AGM-16 | P1 Validação — 400 e mensagens | T1, T10, T13 | Implementing |
-| AGM-17 | P1 Perfil — Barbeiro para si | T8 | In Tasks |
-| AGM-18 | P1 Perfil — Barbeiro para outro 403 | T8, T13 | In Tasks |
-| AGM-19 | P1 Perfil — Dono para qualquer barbeiro | T8 | In Tasks |
+| AGM-17 | P1 Perfil — Barbeiro para si | T8 | Implementing |
+| AGM-18 | P1 Perfil — Barbeiro para outro 403 | T8, T13 | Implementing |
+| AGM-19 | P1 Perfil — Dono para qualquer barbeiro | T8 | Implementing |
 | AGM-20 | P1 Horários — por barbeiro | T9, T12, T13 | In Tasks |
 | AGM-21 | P1 Horários — qualquer barbeiro | T9 | In Tasks |
 | AGM-22 | P1 Horários — sem antecedência mínima | T9, T13 | In Tasks |

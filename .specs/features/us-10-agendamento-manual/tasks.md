@@ -314,16 +314,18 @@ T14
 
 **Done when**:
 
-- [ ] CA-10.1: Dono agenda para Ana → `ScheduleEntry` com origem `manual`, `confirmed`, fim = início + soma das durações, serviços na ordem
-- [ ] CA-10.2: telefone novo cria o cliente; telefone existente em outro formato liga ao mesmo cliente e mantém o nome; telefone de outra barbearia cria cliente novo
-- [ ] CA-10.2: recusa do motor (conflito, RN-05, passado) não deixa cliente novo gravado
-- [ ] CA-10.2: `ClientPhoneTakenError` na primeira tentativa → segunda tentativa liga ao cliente já gravado; nova falha propaga
-- [ ] CA-10.4: cada recusa do motor chega com a classe e a mensagem da spec
-- [ ] CA-10.5: Barbeiro para si → gravado; para outro ou sem ficha → `ScheduleAccessDeniedError`, sem agendamento e sem cliente
-- [ ] Gate check passes: `npm test`
+- [x] CA-10.1: Dono agenda para Ana → `ScheduleEntry` com origem `manual`, `confirmed`, fim = início + soma das durações, serviços na ordem
+- [x] CA-10.2: telefone novo cria o cliente; telefone existente em outro formato liga ao mesmo cliente e mantém o nome; telefone de outra barbearia cria cliente novo
+- [x] CA-10.2: recusa do motor (conflito, RN-05, passado) não deixa cliente novo gravado
+- [x] CA-10.2: `ClientPhoneTakenError` na primeira tentativa → segunda tentativa liga ao cliente já gravado; nova falha propaga
+- [x] CA-10.4: cada recusa do motor chega com a classe e a mensagem da spec
+- [x] CA-10.5: Barbeiro para si → gravado; para outro ou sem ficha → `ScheduleAccessDeniedError`, sem agendamento e sem cliente
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
+
+**Status**: ✅ Done
 
 **Commit**: `feat(US-10): add create manual appointment use case`
 
