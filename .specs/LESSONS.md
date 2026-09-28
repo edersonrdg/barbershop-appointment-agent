@@ -32,6 +32,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: validation.md M19 / src/interface-adapters/controllers/schemas/barbershop-settings.schema.spec.ts:75 (CFG-10) (schema)
 - last seen: 2026-09-27T22:16:18Z
 
+### L-004 - Tenant-isolation tests for a repository write must target a row of another tenant by its own id (forged entity), including child rows, not only rows with different ids.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `repo-layer` · harmful: 0
+- features: us-04-cadastro-de-servicos
+- evidence: validation.md M19 / src/infrastructure/database/repositories/typeorm-service.repository.ts:62 / test/database/typeorm-service.repository.e2e-spec.ts:252 (SVC-26) (repo-layer)
+- last seen: 2026-09-28T02:41:41Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
