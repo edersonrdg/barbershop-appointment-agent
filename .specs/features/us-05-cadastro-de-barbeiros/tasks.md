@@ -234,15 +234,15 @@ T13 -> T15
 
 **Done when**:
 
-- [ ] CA-05.1: grava ativo com serviços e jornada e devolve `{ barber, warnings }`
-- [ ] CA-05.3: avisos contra o funcionamento salvo; `[]` quando tudo dentro
-- [ ] CA-05.2: vincula Dono ou Barbeiro; `null` sem vínculo
-- [ ] Recusas (nome, serviço inexistente/outro tenant/inativo, usuário inexistente/outro tenant, usuário já vinculado, jornada incoerente) sem gravar nada
-- [ ] Gate check passes: `npm test`
+- [x] CA-05.1: grava ativo com serviços e jornada e devolve `{ barber, warnings }`
+- [x] CA-05.3: avisos contra o funcionamento salvo; `[]` quando tudo dentro
+- [x] CA-05.2: vincula Dono ou Barbeiro; `null` sem vínculo
+- [x] Recusas (nome, serviço inexistente/outro tenant/inativo, usuário inexistente/outro tenant, usuário já vinculado, jornada incoerente) sem gravar nada
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-05): add create barber use case`
 
 ---
