@@ -427,6 +427,34 @@ describe('CreateManualAppointmentUseCase', () => {
     );
   });
 
+  describe('CA-10.4: touching a limit is not a violation', () => {
+    it.each<[string, Partial<CreateManualAppointmentInput>, Date]>([
+      [
+        'ends exactly at the end of the working day',
+        { serviceIds: ['haircut'], startsAt: at('16:30') },
+        at('17:00'),
+      ],
+      [
+        'ends exactly at the closing time',
+        { barberId: 'bruno', startsAt: at('17:15') },
+        at('18:00'),
+      ],
+      [
+        'ends exactly when another appointment starts',
+        { startsAt: at('13:15') },
+        at('14:00'),
+      ],
+    ])('CA-10.4: books an appointment that %s', async (_, overrides, end) => {
+      const { useCase, newAppointments } = await setup();
+
+      const entry = await useCase.execute(input(overrides));
+
+      expect(entry.endsAt).toEqual(end);
+      const [saved] = await newAppointments();
+      expect(saved.endsAt).toEqual(end);
+    });
+  });
+
   describe('CA-10.5: a barber books only their own schedule', () => {
     it('CA-10.5: a barber books for themselves (AGM-17)', async () => {
       const { useCase, newAppointments } = await setup();

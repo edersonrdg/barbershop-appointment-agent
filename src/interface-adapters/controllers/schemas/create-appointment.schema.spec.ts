@@ -160,4 +160,13 @@ describe('createAppointmentSchema', () => {
   ])('AGM-16: rejects %s with its exact message', (_, overrides, issue) => {
     expect(issuesOf({ ...body, ...overrides })).toEqual([issue]);
   });
+
+  it.each([undefined, null, 'João'])(
+    'AGM-16: rejects the client %p with "Informe o nome e o telefone do cliente."',
+    (client) => {
+      expect(issuesOf({ ...body, client })).toEqual([
+        { field: 'client', message: 'Informe o nome e o telefone do cliente.' },
+      ]);
+    },
+  );
 });
