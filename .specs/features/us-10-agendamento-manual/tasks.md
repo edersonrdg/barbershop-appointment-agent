@@ -255,13 +255,15 @@ T14
 
 **Done when**:
 
-- [ ] Devolve barbeiro, cliente, serviços na ordem agendada, início, fim, status e origem
-- [ ] Agendamento sem cliente → `client: null`
-- [ ] Id de outra barbearia ou inexistente → `null`
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] Devolve barbeiro, cliente, serviços na ordem agendada, início, fim, status e origem
+- [x] Agendamento sem cliente → `client: null`
+- [x] Id de outra barbearia ou inexistente → `null`
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
+
+**Status**: ✅ Done
 
 **Commit**: `feat(US-10): find a schedule entry by id`
 

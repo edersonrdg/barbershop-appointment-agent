@@ -39,4 +39,13 @@ export interface ScheduleQuery {
     barberId: string,
     range: UtcPeriod,
   ): Promise<ScheduleEntry[]>;
+
+  /**
+   * The appointment of the barbershop with `appointmentId`, in the same entry
+   * format as `listStartingIn`; null when it does not exist there.
+   */
+  findById(
+    barbershopId: string,
+    appointmentId: string,
+  ): Promise<ScheduleEntry | null>;
 }

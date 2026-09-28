@@ -73,6 +73,19 @@ export class TypeOrmScheduleQuery implements ScheduleQuery {
     return this.withServices(barbershopId, rows);
   }
 
+  async findById(
+    barbershopId: string,
+    appointmentId: string,
+  ): Promise<ScheduleEntry | null> {
+    const rows = await this.dataSource.query<AppointmentRow[]>(
+      `${SELECT_APPOINTMENTS}
+       WHERE a.barbershop_id = $1 AND a.id = $2`,
+      [barbershopId, appointmentId],
+    );
+    const [entry] = await this.withServices(barbershopId, rows);
+    return entry ?? null;
+  }
+
   private async withServices(
     barbershopId: string,
     rows: AppointmentRow[],
