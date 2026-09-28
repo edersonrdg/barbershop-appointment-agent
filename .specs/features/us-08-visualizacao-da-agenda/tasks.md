@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/us-08-visualizacao-da-agenda/design.md`
-**Status**: In Progress
+**Status**: Done
 
 Toda task cita US-08 e os `AGD`/`RN` que implementa. Testes citam o `CA-08.x` (ou a `RN`) no nome. Commits: `feat(US-08): ...` (ou `test`/`chore`), só locais.
 
