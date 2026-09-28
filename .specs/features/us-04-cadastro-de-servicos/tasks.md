@@ -295,15 +295,16 @@ T12 -> T14
 
 **Done when**:
 
-- [ ] `active: false` marca inativo e devolve o serviço; nome, preço, duração e adicionais iguais
-- [ ] `active: true` num inativo reativa
-- [ ] repetir a mesma ação devolve o serviço sem mudança
-- [ ] serviço inexistente ou de outra barbearia → `ServiceNotFoundError`
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: ~5 tests novos passam (no silent deletions)
+- [x] `active: false` marca inativo e devolve o serviço; nome, preço, duração e adicionais iguais
+- [x] `active: true` num inativo reativa
+- [x] repetir a mesma ação devolve o serviço sem mudança
+- [x] serviço inexistente ou de outra barbearia → `ServiceNotFoundError`
+- [x] Gate check passes: `npm test`
+- [x] Test count: ~5 tests novos passam (no silent deletions)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
 **Commit**: `feat(US-04): add set service active use case`
 
 ---
