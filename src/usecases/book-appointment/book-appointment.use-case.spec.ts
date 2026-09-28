@@ -21,7 +21,12 @@ import {
 import { day, seedBarber, workingHoursInput } from '../testing/barber-fixtures';
 import { CountingAppointmentMetrics } from '../testing/counting-appointment-metrics';
 import { InMemoryAppointmentRepository } from '../testing/in-memory-appointment.repository';
-import { at, MONDAY, setupScheduling } from '../testing/scheduling-fixtures';
+import {
+  at,
+  MONDAY,
+  rulesWithMinimumAdvance,
+  setupScheduling,
+} from '../testing/scheduling-fixtures';
 import { SequentialIdGenerator } from '../testing/sequential-id-generator';
 import {
   BookAppointmentInput,
@@ -180,6 +185,38 @@ describe('BookAppointmentUseCase', () => {
 
       expect(appointment.startsAt).toEqual(at('10:30'));
       expect(await stored(appointments)).toHaveLength(2);
+    });
+
+    it('CA-07.3: a changed minimum advance applies to the next booking (AVL-17)', async () => {
+      const { useCase, appointments, bookingRules } = await setup(at('10:05'));
+
+      await bookingRules.save('barbershop-a', rulesWithMinimumAdvance(120));
+      await expectRefusal(
+        useCase.execute(input({ origin: 'bot', startsAt: at('11:30') })),
+        MinimumAdvanceNotMetError,
+        'Escolha um horário com pelo menos 120 minutos de antecedência.',
+        'RN-02',
+      );
+      expect(await stored(appointments)).toEqual([SEEDED]);
+
+      await bookingRules.save('barbershop-a', rulesWithMinimumAdvance(30));
+      const appointment = await useCase.execute(
+        input({ origin: 'bot', startsAt: at('10:45') }),
+      );
+      expect(appointment.startsAt).toEqual(at('10:45'));
+    });
+
+    it('CA-07.3: a barbershop without saved rules books with the default minimum advance', async () => {
+      const { useCase, appointments, store } = await setup(at('10:05'));
+      store.bookingRules.delete('barbershop-a');
+
+      await expectRefusal(
+        useCase.execute(input({ origin: 'bot', startsAt: at('11:00') })),
+        MinimumAdvanceNotMetError,
+        'Escolha um horário com pelo menos 60 minutos de antecedência.',
+        'RN-02',
+      );
+      expect(await stored(appointments)).toEqual([SEEDED]);
     });
 
     it('CA-07.5: accepts a start off the 30-minute grid, right after an appointment', async () => {

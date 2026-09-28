@@ -43,17 +43,18 @@ O painel (US-10) e o bot (US-17) vão oferecer e gravar horários, mas ainda nã
 | Exposição | Sem rota HTTP; só use cases | Decidido na discussão | y |
 | Data da consulta | Data local da barbearia (`AAAA-MM-DD`); horários convertidos com o fuso da barbearia; resultado em instantes UTC | CLAUDE.md (datas em UTC, fuso só nas bordas); CA-03.3 | y |
 | Duração total | Soma das durações dos serviços pedidos, lida na hora da consulta ou gravação | RN-04 | y |
-| Barbeiro apto | Barbeiro ativo que realiza **todos** os serviços pedidos | RN-04 junta os serviços num único atendimento com um só barbeiro || y |
-| "Qualquer barbeiro" | Cada início aparece uma vez, com o primeiro barbeiro livre na ordem da listagem de barbeiros (nome, sem diferenciar maiúsculas) | CA-07.2 pede "qual barbeiro atende cada horário"; ordem determinística e testável. Balanceamento não está no PRD || y |
-| Ordem das regras | Quando várias regras são violadas, o motor informa a primeira nesta ordem: barbeiro e serviços → passado → antecedência (RN-02) → funcionamento (RN-05) → jornada (RN-05) → bloqueio (RN-05) → sobreposição (RN-03) | Resultado determinístico para o CA-07.5 || y |
-| Horário no passado no painel | Erro próprio ("O horário já passou."), sem RN, porque nenhuma RN trata disso | A decisão veio da discussão, não do PRD || y |
-| Conflito detectado pelo banco | A violação da constraint de exclusão vira o mesmo erro de conflito da checagem na aplicação, citando RN-07 | CA-07.4 pede "erro de conflito" || y |
-| Status que ocupa o horário | Só agendamentos confirmados ocupam horário; é o único status criado nesta história | RN-01; cancelado (US-18) e atendido/falta (US-11) vêm depois || y |
-| Origem gravada | `bot` ou `manual`; a origem "painel" do CA-07.3 é gravada como `manual` | CA-10.1 e RF-28 chamam de "manual" || y |
-| Bloqueios | Tabela mínima de bloqueios por barbeiro (início e fim em UTC); folga de dia inteiro é um bloqueio que cobre o dia. Sem motivo nem API nesta história | CA-07.1 exige considerar bloqueios e folgas; CLAUDE.md permite o mínimo estrutural. Motivo e CRUD são da US-09 || y |
-| Idempotência | Não há chave de idempotência. Reenviar a mesma gravação recebe erro de conflito, porque o primeiro agendamento ocupa o horário | Sem RN de reenvio; o resultado já é seguro || y |
-| Observabilidade | Contador de agendamentos gravados e contador de conflitos, ambos com label `origin` (`bot`/`manual`); log sem dados pessoais (não há cliente) | CLAUDE.md (métricas de negócio, labels de baixa cardinalidade) || y |
-| Auth e rate limit | N/A: sem rota; o tenant chega como argumento do use case e vem da sessão na US-10 ou da barbearia do WhatsApp na US-17 | Sem borda HTTP nesta história || y |
+| Barbeiro apto | Barbeiro ativo que realiza **todos** os serviços pedidos | RN-04 junta os serviços num único atendimento com um só barbeiro | y |
+| "Qualquer barbeiro" | Cada início aparece uma vez, com o primeiro barbeiro livre na ordem da listagem de barbeiros (nome, sem diferenciar maiúsculas) | CA-07.2 pede "qual barbeiro atende cada horário"; ordem determinística e testável. Balanceamento não está no PRD | y |
+| Ordem das regras | Quando várias regras são violadas, o motor informa a primeira nesta ordem: barbeiro e serviços → passado → antecedência (RN-02) → funcionamento (RN-05) → jornada (RN-05) → bloqueio (RN-05) → sobreposição (RN-03) | Resultado determinístico para o CA-07.5 | y |
+| Mensagens de valor inválido | Lista de serviços vazia: "Escolha pelo menos um serviço."; serviço repetido: "Escolha cada serviço uma única vez."; início com segundos ou milissegundos: "Horário inválido." Todas com `InvalidValueError`, sem RN | Registrado após a validação: o texto não estava na spec; reaproveita a mensagem de `TimeOfDay` para o horário | y |
+| Horário no passado no painel | Erro próprio ("O horário já passou."), sem RN, porque nenhuma RN trata disso | A decisão veio da discussão, não do PRD | y |
+| Conflito detectado pelo banco | A violação da constraint de exclusão vira o mesmo erro de conflito da checagem na aplicação, citando RN-07 | CA-07.4 pede "erro de conflito" | y |
+| Status que ocupa o horário | Só agendamentos confirmados ocupam horário; é o único status criado nesta história | RN-01; cancelado (US-18) e atendido/falta (US-11) vêm depois | y |
+| Origem gravada | `bot` ou `manual`; a origem "painel" do CA-07.3 é gravada como `manual` | CA-10.1 e RF-28 chamam de "manual" | y |
+| Bloqueios | Tabela mínima de bloqueios por barbeiro (início e fim em UTC); folga de dia inteiro é um bloqueio que cobre o dia. Sem motivo nem API nesta história | CA-07.1 exige considerar bloqueios e folgas; CLAUDE.md permite o mínimo estrutural. Motivo e CRUD são da US-09 | y |
+| Idempotência | Não há chave de idempotência. Reenviar a mesma gravação recebe erro de conflito, porque o primeiro agendamento ocupa o horário | Sem RN de reenvio; o resultado já é seguro | y |
+| Observabilidade | Contador de agendamentos gravados e contador de conflitos, ambos com label `origin` (`bot`/`manual`); log sem dados pessoais (não há cliente) | CLAUDE.md (métricas de negócio, labels de baixa cardinalidade) | y |
+| Auth e rate limit | N/A: sem rota; o tenant chega como argumento do use case e vem da sessão na US-10 ou da barbearia do WhatsApp na US-17 | Sem borda HTTP nesta história | y |
 | Falha de dependência externa | N/A: o motor só usa o Postgres | — | y |
 | Ciclo de vida | N/A: agendamentos não expiram nem são apagados nesta história | — | y |
 

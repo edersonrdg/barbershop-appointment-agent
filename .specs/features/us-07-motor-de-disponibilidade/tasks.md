@@ -379,6 +379,33 @@ T10 -> T11
 
 ---
 
+### F1: AVL-17 no caminho da gravação (fix do Verifier)
+
+**What**: Testes de que a gravação usa a antecedência mínima vigente (alterada entre chamadas) e o padrão quando a barbearia não tem regras.
+**Where**: `src/usecases/book-appointment/book-appointment.use-case.spec.ts`
+**Depends on**: None
+**Reuses**: `rulesWithMinimumAdvance`, `expectRefusal`
+**Requirement**: AVL-17, edge case "barbearia sem regras"
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [x] Regra alterada para 120 min recusa bot às 11:30 (agora 10:05) com a mensagem de 120 min e RN-02, sem gravar; baixada para 30 min aceita bot às 10:45
+- [x] Barbearia sem regras recusa bot às 11:00 (agora 10:05) com a mensagem de 60 min
+- [x] Mutante M11 (antecedência fixa em 60 min) morto
+- [x] Gate check passes: `npm test`
+
+**Tests**: unit
+**Gate**: quick
+**Status**: ✅ Done
+**Commit**: `test(US-07): cover the minimum advance in force on booking`
+
+---
+
 ## Phase Execution Map
 
 ```
