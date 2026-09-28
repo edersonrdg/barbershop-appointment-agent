@@ -418,16 +418,16 @@ T13 -> T15
 
 **Done when**:
 
-- [ ] `test/barbers.e2e-spec.ts`: independent tests das histórias Cadastrar, Serviços, Jornada e Vínculo pelo `POST`/`GET`
-- [ ] CA-05.2: remover o usuário vinculado (`DELETE /users/:id`) deixa o barbeiro com `userId: null`
-- [ ] Barbeiro 403, sem sessão 401, tenant só da sessão (campos extras ignorados)
-- [ ] Filtro: cada erro novo com status e mensagem (unit)
-- [ ] `api-docs.e2e-spec.ts` passa com as rotas novas
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] `test/barbers.e2e-spec.ts`: independent tests das histórias Cadastrar, Serviços, Jornada e Vínculo pelo `POST`/`GET`
+- [x] CA-05.2: remover o usuário vinculado (`DELETE /users/:id`) deixa o barbeiro com `userId: null`
+- [x] Barbeiro 403, sem sessão 401, tenant só da sessão (campos extras ignorados)
+- [x] Filtro: cada erro novo com status e mensagem (unit)
+- [x] `api-docs.e2e-spec.ts` passa com as rotas novas
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-05): expose GET and POST /settings/barbers`
 
 ---
