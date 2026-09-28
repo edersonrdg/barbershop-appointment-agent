@@ -6,9 +6,11 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import { AppointmentConflictError } from '../../domain/errors/appointment-conflict.error';
 import { BarberBlockNotFoundError } from '../../domain/errors/barber-block-not-found.error';
 import { BarberNameAlreadyExistsError } from '../../domain/errors/barber-name-already-exists.error';
 import { BarberNotFoundError } from '../../domain/errors/barber-not-found.error';
+import { BarberUnavailableError } from '../../domain/errors/barber-unavailable.error';
 import { BarberUserAlreadyLinkedError } from '../../domain/errors/barber-user-already-linked.error';
 import { DomainError } from '../../domain/errors/domain.error';
 import { EmailAlreadyRegisteredError } from '../../domain/errors/email-already-registered.error';
@@ -20,9 +22,13 @@ import { InvalidOpeningHoursError } from '../../domain/errors/invalid-opening-ho
 import { InvalidServiceAddOnError } from '../../domain/errors/invalid-service-add-on.error';
 import { InvalidPasswordResetTokenError } from '../../domain/errors/invalid-password-reset-token.error';
 import { InvitationDeliveryFailedError } from '../../domain/errors/invitation-delivery-failed.error';
+import { OutsideOpeningHoursError } from '../../domain/errors/outside-opening-hours.error';
+import { OutsideWorkingHoursError } from '../../domain/errors/outside-working-hours.error';
 import { ScheduleAccessDeniedError } from '../../domain/errors/schedule-access-denied.error';
 import { ServiceNameAlreadyExistsError } from '../../domain/errors/service-name-already-exists.error';
 import { ServiceNotFoundError } from '../../domain/errors/service-not-found.error';
+import { ServiceNotPerformedError } from '../../domain/errors/service-not-performed.error';
+import { SlotInPastError } from '../../domain/errors/slot-in-past.error';
 import { InvalidWorkingHoursError } from '../../domain/errors/invalid-working-hours.error';
 import { UserNotFoundError } from '../../domain/errors/user-not-found.error';
 
@@ -45,6 +51,12 @@ const STATUS_BY_ERROR = new Map<unknown, HttpStatus>([
   [InvitationDeliveryFailedError, HttpStatus.BAD_GATEWAY],
   [ScheduleAccessDeniedError, HttpStatus.FORBIDDEN],
   [BarberBlockNotFoundError, HttpStatus.NOT_FOUND],
+  [AppointmentConflictError, HttpStatus.CONFLICT],
+  [OutsideOpeningHoursError, HttpStatus.UNPROCESSABLE_ENTITY],
+  [OutsideWorkingHoursError, HttpStatus.UNPROCESSABLE_ENTITY],
+  [BarberUnavailableError, HttpStatus.UNPROCESSABLE_ENTITY],
+  [SlotInPastError, HttpStatus.UNPROCESSABLE_ENTITY],
+  [ServiceNotPerformedError, HttpStatus.BAD_REQUEST],
 ]);
 
 @Catch(DomainError)

@@ -167,12 +167,14 @@ T14
 
 **Done when**:
 
-- [ ] Cada um dos seis erros responde o status acima com `{ message }` igual à mensagem do erro
-- [ ] `InvalidValueError` segue respondendo `500` genérico (teste existente intacto)
-- [ ] Gate check passes: `npm test`
+- [x] Cada um dos seis erros responde o status acima com `{ message }` igual à mensagem do erro
+- [x] `InvalidValueError` segue respondendo `500` genérico (teste existente intacto)
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
+
+**Status**: ✅ Done
 
 **Commit**: `feat(US-10): map availability engine refusals to http statuses`
 

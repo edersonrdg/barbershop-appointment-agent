@@ -209,11 +209,11 @@ O motor da US-07 valida e grava agendamentos, e a agenda da US-08 os mostra, mas
 | AGM-07 | P1 Cliente — telefone de outra barbearia | T4, T8 | In Tasks |
 | AGM-08 | P1 Cliente — recusa não grava cliente | T5, T8, T13 | In Tasks |
 | AGM-09 | P1 Cliente — corrida do mesmo telefone | T5, T8, T13 | In Tasks |
-| AGM-10 | P1 Recusa — sobreposição 409 | T3, T8, T13 | In Tasks |
-| AGM-11 | P1 Recusa — concorrência 409 | T3, T13 | In Tasks |
-| AGM-12 | P1 Recusa — RN-05 422 | T3, T8, T13 | In Tasks |
-| AGM-13 | P1 Recusa — passado 422 | T3, T8 | In Tasks |
-| AGM-14 | P1 Recusa — serviço não realizado 400 | T3, T8 | In Tasks |
+| AGM-10 | P1 Recusa — sobreposição 409 | T3, T8, T13 | Implementing |
+| AGM-11 | P1 Recusa — concorrência 409 | T3, T13 | Implementing |
+| AGM-12 | P1 Recusa — RN-05 422 | T3, T8, T13 | Implementing |
+| AGM-13 | P1 Recusa — passado 422 | T3, T8 | Implementing |
+| AGM-14 | P1 Recusa — serviço não realizado 400 | T3, T8 | Implementing |
 | AGM-15 | P1 Recusa — barbeiro ou serviço 404 | T8, T13 | In Tasks |
 | AGM-16 | P1 Validação — 400 e mensagens | T1, T10, T13 | Implementing |
 | AGM-17 | P1 Perfil — Barbeiro para si | T8 | In Tasks |
