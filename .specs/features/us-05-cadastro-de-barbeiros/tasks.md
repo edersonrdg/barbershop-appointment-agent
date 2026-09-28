@@ -124,15 +124,15 @@ T13 -> T15
 
 **Done when**:
 
-- [ ] CA-05.3: dia de trabalho com a barbearia fechada → aviso de dia fechado
-- [ ] CA-05.3: começa antes da abertura / termina depois do fechamento / atravessa o intervalo da barbearia (casos separados) → aviso de trecho fora
-- [ ] CA-05.3: jornada idêntica à abertura/fechamento, jornada com intervalo igual ao da barbearia, dia de folga com a barbearia aberta → sem aviso
-- [ ] Avisos na ordem de `WEEKDAYS`, um por dia
-- [ ] Gate check passes: `npm test`
+- [x] CA-05.3: dia de trabalho com a barbearia fechada → aviso de dia fechado
+- [x] CA-05.3: começa antes da abertura / termina depois do fechamento / atravessa o intervalo da barbearia (casos separados) → aviso de trecho fora
+- [x] CA-05.3: jornada idêntica à abertura/fechamento, jornada com intervalo igual ao da barbearia, dia de folga com a barbearia aberta → sem aviso
+- [x] Avisos na ordem de `WEEKDAYS`, um por dia
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-05): add WeeklyWorkingHours with opening-hours warnings`
 
 ---
