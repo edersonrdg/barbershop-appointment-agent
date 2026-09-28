@@ -64,6 +64,7 @@ describe('TypeOrmAppointmentRepository (e2e)', () => {
       id: randomUUID(),
       barbershopId: input.barbershopId,
       barberId: input.barberId,
+      clientId: null,
       serviceIds: input.serviceIds,
       startsAt: new Date(input.startsAt),
       durationMinutes: input.durationMinutes ?? 30,

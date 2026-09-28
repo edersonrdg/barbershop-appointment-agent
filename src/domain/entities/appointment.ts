@@ -9,6 +9,7 @@ export interface AppointmentProps {
   id: string;
   barbershopId: string;
   barberId: string;
+  clientId: string | null;
   serviceIds: string[];
   startsAt: Date;
   endsAt: Date;
@@ -24,6 +25,7 @@ export class Appointment {
     id,
     barbershopId,
     barberId,
+    clientId,
     serviceIds,
     startsAt,
     durationMinutes,
@@ -33,6 +35,7 @@ export class Appointment {
     id: string;
     barbershopId: string;
     barberId: string;
+    clientId: string | null;
     serviceIds: readonly string[];
     startsAt: Date;
     durationMinutes: number;
@@ -43,6 +46,7 @@ export class Appointment {
       id,
       barbershopId,
       barberId,
+      clientId,
       serviceIds: [...serviceIds],
       startsAt,
       endsAt: new Date(startsAt.getTime() + durationMinutes * MS_PER_MINUTE),
@@ -66,6 +70,10 @@ export class Appointment {
 
   get barberId(): string {
     return this.props.barberId;
+  }
+
+  get clientId(): string | null {
+    return this.props.clientId;
   }
 
   get serviceIds(): readonly string[] {

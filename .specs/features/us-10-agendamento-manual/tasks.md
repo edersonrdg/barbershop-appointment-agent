@@ -138,13 +138,15 @@ T14
 
 **Done when**:
 
-- [ ] `book` com `clientId: 'c1'` → `clientId === 'c1'`; com `null` → `null`
-- [ ] `restore` preserva `clientId`
-- [ ] Motor, fake e e2e do repositório compilam e seguem verdes sem mudança de comportamento (AGD-20)
-- [ ] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+- [x] `book` com `clientId: 'c1'` → `clientId === 'c1'`; com `null` → `null`
+- [x] `restore` preserva `clientId`
+- [x] Motor, fake e e2e do repositório compilam e seguem verdes sem mudança de comportamento (AGD-20)
+- [x] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
 
 **Tests**: unit
 **Gate**: build
+
+**Status**: ✅ Done
 
 **Commit**: `feat(US-10): link appointments to clients`
 

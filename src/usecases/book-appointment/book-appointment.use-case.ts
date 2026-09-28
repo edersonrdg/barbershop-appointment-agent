@@ -85,6 +85,7 @@ export class BookAppointmentUseCase {
       id: this.idGenerator.next(),
       barbershopId: input.barbershopId,
       barberId: barber.id,
+      clientId: null,
       serviceIds: input.serviceIds,
       startsAt: input.startsAt,
       durationMinutes: context.durationMinutes,
