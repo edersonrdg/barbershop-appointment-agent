@@ -166,7 +166,7 @@ T12 -> T14
 ### T4: Tabelas services e service_add_ons
 
 **What**: Entidades ORM `ServiceEntity` e `ServiceAddOnEntity` e migration `AddServices` com os `CHECK` de preço, duração e auto-relação, o índice único `services_name_unique` sobre `(barbershop_id, lower(name))` e as FKs.
-**Where**: `src/infrastructure/database/migrations/<timestamp>-AddServices.ts` (e as entidades em `src/infrastructure/database/entities/service.entity.ts`, `service-add-on.entity.ts`)
+**Where**: `src/infrastructure/database/migrations/1790562059953-AddServices.ts` (e as entidades em `src/infrastructure/database/entities/service.entity.ts`, `service-add-on.entity.ts`)
 **Depends on**: None
 **Reuses**: `src/infrastructure/database/entities/barbershop-opening-hours.entity.ts` (`@Check`, `@ForeignKey`); `test/database/opening-hours-schema.e2e-spec.ts`
 **Requirement**: SVC-06, SVC-10, SVC-23
@@ -178,14 +178,15 @@ T12 -> T14
 
 **Done when**:
 
-- [ ] e2e `test/database/services-schema.e2e-spec.ts`: aceita preço 0 e 1.000.000, duração 5 e 480; recusa com `23514` preço -1 e 1.000.001, duração 0, 4, 485 e 7; nenhuma linha nova depois da recusa (L-001, L-002)
-- [ ] `Corte` e `corte` na mesma barbearia → `23505` em `services_name_unique`; o mesmo nome em outra barbearia é aceito
-- [ ] `service_add_ons` com `service_id = add_on_service_id` → `23514`
-- [ ] `migration:generate` depois do `migration:run` não gera nada (entidades e migration batem)
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] e2e `test/database/services-schema.e2e-spec.ts`: aceita preço 0 e 1.000.000, duração 5 e 480; recusa com `23514` preço -1 e 1.000.001, duração 0, 4, 485 e 7; nenhuma linha nova depois da recusa (L-001, L-002)
+- [x] `Corte` e `corte` na mesma barbearia → `23505` em `services_name_unique`; o mesmo nome em outra barbearia é aceito
+- [x] `service_add_ons` com `service_id = add_on_service_id` → `23514`
+- [x] `migration:generate` depois do `migration:run` não gera nada (entidades e migration batem)
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Done
 **Commit**: `feat(US-04): add services schema with check constraints`
 
 ---
