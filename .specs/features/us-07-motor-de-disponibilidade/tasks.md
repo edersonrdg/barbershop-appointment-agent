@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/us-07-motor-de-disponibilidade/design.md`
-**Status**: Approved
+**Status**: Done
 
 Toda task cita US-07 e os `AVL`/`RN` que implementa. Testes citam o `CA-07.x` (ou a `RN`) no nome. Commits: `feat(US-07): ...` (ou `test`/`chore`), só locais.
 

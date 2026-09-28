@@ -38,6 +38,24 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: validation.md M19 / src/infrastructure/database/repositories/typeorm-service.repository.ts:62 / test/database/typeorm-service.repository.e2e-spec.ts:252 (SVC-26) (repo-layer)
 - last seen: 2026-09-28T02:41:41Z
 
+### L-005 - When a criterion says a changed setting applies to several operations, test each operation after changing the setting, with a value different from the fixture default.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `usecases` · harmful: 0
+- features: us-07-motor-de-disponibilidade
+- evidence: M11 src/usecases/book-appointment/book-appointment.use-case.ts:81 (AVL-17) (usecases)
+- last seen: 2026-09-28T15:24:51Z
+
+### L-006 - A criterion that names several paths (query and booking) needs evidence on each path; a shared helper does not count as coverage for the path that has no test.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `usecases` · harmful: 0
+- features: us-07-motor-de-disponibilidade
+- evidence: AVL-17 booking half, no evidence in book-appointment.use-case.spec.ts (usecases)
+- last seen: 2026-09-28T15:24:51Z
+
+### L-007 - When the spec says only 'invalid value error', write the exact user-facing pt-BR message into the spec Assumptions before implementing, so tests are anchored to the spec and not to the author's choice.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec` · harmful: 0
+- features: us-07-motor-de-disponibilidade
+- evidence: AVL-35 + edge case seconds-in-start (booking-context.ts:25-26, book-appointment.use-case.ts:69) (spec)
+- last seen: 2026-09-28T15:24:51Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

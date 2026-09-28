@@ -211,49 +211,49 @@ O painel (US-10) e o bot (US-17) vão oferecer e gravar horários, mas ainda nã
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| AVL-01 | P1 Barbeiro — CA-07.1 cabe inteiro no funcionamento e na jornada | T2, T4, T5 | Implementing |
-| AVL-02 | P1 Barbeiro — RN-04 duração somada | T3, T5 | Implementing |
-| AVL-03 | P1 Barbeiro — grade de 30 min por período livre | T4, T5 | Implementing |
-| AVL-04 | P1 Barbeiro — fora de bloqueios e folgas | T4, T5, T8 | Implementing |
-| AVL-05 | P1 Barbeiro — fora de agendamentos | T4, T5 | Implementing |
-| AVL-06 | P1 Barbeiro — intervalos encostados são livres | T4, T5 | Implementing |
-| AVL-07 | P1 Barbeiro — dia fechado ou sem jornada | T2, T4, T5 | Implementing |
-| AVL-08 | P1 Barbeiro — formato e ordem do resultado | T4, T5 | Implementing |
-| AVL-09 | P1 Barbeiro — fuso da barbearia | T1, T2, T5 | Implementing |
-| AVL-10 | P1 Qualquer — todos os aptos | T5 | Implementing |
-| AVL-11 | P1 Qualquer — um barbeiro por início, ordem de nome | T5 | Implementing |
-| AVL-12 | P1 Qualquer — sem inativos e sem inaptos | T5 | Implementing |
-| AVL-13 | P1 Qualquer — ninguém apto | T5 | Implementing |
-| AVL-14 | P1 Antecedência — bot aplica RN-02 | T5 | Implementing |
-| AVL-15 | P1 Antecedência — painel só a partir de agora | T5 | Implementing |
-| AVL-16 | P1 Antecedência — fronteira exata | T5 | Implementing |
-| AVL-17 | P1 Antecedência — regra vigente | T5, T11 | Implementing |
-| AVL-18 | P1 Gravar — grava confirmado | T3, T6, T9 | Implementing |
-| AVL-19 | P1 Gravar — recusa RN-02 | T6 | Implementing |
-| AVL-20 | P1 Gravar — recusa passado | T6 | Implementing |
-| AVL-21 | P1 Gravar — recusa fora do funcionamento | T4, T6 | Implementing |
-| AVL-22 | P1 Gravar — recusa fora da jornada | T4, T6 | Implementing |
-| AVL-23 | P1 Gravar — recusa bloqueio | T4, T6 | Implementing |
-| AVL-24 | P1 Gravar — recusa sobreposição | T4, T6 | Implementing |
-| AVL-25 | P1 Gravar — ordem das regras | T4, T6 | Implementing |
-| AVL-26 | P1 Gravar — recusa não grava nada | T6, T9 | Implementing |
-| AVL-27 | P1 Gravar — consulta e gravação concordam | T4, T6, T11 | Implementing |
-| AVL-28 | P1 Concorrência — CA-07.4 simultâneas | T9, T11 | Implementing |
-| AVL-29 | P1 Concorrência — constraint de exclusão | T7 | Implementing |
-| AVL-30 | P1 Concorrência — encostados aceitos no banco | T7 | Implementing |
-| AVL-31 | P1 Concorrência — barbeiros diferentes | T7 | Implementing |
-| AVL-32 | P1 Isolamento — barbeiro inválido | T5, T6 | Implementing |
-| AVL-33 | P1 Isolamento — serviço inválido | T5, T6 | Implementing |
-| AVL-34 | P1 Isolamento — barbeiro não realiza serviço | T5, T6 | Implementing |
-| AVL-35 | P1 Isolamento — lista de serviços inválida | T5, T6 | Implementing |
-| AVL-36 | P1 Isolamento — RN-26 leituras por tenant | T5, T8, T9 | Implementing |
-| AVL-37 | P1 Isolamento — RN-26 FKs compostas | T7 | Implementing |
-| AVL-38 | P2 Métricas — agendamentos gravados | T6, T10, T11 | Implementing |
-| AVL-39 | P2 Métricas — conflitos | T6, T10, T11 | Implementing |
+| AVL-01 | P1 Barbeiro — CA-07.1 cabe inteiro no funcionamento e na jornada | T2, T4, T5 | Verified |
+| AVL-02 | P1 Barbeiro — RN-04 duração somada | T3, T5 | Verified |
+| AVL-03 | P1 Barbeiro — grade de 30 min por período livre | T4, T5 | Verified |
+| AVL-04 | P1 Barbeiro — fora de bloqueios e folgas | T4, T5, T8 | Verified |
+| AVL-05 | P1 Barbeiro — fora de agendamentos | T4, T5 | Verified |
+| AVL-06 | P1 Barbeiro — intervalos encostados são livres | T4, T5 | Verified |
+| AVL-07 | P1 Barbeiro — dia fechado ou sem jornada | T2, T4, T5 | Verified |
+| AVL-08 | P1 Barbeiro — formato e ordem do resultado | T4, T5 | Verified |
+| AVL-09 | P1 Barbeiro — fuso da barbearia | T1, T2, T5 | Verified |
+| AVL-10 | P1 Qualquer — todos os aptos | T5 | Verified |
+| AVL-11 | P1 Qualquer — um barbeiro por início, ordem de nome | T5 | Verified |
+| AVL-12 | P1 Qualquer — sem inativos e sem inaptos | T5 | Verified |
+| AVL-13 | P1 Qualquer — ninguém apto | T5 | Verified |
+| AVL-14 | P1 Antecedência — bot aplica RN-02 | T5 | Verified |
+| AVL-15 | P1 Antecedência — painel só a partir de agora | T5 | Verified |
+| AVL-16 | P1 Antecedência — fronteira exata | T5 | Verified |
+| AVL-17 | P1 Antecedência — regra vigente | T5, T11 | Verified |
+| AVL-18 | P1 Gravar — grava confirmado | T3, T6, T9 | Verified |
+| AVL-19 | P1 Gravar — recusa RN-02 | T6 | Verified |
+| AVL-20 | P1 Gravar — recusa passado | T6 | Verified |
+| AVL-21 | P1 Gravar — recusa fora do funcionamento | T4, T6 | Verified |
+| AVL-22 | P1 Gravar — recusa fora da jornada | T4, T6 | Verified |
+| AVL-23 | P1 Gravar — recusa bloqueio | T4, T6 | Verified |
+| AVL-24 | P1 Gravar — recusa sobreposição | T4, T6 | Verified |
+| AVL-25 | P1 Gravar — ordem das regras | T4, T6 | Verified |
+| AVL-26 | P1 Gravar — recusa não grava nada | T6, T9 | Verified |
+| AVL-27 | P1 Gravar — consulta e gravação concordam | T4, T6, T11 | Verified |
+| AVL-28 | P1 Concorrência — CA-07.4 simultâneas | T9, T11 | Verified |
+| AVL-29 | P1 Concorrência — constraint de exclusão | T7 | Verified |
+| AVL-30 | P1 Concorrência — encostados aceitos no banco | T7 | Verified |
+| AVL-31 | P1 Concorrência — barbeiros diferentes | T7 | Verified |
+| AVL-32 | P1 Isolamento — barbeiro inválido | T5, T6 | Verified |
+| AVL-33 | P1 Isolamento — serviço inválido | T5, T6 | Verified |
+| AVL-34 | P1 Isolamento — barbeiro não realiza serviço | T5, T6 | Verified |
+| AVL-35 | P1 Isolamento — lista de serviços inválida | T5, T6 | Verified |
+| AVL-36 | P1 Isolamento — RN-26 leituras por tenant | T5, T8, T9 | Verified |
+| AVL-37 | P1 Isolamento — RN-26 FKs compostas | T7 | Verified |
+| AVL-38 | P2 Métricas — agendamentos gravados | T6, T10, T11 | Verified |
+| AVL-39 | P2 Métricas — conflitos | T6, T10, T11 | Verified |
 
 **ID format:** `AVL-NN` (Availability, épico E3). Cada teste cita o `CA-07.x` (ou o `RN`) no nome, conforme o CLAUDE.md.
 
-**Coverage:** 39 total, 0 mapped to tasks, 39 unmapped ⚠️ (mapeados na fase Tasks)
+**Coverage:** 39 total, 39 mapped to tasks, 0 unmapped, 39 verified ✅ (Verifier round 2, `validation.md`)
 
 ---
 
