@@ -257,13 +257,13 @@ T7 -> T8
 
 **Done when**:
 
-- [ ] `CA-06.3`: negativo, ausente, `null`, `""`, `"60"`, não inteiro, fora do limite e fora do múltiplo de 5 geram um erro no campo certo
-- [ ] Limites exatos aceitos; campos extras descartados
-- [ ] Gate check passes: `npm test`
+- [x] `CA-06.3`: negativo, ausente, `null`, `""`, `"60"`, não inteiro, fora do limite e fora do múltiplo de 5 geram um erro no campo certo
+- [x] Limites exatos aceitos; campos extras descartados
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-06): add booking rules payload schema`
 
 ---

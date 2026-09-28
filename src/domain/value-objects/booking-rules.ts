@@ -41,26 +41,13 @@ export class BookingRules {
     return BookingRules.create(DEFAULT_RULES);
   }
 
-  // Antecedência e cancelamento aceitam 0: "sem restrição" (CA-06.2).
   static isValid(props: BookingRulesProps): boolean {
     return (
-      isDeadline(props.minimumAdvanceMinutes) &&
-      isDeadline(props.cancellationDeadlineMinutes) &&
-      isIntegerBetween(
-        props.noShowLimit,
-        MIN_NO_SHOW_LIMIT,
-        MAX_NO_SHOW_LIMIT,
-      ) &&
-      isIntegerBetween(
-        props.waitlistOfferMinutes,
-        MIN_WAITLIST_OFFER_MINUTES,
-        MAX_WAITLIST_OFFER_MINUTES,
-      ) &&
-      isIntegerBetween(
-        props.returnReminderDays,
-        MIN_RETURN_REMINDER_DAYS,
-        MAX_RETURN_REMINDER_DAYS,
-      )
+      isValidDeadlineMinutes(props.minimumAdvanceMinutes) &&
+      isValidDeadlineMinutes(props.cancellationDeadlineMinutes) &&
+      isValidNoShowLimit(props.noShowLimit) &&
+      isValidWaitlistOfferMinutes(props.waitlistOfferMinutes) &&
+      isValidReturnReminderDays(props.returnReminderDays)
     );
   }
 
@@ -85,10 +72,31 @@ export class BookingRules {
   }
 }
 
-function isDeadline(minutes: number): boolean {
+// Antecedência e cancelamento aceitam 0: "sem restrição" (CA-06.2).
+export function isValidDeadlineMinutes(minutes: number): boolean {
   return (
     isIntegerBetween(minutes, 0, MAX_DEADLINE_MINUTES) &&
     minutes % DEADLINE_STEP_MINUTES === 0
+  );
+}
+
+export function isValidNoShowLimit(value: number): boolean {
+  return isIntegerBetween(value, MIN_NO_SHOW_LIMIT, MAX_NO_SHOW_LIMIT);
+}
+
+export function isValidWaitlistOfferMinutes(minutes: number): boolean {
+  return isIntegerBetween(
+    minutes,
+    MIN_WAITLIST_OFFER_MINUTES,
+    MAX_WAITLIST_OFFER_MINUTES,
+  );
+}
+
+export function isValidReturnReminderDays(days: number): boolean {
+  return isIntegerBetween(
+    days,
+    MIN_RETURN_REMINDER_DAYS,
+    MAX_RETURN_REMINDER_DAYS,
   );
 }
 
