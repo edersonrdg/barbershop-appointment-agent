@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/us-09-bloqueios-e-folgas/design.md`
-**Status**: Approved
+**Status**: Done
 
 Toda task cita US-09 e os `BLQ`/`RN` que implementa. Testes citam o `CA-09.x` (ou a `RN`) no nome. Commits: `feat(US-09): ...` (ou `refactor`/`test`/`docs`), só locais. Branch: `feat/us-09-blocks-and-days-off`, a partir de `feat/us-08-schedule-view` (PR #9 aberto).
 

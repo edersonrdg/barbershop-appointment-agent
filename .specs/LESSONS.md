@@ -8,7 +8,11 @@
 
 Corroborated across multiple features. Safe to apply as guidance.
 
-_none_
+### L-007 - When the spec says only 'invalid value error', write the exact user-facing pt-BR message into the spec Assumptions before implementing, so tests are anchored to the spec and not to the author's choice.
+- signal: `spec_precision_gap` · recurrence: 2 feature(s) · scope: `spec` · harmful: 0
+- features: us-07-motor-de-disponibilidade, us-09-bloqueios-e-folgas
+- evidence: AVL-35 + edge case seconds-in-start (booking-context.ts:25-26, book-appointment.use-case.ts:69) (spec) (+1 more)
+- last seen: 2026-09-28T21:07:24Z
 
 ## Candidates (under observation - do NOT load as guidance yet)
 
@@ -50,11 +54,11 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: AVL-17 booking half, no evidence in book-appointment.use-case.spec.ts (usecases)
 - last seen: 2026-09-28T15:24:51Z
 
-### L-007 - When the spec says only 'invalid value error', write the exact user-facing pt-BR message into the spec Assumptions before implementing, so tests are anchored to the spec and not to the author's choice.
-- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec` · harmful: 0
-- features: us-07-motor-de-disponibilidade
-- evidence: AVL-35 + edge case seconds-in-start (booking-context.ts:25-26, book-appointment.use-case.ts:69) (spec)
-- last seen: 2026-09-28T15:24:51Z
+### L-008 - Every user-facing validation message a schema defines needs a test that asserts that exact message.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `schema` · harmful: 0
+- features: us-09-bloqueios-e-folgas
+- evidence: src/interface-adapters/controllers/schemas/barber-block.schema.ts:13 (confirmConflicts message untested) (schema)
+- last seen: 2026-09-28T21:07:24Z
 
 ## Quarantined (failed when applied - ignore)
 
