@@ -346,15 +346,17 @@ T14
 
 **Done when**:
 
-- [ ] CA-10.1: Dono com `barberId` → inícios do barbeiro, com `barber { id, name }`, `date` e `timezone`
-- [ ] CA-10.1: Dono sem `barberId` → cada início uma vez, com o primeiro barbeiro livre por nome
-- [ ] CA-10.3: com antecedência mínima de 60, o primeiro início é o próximo a partir de agora
-- [ ] CA-10.5: Barbeiro sem `barberId` → só os próprios; com outro → `ScheduleAccessDeniedError`; sem ficha → `ScheduleAccessDeniedError`
-- [ ] Barbeiro inexistente ou inativo, serviço inexistente, barbeiro que não faz o serviço → erro do motor
-- [ ] Gate check passes: `npm test`
+- [x] CA-10.1: Dono com `barberId` → inícios do barbeiro, com `barber { id, name }`, `date` e `timezone`
+- [x] CA-10.1: Dono sem `barberId` → cada início uma vez, com o primeiro barbeiro livre por nome
+- [x] CA-10.3: com antecedência mínima de 60, o primeiro início é o próximo a partir de agora
+- [x] CA-10.5: Barbeiro sem `barberId` → só os próprios; com outro → `ScheduleAccessDeniedError`; sem ficha → `ScheduleAccessDeniedError`
+- [x] Barbeiro inexistente ou inativo, serviço inexistente, barbeiro que não faz o serviço → erro do motor
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
+
+**Status**: ✅ Done
 
 **Commit**: `feat(US-10): add panel available slots use case`
 

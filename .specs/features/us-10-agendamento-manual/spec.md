@@ -219,13 +219,13 @@ O motor da US-07 valida e grava agendamentos, e a agenda da US-08 os mostra, mas
 | AGM-17 | P1 Perfil — Barbeiro para si | T8 | Implementing |
 | AGM-18 | P1 Perfil — Barbeiro para outro 403 | T8, T13 | Implementing |
 | AGM-19 | P1 Perfil — Dono para qualquer barbeiro | T8 | Implementing |
-| AGM-20 | P1 Horários — por barbeiro | T9, T12, T13 | In Tasks |
-| AGM-21 | P1 Horários — qualquer barbeiro | T9 | In Tasks |
-| AGM-22 | P1 Horários — sem antecedência mínima | T9, T13 | In Tasks |
-| AGM-23 | P1 Horários — Barbeiro só a própria | T9 | In Tasks |
+| AGM-20 | P1 Horários — por barbeiro | T9, T12, T13 | Implementing |
+| AGM-21 | P1 Horários — qualquer barbeiro | T9 | Implementing |
+| AGM-22 | P1 Horários — sem antecedência mínima | T9, T13 | Implementing |
+| AGM-23 | P1 Horários — Barbeiro só a própria | T9 | Implementing |
 | AGM-24 | P1 Horários — início devolvido é agendável | T13 | In Tasks |
 | AGM-25 | P1 Horários — validação 400 | T11, T13 | In Tasks |
-| AGM-26 | P1 Horários — barbeiro ou serviço inválido | T9 | In Tasks |
+| AGM-26 | P1 Horários — barbeiro ou serviço inválido | T9 | Implementing |
 | AGM-27 | P1 Isolamento — RN-26 | T4, T5, T6, T8, T9, T13 | Implementing |
 | AGM-28 | P1 Isolamento — 401 | T13 | In Tasks |
 | AGM-29 | P1 Swagger | T12, T13 | In Tasks |
