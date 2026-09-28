@@ -147,7 +147,7 @@ As regras que o bot e a agenda vão aplicar (antecedência mínima, prazo de can
 | RUL-03 | P1 Padrões — CA-06.1 migration preenche barbearias existentes | T2 | Done |
 | RUL-04 | P1 Alterar — CA-06.2 `PUT` substitui as regras | - | Pending |
 | RUL-05 | P1 Alterar — CA-06.2 `GET` devolve o que foi salvo | - | Pending |
-| RUL-06 | P1 Alterar — CA-06.2 leitura vigente pelo repositório | - | Pending |
+| RUL-06 | P1 Alterar — CA-06.2 leitura vigente pelo repositório | T6 | Done |
 | RUL-07 | P1 Alterar — CA-06.2 nada além das regras muda | - | Pending |
 | RUL-08 | P1 Alterar — CA-06.2 zero aceito em antecedência e cancelamento | - | Pending |
 | RUL-09 | P1 Recusar — CA-06.3 negativo | - | Pending |

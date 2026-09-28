@@ -230,14 +230,14 @@ T7 -> T8
 
 **Done when**:
 
-- [ ] `CA-06.2`: salva e devolve as regras; a leitura seguinte do repositório devolve os novos valores; outra barbearia não muda
-- [ ] `CA-06.3`: valor fora do limite lança `InvalidValueError` e nada é gravado
-- [ ] Barbearia sem regras lança `InvalidCredentialsError`
-- [ ] Gate check passes: `npm test`
+- [x] `CA-06.2`: salva e devolve as regras; a leitura seguinte do repositório devolve os novos valores; outra barbearia não muda
+- [x] `CA-06.3`: valor fora do limite lança `InvalidValueError` e nada é gravado
+- [x] Barbearia sem regras lança `InvalidCredentialsError`
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: build
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-06): add update booking rules use case`
 
 ---
