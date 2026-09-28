@@ -11,6 +11,7 @@ import {
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateServiceUseCase } from '../../usecases/create-service/create-service.use-case';
 import { ListServicesUseCase } from '../../usecases/list-services/list-services.use-case';
+import { SetServiceActiveUseCase } from '../../usecases/set-service-active/set-service-active.use-case';
 import { UpdateServiceUseCase } from '../../usecases/update-service/update-service.use-case';
 import {
   ServiceListResponse,
@@ -38,6 +39,7 @@ export class ServicesController {
     private readonly listServices: ListServicesUseCase,
     private readonly createService: CreateServiceUseCase,
     private readonly updateService: UpdateServiceUseCase,
+    private readonly setServiceActive: SetServiceActiveUseCase,
   ) {}
 
   @Get()
@@ -136,6 +138,68 @@ export class ServicesController {
         priceCents: body.priceCents,
         durationMinutes: body.durationMinutes,
         suggestedAddOnIds: body.suggestedAddOnIds,
+      }),
+    );
+  }
+
+  @Post(':serviceId/deactivate')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Desativa um serviço (US-04)',
+    description:
+      'O serviço sai dos novos agendamentos e continua na lista com active: false. Desativar um inativo não muda nada.',
+  })
+  @ApiZodResponse({
+    status: HttpStatus.OK,
+    description: 'Serviço inativo.',
+    schema: serviceResponseSchema,
+  })
+  @ApiErrorResponse(
+    HttpStatus.NOT_FOUND,
+    'Não há serviço com esse id nesta barbearia (RN-26).',
+    'Serviço não encontrado.',
+  )
+  async deactivate(
+    @CurrentSession() session: AuthenticatedSession,
+    @Param(new ZodValidationPipe(serviceIdParamsSchema))
+    params: ServiceIdParams,
+  ): Promise<ServiceResponse> {
+    return ServicePresenter.toResponse(
+      await this.setServiceActive.execute({
+        barbershopId: session.barbershopId,
+        serviceId: params.serviceId,
+        active: false,
+      }),
+    );
+  }
+
+  @Post(':serviceId/activate')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Reativa um serviço (US-04)',
+    description:
+      'O serviço volta a ser oferecido em novos agendamentos. Ativar um ativo não muda nada.',
+  })
+  @ApiZodResponse({
+    status: HttpStatus.OK,
+    description: 'Serviço ativo.',
+    schema: serviceResponseSchema,
+  })
+  @ApiErrorResponse(
+    HttpStatus.NOT_FOUND,
+    'Não há serviço com esse id nesta barbearia (RN-26).',
+    'Serviço não encontrado.',
+  )
+  async activate(
+    @CurrentSession() session: AuthenticatedSession,
+    @Param(new ZodValidationPipe(serviceIdParamsSchema))
+    params: ServiceIdParams,
+  ): Promise<ServiceResponse> {
+    return ServicePresenter.toResponse(
+      await this.setServiceActive.execute({
+        barbershopId: session.barbershopId,
+        serviceId: params.serviceId,
+        active: true,
       }),
     );
   }

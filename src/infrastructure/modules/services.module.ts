@@ -13,6 +13,7 @@ import {
   SERVICE_REPOSITORY,
   ServiceRepository,
 } from '../../usecases/ports/service.repository.port';
+import { SetServiceActiveUseCase } from '../../usecases/set-service-active/set-service-active.use-case';
 import { UpdateServiceUseCase } from '../../usecases/update-service/update-service.use-case';
 import { TypeOrmServiceRepository } from '../database/repositories/typeorm-service.repository';
 import { SystemClock } from '../security/system-clock';
@@ -55,6 +56,12 @@ import { UuidIdGenerator } from '../security/uuid-id-generator';
       inject: [SERVICE_REPOSITORY],
       useFactory: (services: ServiceRepository) =>
         new UpdateServiceUseCase(services),
+    },
+    {
+      provide: SetServiceActiveUseCase,
+      inject: [SERVICE_REPOSITORY],
+      useFactory: (services: ServiceRepository) =>
+        new SetServiceActiveUseCase(services),
     },
   ],
   exports: [SERVICE_REPOSITORY, ListBookableServicesUseCase],

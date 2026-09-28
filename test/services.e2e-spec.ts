@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
+import { ListBookableServicesUseCase } from '../src/usecases/list-bookable-services/list-bookable-services.use-case';
 import { FakeEmailSender } from '../src/usecases/testing/fake-email-sender';
 import { createBarber, signupOwner } from './support/account-flows';
 import { createAccountTestApp } from './support/create-account-test-app';
@@ -60,6 +61,29 @@ describe('/settings/services (e2e)', () => {
       request(app.getHttpServer()).put(`/settings/services/${serviceId}`),
       token,
     ).send(body as object);
+  }
+
+  function changeStatus(
+    token: string | undefined,
+    serviceId: string,
+    action: 'activate' | 'deactivate',
+  ) {
+    return authorized(
+      request(app.getHttpServer()).post(
+        `/settings/services/${serviceId}/${action}`,
+      ),
+      token,
+    );
+  }
+
+  async function bookableNames(): Promise<string[]> {
+    const [row] = await dataSource.query<{ id: string }[]>(
+      "SELECT id FROM barbershops WHERE name = 'Barbearia do Zé'",
+    );
+    const services = await app
+      .get(ListBookableServicesUseCase)
+      .execute({ barbershopId: row.id });
+    return services.map((service) => service.name);
   }
 
   async function currentServices(
@@ -538,6 +562,129 @@ describe('/settings/services (e2e)', () => {
 
       expect(response.status).toBe(403);
       expect(response.body).toEqual(FORBIDDEN);
+      expect(await currentServices()).toEqual([haircut]);
+    });
+  });
+
+  describe('CA-04.3: deactivate and activate', () => {
+    it('deactivate answers 200 with active: false, GET keeps listing it with the same data and it leaves the bookable services', async () => {
+      const beard = await created({ ...HAIRCUT, name: 'Barba' });
+      const brows = await created({
+        ...HAIRCUT,
+        name: 'Sobrancelha',
+        suggestedAddOnIds: [beard.id],
+      });
+      const haircut = await created({
+        ...HAIRCUT,
+        suggestedAddOnIds: [brows.id],
+      });
+      expect(await bookableNames()).toEqual(['Barba', 'Corte', 'Sobrancelha']);
+
+      const response = await changeStatus(ownerToken, brows.id, 'deactivate');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ ...brows, active: false });
+      expect(await currentServices()).toEqual([
+        beard,
+        haircut,
+        { ...brows, active: false },
+      ]);
+      expect(await bookableNames()).toEqual(['Barba', 'Corte']);
+    });
+
+    it('activate answers 200 with active: true and the service is bookable again', async () => {
+      const brows = await created({ ...HAIRCUT, name: 'Sobrancelha' });
+      await changeStatus(ownerToken, brows.id, 'deactivate').expect(200);
+
+      const response = await changeStatus(ownerToken, brows.id, 'activate');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(brows);
+      expect(await currentServices()).toEqual([brows]);
+      expect(await bookableNames()).toEqual(['Sobrancelha']);
+    });
+
+    it.each(['deactivate', 'activate'] as const)(
+      'repeating %s answers 200 with the service unchanged',
+      async (action) => {
+        const brows = await created({ ...HAIRCUT, name: 'Sobrancelha' });
+        await changeStatus(ownerToken, brows.id, action).expect(200);
+
+        const response = await changeStatus(ownerToken, brows.id, action);
+
+        const expected = { ...brows, active: action === 'activate' };
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual(expected);
+        expect(await currentServices()).toEqual([expected]);
+      },
+    );
+
+    it.each(['deactivate', 'activate'] as const)(
+      '%s of an unknown serviceId answers 404 and nothing changes',
+      async (action) => {
+        const haircut = await created(HAIRCUT);
+
+        const response = await changeStatus(ownerToken, randomUUID(), action);
+
+        expect(response.status).toBe(404);
+        expect(response.body).toEqual({ message: 'Serviço não encontrado.' });
+        expect(await currentServices()).toEqual([haircut]);
+      },
+    );
+
+    it('RN-26: deactivating a service of B from A answers 404 and B stays active', async () => {
+      const { accessToken: tokenB } = await signupOwner(
+        app,
+        'dono@barbearia-b.com',
+        'Barbearia B',
+      );
+      const foreign = await created(HAIRCUT, tokenB);
+
+      const response = await changeStatus(ownerToken, foreign.id, 'deactivate');
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({ message: 'Serviço não encontrado.' });
+      expect(await currentServices(tokenB)).toEqual([foreign]);
+    });
+
+    it('a barber gets 403 on deactivate and activate and nothing changes', async () => {
+      const haircut = await created(HAIRCUT);
+      const barberToken = await createBarber(
+        app,
+        emailSender,
+        appWebUrl,
+        ownerToken,
+        'joao@exemplo.com',
+      );
+
+      const deactivate = await changeStatus(
+        barberToken,
+        haircut.id,
+        'deactivate',
+      );
+      const activate = await changeStatus(barberToken, haircut.id, 'activate');
+
+      expect(deactivate.status).toBe(403);
+      expect(deactivate.body).toEqual(FORBIDDEN);
+      expect(activate.status).toBe(403);
+      expect(activate.body).toEqual(FORBIDDEN);
+      expect(await currentServices()).toEqual([haircut]);
+    });
+
+    it('a request without a session gets 401 on deactivate and activate', async () => {
+      const haircut = await created(HAIRCUT);
+
+      const deactivate = await changeStatus(
+        undefined,
+        haircut.id,
+        'deactivate',
+      );
+      const activate = await changeStatus(undefined, haircut.id, 'activate');
+
+      expect(deactivate.status).toBe(401);
+      expect(deactivate.body).toEqual(UNAUTHORIZED);
+      expect(activate.status).toBe(401);
+      expect(activate.body).toEqual(UNAUTHORIZED);
       expect(await currentServices()).toEqual([haircut]);
     });
   });

@@ -467,14 +467,15 @@ T12 -> T14
 
 **Done when**:
 
-- [ ] e2e: `deactivate` → 200 com `active: false`; `GET` ainda lista com `active: false` e os mesmos nome, preço, duração e adicionais; o serviço desativado continua na lista de adicionais de quem já o tinha
-- [ ] `ListBookableServicesUseCase` da app (via `app.get`) não devolve o desativado e volta a devolver depois do `activate`
-- [ ] `activate` → 200 com `active: true`; repetir `deactivate`/`activate` → 200 sem mudança
-- [ ] `serviceId` inexistente e de outra barbearia → 404; Barbeiro → 403; sem sessão → 401
-- [ ] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+- [x] e2e: `deactivate` → 200 com `active: false`; `GET` ainda lista com `active: false` e os mesmos nome, preço, duração e adicionais; o serviço desativado continua na lista de adicionais de quem já o tinha
+- [x] `ListBookableServicesUseCase` da app (via `app.get`) não devolve o desativado e volta a devolver depois do `activate`
+- [x] `activate` → 200 com `active: true`; repetir `deactivate`/`activate` → 200 sem mudança
+- [x] `serviceId` inexistente e de outra barbearia → 404; Barbeiro → 403; sem sessão → 401
+- [x] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: build
+**Status**: ✅ Done
 **Commit**: `feat(US-04): expose service activate and deactivate`
 
 ---
