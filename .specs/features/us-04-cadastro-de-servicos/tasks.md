@@ -324,12 +324,13 @@ T12 -> T14
 
 **Done when**:
 
-- [ ] devolve ativos e inativos da barbearia, em ordem de nome (`barba` antes de `Corte`), sem os de outra barbearia; lista vazia quando não há serviço
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: ~2 tests novos passam (no silent deletions)
+- [x] devolve ativos e inativos da barbearia, em ordem de nome (`barba` antes de `Corte`), sem os de outra barbearia; lista vazia quando não há serviço
+- [x] Gate check passes: `npm test`
+- [x] Test count: ~2 tests novos passam (no silent deletions)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
 **Commit**: `feat(US-04): add list services use case`
 
 ---
