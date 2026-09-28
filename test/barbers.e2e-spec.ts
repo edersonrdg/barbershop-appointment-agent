@@ -147,6 +147,17 @@ describe('/settings/barbers (e2e)', () => {
     ).send(body as object);
   }
 
+  function putBarber(
+    token: string | undefined,
+    barberId: string,
+    body: unknown,
+  ) {
+    return authorized(
+      request(app.getHttpServer()).put(`/settings/barbers/${barberId}`),
+      token,
+    ).send(body as object);
+  }
+
   async function createService(
     name: string,
     token: string = ownerToken,
@@ -666,6 +677,229 @@ describe('/settings/barbers (e2e)', () => {
       expect(await currentBarbers()).toEqual([
         { ...withoutWarnings(barber), userId: null },
       ]);
+    });
+  });
+
+  describe('PUT', () => {
+    const NEW_WEEK: Week = {
+      ...OFF_WEEK,
+      tuesday: day('10:00', '17:00', ['12:00', '13:00']),
+      saturday: day('09:00', '19:00', ['12:00', '13:00']),
+    };
+
+    it('CA-05.1: replaces name, user, services and working hours, keeps active, answers 200 and GET confirms', async () => {
+      const ownerId = await userIdByEmail('dono@barbearia.com');
+      const barber = await created();
+
+      const response = await putBarber(ownerToken, barber.id, {
+        name: 'João Silva',
+        userId: ownerId,
+        serviceIds: [beardId, haircutId],
+        workingHours: NEW_WEEK,
+      });
+
+      expect(response.status).toBe(200);
+      const expected: BarberBody = {
+        id: barber.id,
+        name: 'João Silva',
+        active: true,
+        userId: ownerId,
+        serviceIds: [beardId, haircutId],
+        workingHours: NEW_WEEK,
+      };
+      expect(response.body).toEqual({ ...expected, warnings: [] });
+      expect(await currentBarbers()).toEqual([expected]);
+    });
+
+    it('CA-05.3: answers 200 with the warnings of the new journey', async () => {
+      const barber = await created();
+
+      const response = await putBarber(
+        ownerToken,
+        barber.id,
+        validBody({
+          workingHours: { ...OFF_WEEK, sunday: day('09:00', '12:00') },
+        }),
+      );
+
+      expect(response.status).toBe(200);
+      expect((response.body as SavedBarberBody).warnings).toEqual([
+        {
+          weekday: 'sunday',
+          message:
+            'Domingo: a barbearia não abre neste dia, então a jornada não estará disponível.',
+        },
+      ]);
+    });
+
+    it('CA-05.1: an inactive barber stays inactive after a PUT', async () => {
+      const barber = await created();
+      await dataSource.query(
+        'UPDATE barbers SET active = false WHERE id = $1',
+        [barber.id],
+      );
+
+      const response = await putBarber(
+        ownerToken,
+        barber.id,
+        validBody({ name: 'João Silva' }),
+      );
+
+      expect(response.status).toBe(200);
+      expect((response.body as SavedBarberBody).active).toBe(false);
+      expect((await currentBarbers())[0].active).toBe(false);
+    });
+
+    it('CA-05.1: sending the same PUT twice answers 200 both times and ends in the same state', async () => {
+      const barber = await created();
+      const body = validBody({ name: 'João Silva', workingHours: NEW_WEEK });
+
+      await putBarber(ownerToken, barber.id, body).expect(200);
+      const once = await currentBarbers();
+      await putBarber(ownerToken, barber.id, body).expect(200);
+
+      expect(await currentBarbers()).toEqual(once);
+    });
+
+    it('CA-05.2: userId null unlinks the barber and the schedule no longer finds it by the user', async () => {
+      const ownerId = await userIdByEmail('dono@barbearia.com');
+      const barber = await created({ userId: ownerId });
+
+      await putBarber(
+        ownerToken,
+        barber.id,
+        validBody({ userId: null }),
+      ).expect(200);
+
+      expect((await currentBarbers())[0].userId).toBeNull();
+      expect(
+        await app.get(FindBarberByUserUseCase).execute({
+          barbershopId: await barbershopIdOf('Barbearia do Zé'),
+          userId: ownerId,
+        }),
+      ).toBeNull();
+    });
+
+    it('CA-05.1: keeping its own name in another case and its own user answers 200', async () => {
+      const ownerId = await userIdByEmail('dono@barbearia.com');
+      const barber = await created({ userId: ownerId });
+
+      const response = await putBarber(
+        ownerToken,
+        barber.id,
+        validBody({ name: 'JOÃO', userId: ownerId }),
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({ name: 'JOÃO', userId: ownerId });
+    });
+
+    it('CA-05.1: the name of another barber answers 409 and nothing changes', async () => {
+      await created({ name: 'Pedro' });
+      const barber = await created();
+      const before = await currentBarbers();
+
+      const response = await putBarber(
+        ownerToken,
+        barber.id,
+        validBody({ name: 'pedro' }),
+      );
+
+      expect(response.status).toBe(409);
+      expect(response.body).toEqual({
+        message: 'Já existe um barbeiro com esse nome.',
+      });
+      expect(await currentBarbers()).toEqual(before);
+    });
+
+    it('CA-05.2: the user of another barber answers 409 and nothing changes', async () => {
+      const ownerId = await userIdByEmail('dono@barbearia.com');
+      await created({ name: 'Pedro', userId: ownerId });
+      const barber = await created();
+      const before = await currentBarbers();
+
+      const response = await putBarber(
+        ownerToken,
+        barber.id,
+        validBody({ userId: ownerId }),
+      );
+
+      expect(response.status).toBe(409);
+      expect(response.body).toEqual({
+        message: 'Esse usuário já está vinculado a outro barbeiro.',
+      });
+      expect(await currentBarbers()).toEqual(before);
+    });
+
+    it('an unknown barberId answers 404 and nothing changes', async () => {
+      await created();
+      const before = await currentBarbers();
+
+      const response = await putBarber(ownerToken, randomUUID(), validBody());
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({ message: 'Barbeiro não encontrado.' });
+      expect(await currentBarbers()).toEqual(before);
+    });
+
+    it('RN-26: a PUT from A on a barber of B answers 404 and B stays the same', async () => {
+      const other = await secondBarbershop();
+      const foreign = await created(
+        { name: 'Bruno', serviceIds: [other.serviceId] },
+        other.token,
+      );
+      const before = await currentBarbers(other.token);
+
+      const response = await putBarber(
+        ownerToken,
+        foreign.id,
+        validBody({ name: 'Forjado' }),
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({ message: 'Barbeiro não encontrado.' });
+      expect(await currentBarbers(other.token)).toEqual(before);
+    });
+
+    it('a malformed barberId answers 400 on the barberId field', async () => {
+      const response = await putBarber(ownerToken, 'joao', validBody());
+
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({
+        message: 'Dados inválidos.',
+        errors: [
+          { field: 'barberId', message: 'Informe um id de barbeiro válido.' },
+        ],
+      });
+    });
+
+    it('a barber gets 403 on PUT and a request without session gets 401, and nothing changes', async () => {
+      const barber = await created();
+      const before = await currentBarbers();
+      const barberToken = await createBarber(
+        app,
+        emailSender,
+        appWebUrl,
+        ownerToken,
+        'joao@barbearia.com',
+      );
+
+      const forbidden = await putBarber(
+        barberToken,
+        barber.id,
+        validBody({ name: 'Outro' }),
+      );
+      const unauthorized = await putBarber(
+        undefined,
+        barber.id,
+        validBody({ name: 'Outro' }),
+      );
+
+      expect(forbidden.status).toBe(403);
+      expect(forbidden.body).toEqual(FORBIDDEN);
+      expect(unauthorized.status).toBe(401);
+      expect(unauthorized.body).toEqual(UNAUTHORIZED);
+      expect(await currentBarbers()).toEqual(before);
     });
   });
 

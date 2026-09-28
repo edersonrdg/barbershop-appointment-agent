@@ -447,13 +447,13 @@ T13 -> T15
 
 **Done when**:
 
-- [ ] Substitui tudo e devolve avisos; mantém `active`; mesmo `PUT` duas vezes → mesmo estado
-- [ ] `userId: null` desvincula; 404 para barbeiro de outra barbearia e sem alterar nada; 409; 403
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] Substitui tudo e devolve avisos; mantém `active`; mesmo `PUT` duas vezes → mesmo estado
+- [x] `userId: null` desvincula; 404 para barbeiro de outra barbearia e sem alterar nada; 409; 403
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-05): expose PUT /settings/barbers/:barberId`
 
 ---

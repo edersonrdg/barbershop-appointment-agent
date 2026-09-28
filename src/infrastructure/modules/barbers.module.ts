@@ -26,6 +26,7 @@ import {
   USER_REPOSITORY,
   UserRepository,
 } from '../../usecases/ports/user.repository.port';
+import { UpdateBarberUseCase } from '../../usecases/update-barber/update-barber.use-case';
 import { TypeOrmBarberRepository } from '../database/repositories/typeorm-barber.repository';
 import { SystemClock } from '../security/system-clock';
 import { UuidIdGenerator } from '../security/uuid-id-generator';
@@ -88,6 +89,21 @@ import { ServicesModule } from './services.module';
           clock,
           idGenerator,
         ),
+    },
+    {
+      provide: UpdateBarberUseCase,
+      inject: [
+        BARBER_REPOSITORY,
+        SERVICE_REPOSITORY,
+        USER_REPOSITORY,
+        BARBERSHOP_REPOSITORY,
+      ],
+      useFactory: (
+        barbers: BarberRepository,
+        services: ServiceRepository,
+        users: UserRepository,
+        barbershops: BarbershopRepository,
+      ) => new UpdateBarberUseCase(barbers, services, users, barbershops),
     },
   ],
   exports: [
