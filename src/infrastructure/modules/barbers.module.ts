@@ -26,6 +26,7 @@ import {
   USER_REPOSITORY,
   UserRepository,
 } from '../../usecases/ports/user.repository.port';
+import { SetBarberActiveUseCase } from '../../usecases/set-barber-active/set-barber-active.use-case';
 import { UpdateBarberUseCase } from '../../usecases/update-barber/update-barber.use-case';
 import { TypeOrmBarberRepository } from '../database/repositories/typeorm-barber.repository';
 import { SystemClock } from '../security/system-clock';
@@ -104,6 +105,12 @@ import { ServicesModule } from './services.module';
         users: UserRepository,
         barbershops: BarbershopRepository,
       ) => new UpdateBarberUseCase(barbers, services, users, barbershops),
+    },
+    {
+      provide: SetBarberActiveUseCase,
+      inject: [BARBER_REPOSITORY],
+      useFactory: (barbers: BarberRepository) =>
+        new SetBarberActiveUseCase(barbers),
     },
   ],
   exports: [

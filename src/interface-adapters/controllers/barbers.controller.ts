@@ -11,11 +11,14 @@ import {
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateBarberUseCase } from '../../usecases/create-barber/create-barber.use-case';
 import { ListBarbersUseCase } from '../../usecases/list-barbers/list-barbers.use-case';
+import { SetBarberActiveUseCase } from '../../usecases/set-barber-active/set-barber-active.use-case';
 import { UpdateBarberUseCase } from '../../usecases/update-barber/update-barber.use-case';
 import {
   BarberListResponse,
   barberListResponseSchema,
   BarberPresenter,
+  BarberResponse,
+  barberResponseSchema,
   SavedBarberResponse,
   savedBarberResponseSchema,
 } from '../presenters/barber.presenter';
@@ -38,6 +41,7 @@ export class BarbersController {
     private readonly listBarbers: ListBarbersUseCase,
     private readonly createBarber: CreateBarberUseCase,
     private readonly updateBarber: UpdateBarberUseCase,
+    private readonly setBarberActive: SetBarberActiveUseCase,
   ) {}
 
   @Get()
@@ -135,5 +139,65 @@ export class BarbersController {
       workingHours: body.workingHours,
     });
     return BarberPresenter.toSavedResponse(barber, warnings);
+  }
+
+  @Post(':barberId/deactivate')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Desativa um barbeiro (US-05)',
+    description:
+      'O barbeiro sai da agenda e dos novos agendamentos e continua na lista com active: false, com nome, usuário, serviços e jornada. Desativar um inativo não muda nada.',
+  })
+  @ApiZodResponse({
+    status: HttpStatus.OK,
+    description: 'Barbeiro inativo.',
+    schema: barberResponseSchema,
+  })
+  @ApiErrorResponse(
+    HttpStatus.NOT_FOUND,
+    'Não há barbeiro com esse id nesta barbearia (RN-26).',
+    'Barbeiro não encontrado.',
+  )
+  async deactivate(
+    @CurrentSession() session: AuthenticatedSession,
+    @Param(new ZodValidationPipe(barberIdParamsSchema)) params: BarberIdParams,
+  ): Promise<BarberResponse> {
+    return BarberPresenter.toResponse(
+      await this.setBarberActive.execute({
+        barbershopId: session.barbershopId,
+        barberId: params.barberId,
+        active: false,
+      }),
+    );
+  }
+
+  @Post(':barberId/activate')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Reativa um barbeiro (US-05)',
+    description:
+      'O barbeiro volta à agenda e aos novos agendamentos. Ativar um ativo não muda nada.',
+  })
+  @ApiZodResponse({
+    status: HttpStatus.OK,
+    description: 'Barbeiro ativo.',
+    schema: barberResponseSchema,
+  })
+  @ApiErrorResponse(
+    HttpStatus.NOT_FOUND,
+    'Não há barbeiro com esse id nesta barbearia (RN-26).',
+    'Barbeiro não encontrado.',
+  )
+  async activate(
+    @CurrentSession() session: AuthenticatedSession,
+    @Param(new ZodValidationPipe(barberIdParamsSchema)) params: BarberIdParams,
+  ): Promise<BarberResponse> {
+    return BarberPresenter.toResponse(
+      await this.setBarberActive.execute({
+        barbershopId: session.barbershopId,
+        barberId: params.barberId,
+        active: true,
+      }),
+    );
   }
 }

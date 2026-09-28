@@ -158,6 +158,26 @@ describe('/settings/barbers (e2e)', () => {
     ).send(body as object);
   }
 
+  function changeStatus(
+    token: string | undefined,
+    barberId: string,
+    action: 'activate' | 'deactivate',
+  ) {
+    return authorized(
+      request(app.getHttpServer()).post(
+        `/settings/barbers/${barberId}/${action}`,
+      ),
+      token,
+    );
+  }
+
+  async function schedulableIds(): Promise<string[]> {
+    const barbers = await app
+      .get(ListSchedulableBarbersUseCase)
+      .execute({ barbershopId: await barbershopIdOf('Barbearia do Zé') });
+    return barbers.map((barber) => barber.id);
+  }
+
   async function createService(
     name: string,
     token: string = ownerToken,
@@ -899,6 +919,102 @@ describe('/settings/barbers (e2e)', () => {
       expect(forbidden.body).toEqual(FORBIDDEN);
       expect(unauthorized.status).toBe(401);
       expect(unauthorized.body).toEqual(UNAUTHORIZED);
+      expect(await currentBarbers()).toEqual(before);
+    });
+  });
+
+  describe('deactivate and activate', () => {
+    it('deactivate answers 200 with active: false, GET keeps listing it with the same data and it leaves the schedulable barbers', async () => {
+      const ownerId = await userIdByEmail('dono@barbearia.com');
+      const barber = await created({ userId: ownerId });
+      const [before] = await currentBarbers();
+
+      const response = await changeStatus(ownerToken, barber.id, 'deactivate');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ ...before, active: false });
+      expect(await currentBarbers()).toEqual([{ ...before, active: false }]);
+      expect(await schedulableIds()).toEqual([]);
+    });
+
+    it('activate answers 200 with active: true and the barber is schedulable again', async () => {
+      const barber = await created();
+      await changeStatus(ownerToken, barber.id, 'deactivate').expect(200);
+
+      const response = await changeStatus(ownerToken, barber.id, 'activate');
+
+      expect(response.status).toBe(200);
+      expect((response.body as BarberBody).active).toBe(true);
+      expect(await schedulableIds()).toEqual([barber.id]);
+    });
+
+    it.each(['deactivate', 'activate'] as const)(
+      '%s twice answers 200 both times and ends in the same state',
+      async (action) => {
+        const barber = await created();
+
+        await changeStatus(ownerToken, barber.id, action).expect(200);
+        const once = await currentBarbers();
+        const again = await changeStatus(ownerToken, barber.id, action);
+
+        expect(again.status).toBe(200);
+        expect((again.body as BarberBody).active).toBe(action === 'activate');
+        expect(await currentBarbers()).toEqual(once);
+      },
+    );
+
+    it.each(['deactivate', 'activate'] as const)(
+      'RN-26: %s from A on a barber of B answers 404 and B stays the same',
+      async (action) => {
+        const other = await secondBarbershop();
+        const foreign = await created(
+          { name: 'Bruno', serviceIds: [other.serviceId] },
+          other.token,
+        );
+        if (action === 'activate') {
+          await changeStatus(other.token, foreign.id, 'deactivate').expect(200);
+        }
+        const before = await currentBarbers(other.token);
+
+        const response = await changeStatus(ownerToken, foreign.id, action);
+
+        expect(response.status).toBe(404);
+        expect(response.body).toEqual({ message: 'Barbeiro não encontrado.' });
+        expect(await currentBarbers(other.token)).toEqual(before);
+      },
+    );
+
+    it('an unknown barberId answers 404', async () => {
+      const response = await changeStatus(
+        ownerToken,
+        randomUUID(),
+        'deactivate',
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({ message: 'Barbeiro não encontrado.' });
+    });
+
+    it('a barber gets 403 and a request without session gets 401 on deactivate and activate, and nothing changes', async () => {
+      const barber = await created();
+      const before = await currentBarbers();
+      const barberToken = await createBarber(
+        app,
+        emailSender,
+        appWebUrl,
+        ownerToken,
+        'joao@barbearia.com',
+      );
+
+      for (const action of ['deactivate', 'activate'] as const) {
+        const forbidden = await changeStatus(barberToken, barber.id, action);
+        const unauthorized = await changeStatus(undefined, barber.id, action);
+
+        expect(forbidden.status).toBe(403);
+        expect(forbidden.body).toEqual(FORBIDDEN);
+        expect(unauthorized.status).toBe(401);
+        expect(unauthorized.body).toEqual(UNAUTHORIZED);
+      }
       expect(await currentBarbers()).toEqual(before);
     });
   });

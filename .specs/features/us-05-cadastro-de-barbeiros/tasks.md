@@ -473,13 +473,13 @@ T13 -> T15
 
 **Done when**:
 
-- [ ] Desativa (some da leitura de disponíveis, fica no `GET`), reativa, idempotente, nada além do flag muda
-- [ ] 404, 403, 401
-- [ ] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+- [x] Desativa (some da leitura de disponíveis, fica no `GET`), reativa, idempotente, nada além do flag muda
+- [x] 404, 403, 401
+- [x] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: build
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-05): expose barber activate and deactivate`
 
 ---
