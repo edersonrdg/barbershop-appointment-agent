@@ -208,13 +208,13 @@ T13 -> T15
 
 **Done when**:
 
-- [ ] `test/database/typeorm-barber.repository.e2e-spec.ts`: create/find/list com serviços na ordem e os 7 dias; listas por `lower(name)`; só ativos; `findByUserId`; nome repetido → `BarberNameAlreadyExistsError`; usuário já vinculado → `BarberUserAlreadyLinkedError`; nada gravado nos dois casos
-- [ ] `save` com entidade forjada (id de um barbeiro de outra barbearia) → `BarberNotFoundError`, e os serviços e a jornada daquele barbeiro não mudam (L-004)
-- [ ] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+- [x] `test/database/typeorm-barber.repository.e2e-spec.ts`: create/find/list com serviços na ordem e os 7 dias; listas por `lower(name)`; só ativos; `findByUserId`; nome repetido → `BarberNameAlreadyExistsError`; usuário já vinculado → `BarberUserAlreadyLinkedError`; nada gravado nos dois casos
+- [x] `save` com entidade forjada (id de um barbeiro de outra barbearia) → `BarberNotFoundError`, e os serviços e a jornada daquele barbeiro não mudam (L-004)
+- [x] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: build
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-05): persist barbers with services and working hours`
 
 ---
