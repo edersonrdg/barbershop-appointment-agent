@@ -75,4 +75,40 @@ describe('BarbershopTimezone', () => {
       expect(timezone.weekdayOf('2026-10-04')).toBe('sunday');
     });
   });
+
+  describe('AVL-09 · CA-07.1: local date of an instant', () => {
+    it.each([
+      ['America/Sao_Paulo', '2026-10-06T02:59:00.000Z', '2026-10-05'],
+      ['America/Sao_Paulo', '2026-10-06T03:00:00.000Z', '2026-10-06'],
+      ['America/Manaus', '2026-10-06T03:59:00.000Z', '2026-10-05'],
+      ['America/Manaus', '2026-10-06T04:00:00.000Z', '2026-10-06'],
+    ])('in %s, %s is on %s', (zone, instant, expected) => {
+      expect(
+        BarbershopTimezone.create(zone).localDateOf(new Date(instant)),
+      ).toBe(expected);
+    });
+  });
+
+  describe('CA-07.1: rejects local dates that do not exist', () => {
+    const timezone = BarbershopTimezone.create('America/Sao_Paulo');
+
+    it.each([
+      '2026-02-30',
+      '2026-13-01',
+      '2026-9-1',
+      '2026-00-10',
+      '2026-04-31',
+    ])('rejects %s with "Data inválida."', (localDate) => {
+      expect(() =>
+        timezone.toUtc(localDate, TimeOfDay.create('09:00')),
+      ).toThrow(new InvalidValueError('Data inválida.'));
+      expect(() => timezone.weekdayOf(localDate)).toThrow(
+        new InvalidValueError('Data inválida.'),
+      );
+    });
+
+    it('accepts 2028-02-29, a leap day', () => {
+      expect(timezone.weekdayOf('2028-02-29')).toBe('tuesday');
+    });
+  });
 });

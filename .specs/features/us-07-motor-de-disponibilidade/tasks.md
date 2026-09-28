@@ -92,12 +92,14 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] `localDateOf` devolve a data local de São Paulo e de Manaus para instantes perto da meia-noite UTC
-- [ ] `toUtc`/`weekdayOf` recusam `2026-02-30`, `2026-13-01` e `2026-9-1` com `InvalidValueError('Data inválida.')`
-- [ ] Gate check passes: `npm test`
+- [x] `localDateOf` devolve a data local de São Paulo e de Manaus para instantes perto da meia-noite UTC
+- [x] `toUtc`/`weekdayOf` recusam `2026-02-30`, `2026-13-01` e `2026-9-1` com `InvalidValueError('Data inválida.')`
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
+**Commit**: `feat(US-07): add local date of an instant and reject impossible dates`
 
 ---
 

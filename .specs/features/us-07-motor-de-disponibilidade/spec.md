@@ -218,7 +218,7 @@ O painel (US-10) e o bot (US-17) vão oferecer e gravar horários, mas ainda nã
 | AVL-06 | P1 Barbeiro — intervalos encostados são livres | - | Pending |
 | AVL-07 | P1 Barbeiro — dia fechado ou sem jornada | - | Pending |
 | AVL-08 | P1 Barbeiro — formato e ordem do resultado | - | Pending |
-| AVL-09 | P1 Barbeiro — fuso da barbearia | - | Pending |
+| AVL-09 | P1 Barbeiro — fuso da barbearia | T1 | Implementing |
 | AVL-10 | P1 Qualquer — todos os aptos | - | Pending |
 | AVL-11 | P1 Qualquer — um barbeiro por início, ordem de nome | - | Pending |
 | AVL-12 | P1 Qualquer — sem inativos e sem inaptos | - | Pending |
