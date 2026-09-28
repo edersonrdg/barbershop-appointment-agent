@@ -377,12 +377,14 @@ T14
 
 **Done when**:
 
-- [ ] Body válido vira `{ barberId, serviceIds, startsAt: Date, client: { name aparado, phone } }`; `startsAt` com `-03:00` vira o instante UTC certo
-- [ ] Cada inválido de AGM-16 gera exatamente a mensagem listada: `barberId` não UUID, `serviceIds` vazio/11 itens/item não UUID/repetido, `startsAt` sem fuso ou com segundos, nome com 1/81 caracteres, telefone inválido
-- [ ] Gate check passes: `npm test`
+- [x] Body válido vira `{ barberId, serviceIds, startsAt: Date, client: { name aparado, phone } }`; `startsAt` com `-03:00` vira o instante UTC certo
+- [x] Cada inválido de AGM-16 gera exatamente a mensagem listada: `barberId` não UUID, `serviceIds` vazio/11 itens/item não UUID/repetido, `startsAt` sem fuso ou com segundos, nome com 1/81 caracteres, telefone inválido
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
+
+**Status**: ✅ Done
 
 **Commit**: `feat(US-10): add create appointment schema`
 
