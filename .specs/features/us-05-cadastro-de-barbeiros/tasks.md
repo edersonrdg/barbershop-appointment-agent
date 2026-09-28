@@ -180,15 +180,15 @@ T13 -> T15
 
 **Done when**:
 
-- [ ] `test/database/barbers-schema.e2e-spec.ts`: `Corte`/`corte`-style nome repetido barrado (mesmo nome em outra barbearia aceito); dois barbeiros com o mesmo `user_id` barrados; usuário de outra barbearia barrado; serviço de outra barbearia barrado; barbeiro de outra barbearia em `barber_services` barrado
-- [ ] `CHECK` da jornada: fim igual ao início barrado; intervalo encostado em cada limite barrado; um minuto dentro aceito (L-002)
-- [ ] Apagar o usuário zera só `user_id` e mantém o barbeiro com `barbershop_id`, serviços e jornada
-- [ ] `npm run migration:generate` depois da migration não gera diferença
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] `test/database/barbers-schema.e2e-spec.ts`: `Corte`/`corte`-style nome repetido barrado (mesmo nome em outra barbearia aceito); dois barbeiros com o mesmo `user_id` barrados; usuário de outra barbearia barrado; serviço de outra barbearia barrado; barbeiro de outra barbearia em `barber_services` barrado
+- [x] `CHECK` da jornada: fim igual ao início barrado; intervalo encostado em cada limite barrado; um minuto dentro aceito (L-002)
+- [x] Apagar o usuário zera só `user_id` e mantém o barbeiro com `barbershop_id`, serviços e jornada
+- [x] `npm run migration:generate` depois da migration não gera diferença
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-05): add barbers schema with tenant-scoped foreign keys`
 
 ---
