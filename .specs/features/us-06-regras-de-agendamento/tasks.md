@@ -204,13 +204,13 @@ T7 -> T8
 
 **Done when**:
 
-- [ ] `CA-06.1`: devolve as regras do tenant pedido, nunca as de outro
-- [ ] Barbearia sem regras lança `InvalidCredentialsError`
-- [ ] Gate check passes: `npm test`
+- [x] `CA-06.1`: devolve as regras do tenant pedido, nunca as de outro
+- [x] Barbearia sem regras lança `InvalidCredentialsError`
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-06): add get booking rules use case`
 
 ---
