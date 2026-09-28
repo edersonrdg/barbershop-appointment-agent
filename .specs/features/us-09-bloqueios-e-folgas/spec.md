@@ -172,13 +172,13 @@ O motor da US-07 já respeita bloqueios e folgas (RN-05), mas não há como cri�
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
 | BLQ-01 | P1 Bloqueio — criar pelo Barbeiro | - | Pending |
-| BLQ-02 | P1 Bloqueio — conversão de fuso | - | Pending |
+| BLQ-02 | P1 Bloqueio — conversão de fuso | T1 | Implementing |
 | BLQ-03 | P1 Bloqueio — motor não oferece | - | Pending |
 | BLQ-04 | P1 Bloqueio — motor recusa (RN-05) | - | Pending |
 | BLQ-05 | P1 Bloqueio — Dono para qualquer barbeiro | - | Pending |
 | BLQ-06 | P1 Bloqueio — Barbeiro em outro barbeiro 403 | - | Pending |
 | BLQ-07 | P1 Bloqueio — barbeiro inexistente 404 | - | Pending |
-| BLQ-08 | P1 Folga — dia inteiro no fuso | - | Pending |
+| BLQ-08 | P1 Folga — dia inteiro no fuso | T1 | Implementing |
 | BLQ-09 | P1 Folga — motor sem horários no dia | - | Pending |
 | BLQ-10 | P1 Folga — outros dias e barbeiros intactos | - | Pending |
 | BLQ-11 | P1 Folga — Barbeiro na própria agenda | - | Pending |

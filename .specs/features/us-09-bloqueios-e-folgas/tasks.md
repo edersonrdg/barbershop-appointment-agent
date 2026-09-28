@@ -103,11 +103,13 @@ T13
 
 **Done when**:
 
-- [ ] `block` `2026-10-01` `12:00`–`13:00` em São Paulo → `[2026-10-01T15:00Z, 2026-10-01T16:00Z)`
-- [ ] `block` com fim `24:00` → termina em `2026-10-02T03:00Z`
-- [ ] `day_off` `2026-10-01` → `[2026-10-01T03:00Z, 2026-10-02T03:00Z)`
-- [ ] Fim igual ou antes do início → `InvalidValueError`
-- [ ] Gate check passes: `npm test`
+- [x] `block` `2026-10-01` `12:00`–`13:00` em São Paulo → `[2026-10-01T15:00Z, 2026-10-01T16:00Z)`
+- [x] `block` com fim `24:00` → termina em `2026-10-02T03:00Z`
+- [x] `day_off` `2026-10-01` → `[2026-10-01T03:00Z, 2026-10-02T03:00Z)`
+- [x] Fim igual ou antes do início → `InvalidValueError`
+- [x] Gate check passes: `npm test`
+
+**Status**: ✅ Done
 
 **Tests**: unit
 **Gate**: quick
