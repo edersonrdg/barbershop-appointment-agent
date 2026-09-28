@@ -203,7 +203,7 @@ O motor da US-07 valida e grava agendamentos, e a agenda da US-08 os mostra, mas
 | AGM-01 | P1 Criar — grava manual, 201 | T2, T6, T7, T8, T13 | Implementing |
 | AGM-02 | P1 Criar — fim e ordem dos serviços | T8 | In Tasks |
 | AGM-03 | P1 Criar — aparece na agenda | T6, T13 | Implementing |
-| AGM-04 | P1 Criar — sem antecedência mínima | T7, T8, T13 | In Tasks |
+| AGM-04 | P1 Criar — sem antecedência mínima | T7, T8, T13 | Implementing |
 | AGM-05 | P1 Cliente — cria pelo telefone | T1, T2, T5, T7, T8 | Implementing |
 | AGM-06 | P1 Cliente — reusa e mantém nome | T4, T7, T8, T13 | Implementing |
 | AGM-07 | P1 Cliente — telefone de outra barbearia | T4, T8 | Implementing |

@@ -284,14 +284,16 @@ T14
 
 **Done when**:
 
-- [ ] Com cliente novo: agendamento com `clientId` do cliente e cliente gravado no fake
-- [ ] Com cliente existente (`isNew: false`): nenhum cliente novo gravado
-- [ ] Sem cliente: `clientId` nulo (AGD-20); testes da US-07 intactos
-- [ ] CA-10.3: origem `manual` a 30 min, com antecedência mínima de 60 → gravado
-- [ ] Gate check passes: `npm test`
+- [x] Com cliente novo: agendamento com `clientId` do cliente e cliente gravado no fake
+- [x] Com cliente existente (`isNew: false`): nenhum cliente novo gravado
+- [x] Sem cliente: `clientId` nulo (AGD-20); testes da US-07 intactos
+- [x] CA-10.3: origem `manual` a 30 min, com antecedência mínima de 60 → gravado
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
+
+**Status**: ✅ Done
 
 **Commit**: `feat(US-10): let the engine book an appointment for a client`
 

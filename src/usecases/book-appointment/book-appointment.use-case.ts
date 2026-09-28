@@ -2,6 +2,7 @@ import {
   Appointment,
   AppointmentOrigin,
 } from '../../domain/entities/appointment';
+import { Client } from '../../domain/entities/client';
 import { AppointmentConflictError } from '../../domain/errors/appointment-conflict.error';
 import { BarberUnavailableError } from '../../domain/errors/barber-unavailable.error';
 import { DomainError } from '../../domain/errors/domain.error';
@@ -35,6 +36,8 @@ export interface BookAppointmentInput {
   serviceIds: readonly string[];
   startsAt: Date;
   origin: AppointmentOrigin;
+  /** The client of the appointment; `isNew` when it must be stored with it. */
+  client?: { client: Client; isNew: boolean };
 }
 
 export class BookAppointmentUseCase {
@@ -85,7 +88,7 @@ export class BookAppointmentUseCase {
       id: this.idGenerator.next(),
       barbershopId: input.barbershopId,
       barberId: barber.id,
-      clientId: null,
+      clientId: input.client?.client.id ?? null,
       serviceIds: input.serviceIds,
       startsAt: input.startsAt,
       durationMinutes: context.durationMinutes,
@@ -110,7 +113,10 @@ export class BookAppointmentUseCase {
       throw refusalOf(violation);
     }
     try {
-      await this.ports.appointments.create(appointment);
+      await this.ports.appointments.create(
+        appointment,
+        input.client?.isNew ? input.client.client : null,
+      );
     } catch (error) {
       if (error instanceof AppointmentConflictError) {
         this.metrics.conflict(input.origin);
