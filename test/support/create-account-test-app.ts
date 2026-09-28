@@ -16,6 +16,7 @@ export interface AccountTestApp {
 // real mail server.
 export async function createAccountTestApp(
   extraControllers: Type[] = [],
+  beforeInit: (app: INestApplication<App>) => void = () => {},
 ): Promise<AccountTestApp> {
   const emailSender = new FakeEmailSender();
   const moduleFixture = await Test.createTestingModule({
@@ -27,6 +28,7 @@ export async function createAccountTestApp(
     .compile();
 
   const app = moduleFixture.createNestApplication<INestApplication<App>>();
+  beforeInit(app);
   await app.init();
 
   return { app, dataSource: app.get(DataSource), emailSender };

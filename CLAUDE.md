@@ -12,6 +12,7 @@ Este repositório é **público**. Nunca versione segredos, dados reais de clien
 - NestJS 11 (CommonJS). Não instale pacotes `@nestjs/*` v12: eles são só ESM e quebram o build e o Jest. Use as linhas compatíveis com Nest 11 (`@nestjs/config@4`, `@nestjs/typeorm@11`, `@nestjs/terminus@11`).
 - PostgreSQL 17 + TypeORM
 - Zod para validação de esquemas
+- Swagger / OpenAPI via `@nestjs/swagger@11` (documentação da API)
 - IA: Google Gemini via `@google/genai`
 - Observabilidade: `nestjs-pino` (logs), `prom-client` (métricas), `@nestjs/terminus` (health checks)
 - Docker Compose para orquestração local
@@ -24,6 +25,7 @@ Este repositório é **público**. Nunca versione segredos, dados reais de clien
 cp .env.example .env                   # primeira vez
 docker compose up -d postgres          # banco local
 npm run start:dev                      # API em modo watch (usa o Postgres do compose)
+                                       # Swagger em http://localhost:3000/docs (JSON em /docs-json) com API_DOCS_ENABLED=true
 docker compose --profile app up --build            # API + banco em containers
 docker compose --profile observability up -d       # Prometheus em http://localhost:9090
 
@@ -85,6 +87,25 @@ src/
 - A ligação entre ports e implementações é feita por injeção de dependência do NestJS, nos módulos em `infrastructure/`.
 - Validação com Zod acontece na borda (controllers, payloads de integrações externas e respostas do Gemini). Invariantes de negócio ficam nas entidades e value objects.
 - **Um arquivo por classe**, com nomes de arquivo em kebab-case no padrão do Nest (`create-appointment.use-case.ts`, `appointment.entity.ts`, `appointments.controller.ts`).
+
+## Documentação da API (Swagger)
+
+**Toda rota nova, e toda alteração em rota existente (payload, resposta, status, perfil de acesso), atualiza a documentação Swagger no mesmo commit.** A task não está concluída sem isso.
+
+O documento é montado em [api-document.ts](src/infrastructure/http/api-docs/api-document.ts) e sai de três fontes:
+
+- **Derivado automaticamente (não duplique):**
+  - *Payload de entrada:* o body, os params e a query de cada rota vêm do schema Zod passado ao `ZodValidationPipe`, que também gera a resposta 400 de validação. Mudou o schema, mudou a documentação.
+  - *Autorização:* `@Public()`, `@Roles(...)` e o padrão só-Dono (AD-007) viram `security` bearer, `x-roles`, a linha **Acesso** na descrição e as respostas 401 e 403. É o mesmo metadado que o `SessionGuard` usa.
+- **Declarado no controller (obrigatório em toda rota):**
+  - `@ApiTags(...)` na classe, agrupando por área do painel.
+  - `@ApiOperation({ summary })`, com o resumo em português citando a história (ex.: `'Convida um Barbeiro por e-mail (US-02)'`). Use `description` para o comportamento que o consumidor precisa saber.
+  - `@ApiZodResponse({ status, description, schema })` para a resposta de sucesso. `schema` é o schema Zod do presenter; omita só em 204.
+  - `@ApiErrorResponse(status, descrição, mensagem)` para cada erro de domínio que a rota pode devolver, com o status mapeado no `DomainErrorFilter` e a mensagem real do erro como exemplo.
+- **Formato das respostas:** cada presenter exporta o schema Zod da resposta (`xxxResponseSchema`) e o tipo com `z.infer`. Não crie interface ou classe DTO paralela ao schema.
+- Enriqueça os schemas com `.meta({ description, example, format })`. O `.meta()` não altera a validação e ajuda nos campos validados por `refine`, que não aparecem no OpenAPI.
+- O e2e [api-docs.e2e-spec.ts](test/api-docs.e2e-spec.ts) falha se alguma rota ficar sem `summary` ou sem resposta de sucesso descrita. Ao criar uma rota, confira também a UI em `/docs`.
+- O Swagger só é publicado com `API_DOCS_ENABLED=true` (padrão `false`).
 
 ## Regras de domínio que atravessam todo o código
 
