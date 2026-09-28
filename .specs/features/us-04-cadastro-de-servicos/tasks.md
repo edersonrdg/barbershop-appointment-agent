@@ -206,16 +206,17 @@ T12 -> T14
 
 **Done when**:
 
-- [ ] e2e `test/database/typeorm-service.repository.e2e-spec.ts`: `create` + `findById` devolvem todos os campos e os adicionais na ordem
-- [ ] `listByBarbershop` ordena por nome sem diferenciar maiúsculas e inclui inativos; `listActiveByBarbershop` só ativos; nenhum dos dois devolve serviço de outra barbearia
-- [ ] `findById` e `findByIds` com id de outra barbearia não devolvem o serviço
-- [ ] `save` troca campos e substitui a lista de adicionais (inclusive por vazia); desativar mantém nome, preço, duração, os adicionais do serviço e as relações em que ele é adicional
-- [ ] nome repetido (inclusive só maiúsculas diferentes) em `create` e `save` → `ServiceNameAlreadyExistsError` e nada muda; duas criações simultâneas com o mesmo nome → uma grava, a outra recebe o erro
-- [ ] `save` de um serviço da barbearia A não altera serviços de B
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] e2e `test/database/typeorm-service.repository.e2e-spec.ts`: `create` + `findById` devolvem todos os campos e os adicionais na ordem
+- [x] `listByBarbershop` ordena por nome sem diferenciar maiúsculas e inclui inativos; `listActiveByBarbershop` só ativos; nenhum dos dois devolve serviço de outra barbearia
+- [x] `findById` e `findByIds` com id de outra barbearia não devolvem o serviço
+- [x] `save` troca campos e substitui a lista de adicionais (inclusive por vazia); desativar mantém nome, preço, duração, os adicionais do serviço e as relações em que ele é adicional
+- [x] nome repetido (inclusive só maiúsculas diferentes) em `create` e `save` → `ServiceNameAlreadyExistsError` e nada muda; duas criações simultâneas com o mesmo nome → uma grava, a outra recebe o erro
+- [x] `save` de um serviço da barbearia A não altera serviços de B
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: build
+**Status**: ✅ Done
 **Commit**: `feat(US-04): persist services and suggested add-ons`
 
 ---
