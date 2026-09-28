@@ -7,6 +7,7 @@ const DATE_MESSAGE = 'Informe uma data válida no formato AAAA-MM-DD.';
 const TIME_MESSAGE = 'Informe um horário válido no formato HH:mm.';
 const END_MESSAGE = 'O fim do bloqueio deve ser depois do início.';
 const REASON_MESSAGE = 'Informe um motivo de até 120 caracteres.';
+const CONFIRM_MESSAGE = 'Informe true ou false em confirmConflicts.';
 const BARBER_ID = '7d3c2f7e-5b1a-4c8e-9f2d-1a2b3c4d5e6f';
 
 const block = {
@@ -130,6 +131,15 @@ describe('createBarberBlockSchema', () => {
     (body) => {
       expect(issuesOf({ ...body, reason: 'a'.repeat(121) })).toEqual([
         { field: 'reason', message: REASON_MESSAGE },
+      ]);
+    },
+  );
+
+  it.each(['yes', 'true', 1, null])(
+    'CA-09.3: rejects confirmConflicts %p',
+    (confirmConflicts) => {
+      expect(issuesOf({ ...block, confirmConflicts })).toEqual([
+        { field: 'confirmConflicts', message: CONFIRM_MESSAGE },
       ]);
     },
   );
