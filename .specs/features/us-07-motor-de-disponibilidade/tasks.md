@@ -260,15 +260,17 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] `CA-07.4`: `INSERT` direto de dois confirmados sobrepostos do mesmo barbeiro falha com `23P01`; sobreposição de 1 min também
-- [ ] `CA-07.4`: encostados (fim == início) do mesmo barbeiro são aceitos; sobrepostos de barbeiros diferentes são aceitos
-- [ ] `CHECK`: `ends_at == starts_at` recusado; status e origem fora da lista recusados
-- [ ] RN-26: agendamento, serviço de agendamento e bloqueio com barbeiro ou serviço de outra barbearia falham por FK
-- [ ] `migration:show` sem pendências e `migration:generate` não gera diff
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] `CA-07.4`: `INSERT` direto de dois confirmados sobrepostos do mesmo barbeiro falha com `23P01`; sobreposição de 1 min também
+- [x] `CA-07.4`: encostados (fim == início) do mesmo barbeiro são aceitos; sobrepostos de barbeiros diferentes são aceitos
+- [x] `CHECK`: `ends_at == starts_at` recusado; status e origem fora da lista recusados
+- [x] RN-26: agendamento, serviço de agendamento e bloqueio com barbeiro ou serviço de outra barbearia falham por FK
+- [x] `migration:show` sem pendências e `migration:generate` não gera diff
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Done
+**Commit**: `feat(US-07): add appointments schema with overlap exclusion constraint`
 
 ---
 

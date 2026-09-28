@@ -238,15 +238,15 @@ O painel (US-10) e o bot (US-17) vão oferecer e gravar horários, mas ainda nã
 | AVL-26 | P1 Gravar — recusa não grava nada | T6 | Implementing |
 | AVL-27 | P1 Gravar — consulta e gravação concordam | T4, T6 | Implementing |
 | AVL-28 | P1 Concorrência — CA-07.4 simultâneas | - | Pending |
-| AVL-29 | P1 Concorrência — constraint de exclusão | - | Pending |
-| AVL-30 | P1 Concorrência — encostados aceitos no banco | - | Pending |
-| AVL-31 | P1 Concorrência — barbeiros diferentes | - | Pending |
+| AVL-29 | P1 Concorrência — constraint de exclusão | T7 | Implementing |
+| AVL-30 | P1 Concorrência — encostados aceitos no banco | T7 | Implementing |
+| AVL-31 | P1 Concorrência — barbeiros diferentes | T7 | Implementing |
 | AVL-32 | P1 Isolamento — barbeiro inválido | T5, T6 | Implementing |
 | AVL-33 | P1 Isolamento — serviço inválido | T5, T6 | Implementing |
 | AVL-34 | P1 Isolamento — barbeiro não realiza serviço | T5, T6 | Implementing |
 | AVL-35 | P1 Isolamento — lista de serviços inválida | T5, T6 | Implementing |
 | AVL-36 | P1 Isolamento — RN-26 leituras por tenant | T5 | Implementing |
-| AVL-37 | P1 Isolamento — RN-26 FKs compostas | - | Pending |
+| AVL-37 | P1 Isolamento — RN-26 FKs compostas | T7 | Implementing |
 | AVL-38 | P2 Métricas — agendamentos gravados | T6 | Implementing |
 | AVL-39 | P2 Métricas — conflitos | T6 | Implementing |
 
