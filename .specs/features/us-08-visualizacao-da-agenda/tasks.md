@@ -194,9 +194,11 @@ T5 -> T6
 
 **Done when**:
 
-- [ ] Aceita `day` e `week`, data válida e `barberId` UUID opcional
-- [ ] Recusa visão fora de `day`/`week`, data fora de `AAAA-MM-DD`, data inexistente (`2026-02-30`), `barberId` não UUID, e falta de `view` ou `date`
-- [ ] Gate check passes: `npm test`
+- [x] Aceita `day` e `week`, data válida e `barberId` UUID opcional
+- [x] Recusa visão fora de `day`/`week`, data fora de `AAAA-MM-DD`, data inexistente (`2026-02-30`), `barberId` não UUID, e falta de `view` ou `date`
+- [x] Gate check passes: `npm test`
+
+**Status**: ✅ Done
 
 **Tests**: unit
 **Gate**: quick

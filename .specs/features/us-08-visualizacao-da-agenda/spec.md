@@ -49,6 +49,7 @@ O motor da US-07 grava agendamentos, mas ninguém consegue vê-los: o Dono não 
 | Serviços | Id e nome, na ordem gravada no agendamento | CA-08.3 pede os serviços; a ordem da US-07 é a do pedido | y |
 | Instantes na resposta | Início e fim em ISO 8601 UTC, com o fuso da barbearia e as datas locais do período na resposta | O cliente converte na borda; CA-03.3 já expõe o fuso | y |
 | Entrada inválida | `400` do `ZodValidationPipe` para visão fora de `day`/`week`, data fora de `AAAA-MM-DD` ou inexistente, `barberId` que não é UUID | Validação na borda (CLAUDE.md) | y |
+| Mensagens de validação | `view`: "Escolha a visão: day ou week."; `date`: "Informe uma data válida no formato AAAA-MM-DD."; `barberId`: "Informe um id de barbeiro válido." (mesma da US-05) | Registrado na T5: a spec só fixava o `400` | y |
 | Idempotência, concorrência, ciclo de vida | N/A: leitura sem efeito colateral | — | y |
 | Falha de dependência externa | N/A: só Postgres; falha do banco segue o tratamento padrão (500) | — | y |
 | Rate limit | N/A: nenhuma rota do painel tem limite hoje e nenhum RNF pede | — | y |
@@ -187,7 +188,7 @@ O motor da US-07 grava agendamentos, mas ninguém consegue vê-los: o Dono não 
 | AGD-21 | P1 Isolamento — RN-26 leitura | T2 | Implementing |
 | AGD-22 | P1 Isolamento — barbeiro de outra barbearia | T2 | Implementing |
 | AGD-23 | P1 Isolamento — 401 | Design | Pending |
-| AGD-24 | P1 Isolamento — 400 | Design | Pending |
+| AGD-24 | P1 Isolamento — 400 | T5 | Implementing |
 | AGD-25 | P1 Isolamento — Swagger | Design | Pending |
 
 **ID format:** `AGD-NN` (Agenda, épico E3). Cada teste cita o `CA-08.x` (ou o `RN`) no nome, conforme o CLAUDE.md.
