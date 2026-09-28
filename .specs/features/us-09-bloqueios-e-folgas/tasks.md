@@ -433,12 +433,14 @@ T13
 
 **Done when**:
 
-- [ ] Independent Tests das cinco histórias da spec passam em e2e, com os nomes citando `CA-09.1`, `CA-09.2`, `CA-09.3`, `RN-26` ou a seção 5
-- [ ] Efeito no motor (BLQ-03, 04, 09, 10, 22) conferido com `ListAvailableSlotsUseCase`/`BookAppointmentUseCase` via `app.get()`
-- [ ] `409` traz `message` e `appointments` no formato da agenda; nenhuma linha em `barber_blocks`; agendamento segue `confirmed` no mesmo horário
-- [ ] `401` sem token nas três rotas; `400` com uma entrada inválida por rota
-- [ ] `test/api-docs.e2e-spec.ts` passa; as três rotas têm resumo com US-09, sucesso e erros (`400`, `401`, `403`, `404`, `409` na criação) e perfis Dono e Barbeiro
-- [ ] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+- [x] Independent Tests das cinco histórias da spec passam em e2e, com os nomes citando `CA-09.1`, `CA-09.2`, `CA-09.3`, `RN-26` ou a seção 5
+- [x] Efeito no motor (BLQ-03, 04, 09, 10, 22) conferido com `ListAvailableSlotsUseCase`/`BookAppointmentUseCase` via `app.get()`
+- [x] `409` traz `message` e `appointments` no formato da agenda; nenhuma linha em `barber_blocks`; agendamento segue `confirmed` no mesmo horário
+- [x] `401` sem token nas três rotas; `400` com uma entrada inválida por rota
+- [x] `test/api-docs.e2e-spec.ts` passa; as três rotas têm resumo com US-09, sucesso e erros (`400`, `401`, `403`, `404`, `409` na criação) e perfis Dono e Barbeiro
+- [x] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+
+**Status**: ✅ Done
 
 **Tests**: e2e
 **Gate**: build

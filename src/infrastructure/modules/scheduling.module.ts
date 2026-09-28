@@ -146,6 +146,10 @@ import { ServicesModule } from './services.module';
         ),
     },
   ],
-  exports: [ListAvailableSlotsUseCase, BookAppointmentUseCase],
+  exports: [
+    ListAvailableSlotsUseCase,
+    BookAppointmentUseCase,
+    BARBER_BLOCK_REPOSITORY,
+  ],
 })
 export class SchedulingModule {}

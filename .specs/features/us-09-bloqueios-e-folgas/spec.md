@@ -171,34 +171,34 @@ O motor da US-07 já respeita bloqueios e folgas (RN-05), mas não há como cri�
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| BLQ-01 | P1 Bloqueio — criar pelo Barbeiro | T7, T11 | Implementing |
+| BLQ-01 | P1 Bloqueio — criar pelo Barbeiro | T7, T11, T12 | Implementing |
 | BLQ-02 | P1 Bloqueio — conversão de fuso | T1, T7 | Implementing |
-| BLQ-03 | P1 Bloqueio — motor não oferece | - | Pending |
-| BLQ-04 | P1 Bloqueio — motor recusa (RN-05) | - | Pending |
-| BLQ-05 | P1 Bloqueio — Dono para qualquer barbeiro | T7 | Implementing |
-| BLQ-06 | P1 Bloqueio — Barbeiro em outro barbeiro 403 | T6, T7 | Implementing |
-| BLQ-07 | P1 Bloqueio — barbeiro inexistente 404 | T6, T7 | Implementing |
-| BLQ-08 | P1 Folga — dia inteiro no fuso | T1, T7 | Implementing |
-| BLQ-09 | P1 Folga — motor sem horários no dia | - | Pending |
-| BLQ-10 | P1 Folga — outros dias e barbeiros intactos | - | Pending |
-| BLQ-11 | P1 Folga — Barbeiro na própria agenda | T7 | Implementing |
-| BLQ-12 | P1 Conflito — 409 com lista, sem gravar | T5, T7, T11 | Implementing |
-| BLQ-13 | P1 Conflito — confirmação grava | T7, T11 | Implementing |
-| BLQ-14 | P1 Conflito — agendamentos intactos | T7 | Implementing |
-| BLQ-15 | P1 Conflito — formato da lista | T5, T7, T11 | Implementing |
-| BLQ-16 | P1 Conflito — encostar não conflita | T5 | Implementing |
-| BLQ-17 | P1 Conflito — sem conflito, lista vazia | T7 | Implementing |
-| BLQ-18 | P1 Listar — Dono por período | T4, T8, T11 | Implementing |
-| BLQ-19 | P1 Validação — 400 e mensagens | T10 | Implementing |
-| BLQ-20 | P1 Listar — Barbeiro só os próprios | T6, T8 | Implementing |
-| BLQ-21 | P1 Remover — Dono 204 | T4, T9 | Implementing |
-| BLQ-22 | P1 Remover — motor volta a oferecer | - | Pending |
-| BLQ-23 | P1 Remover — Barbeiro só os próprios | T6, T9 | Implementing |
-| BLQ-24 | P1 Remover — inexistente 404 | T2, T4, T9 | Implementing |
-| BLQ-25 | P1 Isolamento — RN-26 | T3, T4, T5, T8 | Implementing |
-| BLQ-26 | P1 Isolamento — 401 | - | Pending |
+| BLQ-03 | P1 Bloqueio — motor não oferece | T12 | Implementing |
+| BLQ-04 | P1 Bloqueio — motor recusa (RN-05) | T12 | Implementing |
+| BLQ-05 | P1 Bloqueio — Dono para qualquer barbeiro | T7, T12 | Implementing |
+| BLQ-06 | P1 Bloqueio — Barbeiro em outro barbeiro 403 | T6, T7, T12 | Implementing |
+| BLQ-07 | P1 Bloqueio — barbeiro inexistente 404 | T6, T7, T12 | Implementing |
+| BLQ-08 | P1 Folga — dia inteiro no fuso | T1, T7, T12 | Implementing |
+| BLQ-09 | P1 Folga — motor sem horários no dia | T12 | Implementing |
+| BLQ-10 | P1 Folga — outros dias e barbeiros intactos | T12 | Implementing |
+| BLQ-11 | P1 Folga — Barbeiro na própria agenda | T7, T12 | Implementing |
+| BLQ-12 | P1 Conflito — 409 com lista, sem gravar | T5, T7, T11, T12 | Implementing |
+| BLQ-13 | P1 Conflito — confirmação grava | T7, T11, T12 | Implementing |
+| BLQ-14 | P1 Conflito — agendamentos intactos | T7, T12 | Implementing |
+| BLQ-15 | P1 Conflito — formato da lista | T5, T7, T11, T12 | Implementing |
+| BLQ-16 | P1 Conflito — encostar não conflita | T5, T12 | Implementing |
+| BLQ-17 | P1 Conflito — sem conflito, lista vazia | T7, T12 | Implementing |
+| BLQ-18 | P1 Listar — Dono por período | T4, T8, T11, T12 | Implementing |
+| BLQ-19 | P1 Validação — 400 e mensagens | T10, T12 | Implementing |
+| BLQ-20 | P1 Listar — Barbeiro só os próprios | T6, T8, T12 | Implementing |
+| BLQ-21 | P1 Remover — Dono 204 | T4, T9, T12 | Implementing |
+| BLQ-22 | P1 Remover — motor volta a oferecer | T12 | Implementing |
+| BLQ-23 | P1 Remover — Barbeiro só os próprios | T6, T9, T12 | Implementing |
+| BLQ-24 | P1 Remover — inexistente 404 | T2, T4, T9, T12 | Implementing |
+| BLQ-25 | P1 Isolamento — RN-26 | T3, T4, T5, T8, T12 | Implementing |
+| BLQ-26 | P1 Isolamento — 401 | T12 | Implementing |
 | BLQ-27 | P1 Dados — tipo e motivo, migration | T2, T3, T4 | Implementing |
-| BLQ-28 | P1 Swagger | T11 | Implementing |
+| BLQ-28 | P1 Swagger | T11, T12 | Implementing |
 
 **ID format:** `BLQ-NN` (Bloqueios, épico E3). Cada teste cita o `CA-09.x` (ou o `RN`) no nome, conforme o CLAUDE.md.
 
