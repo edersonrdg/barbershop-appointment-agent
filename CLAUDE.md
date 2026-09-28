@@ -55,6 +55,13 @@ Antes de considerar uma task concluída, rode `npm run lint`, `npm run build`, `
 - Uma história só está pronta quando atende à Definição de Pronto (PRD 11.1).
 - Para planejar e executar histórias, use a skill `tlc-spec-driven` (artefatos em `.specs/`, que são versionados).
 - **Commits:** Conventional Commits citando a história, ex.: `feat(US-07): add availability engine`.
+- **Branches:** uma branch por história, criada a partir da `main` atualizada (ex.: `feat/us-07-availability-engine`). Se a história depender de um PR ainda não mergeado, parta da branch dele e use-a como base do PR.
+- **Pull Request ao finalizar:** quando a história estiver pronta (validações acima passando e Verifier com PASS), faça o push só da branch da história (`git push -u origin <branch>`, nunca na `main` e nunca com `--force`) e abra um PR novo com `gh pr create --base main`. Título no padrão dos commits (ex.: `feat(US-07): add availability engine`). A descrição, em português, traz:
+  - **Resumo:** o que a história entrega e para quem.
+  - **O que foi feito:** as mudanças principais por camada, incluindo rotas novas ou alteradas e migrations.
+  - **Rastreabilidade:** história, `RF`/`RN` implementados e cada `CA` com o teste que o cobre.
+  - **Como testar:** comandos e passos para validar localmente.
+  - **Pendências e decisões:** o que ficou em aberto ou foi decidido durante a execução (`.specs/`).
 
 ## Arquitetura: Clean Architecture
 
