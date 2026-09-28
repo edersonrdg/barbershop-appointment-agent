@@ -285,13 +285,15 @@ T13
 
 **Done when**:
 
-- [ ] Barbeiro cria `block` no próprio barbeiro → gravado com tipo, período UTC e motivo; retorno traz barbeiro (id e nome) e `affectedAppointments: []` (CA-09.1)
-- [ ] Dono cria para qualquer barbeiro; Barbeiro em outro ou sem ficha → `ScheduleAccessDeniedError` sem gravar; barbeiro inexistente → `BarberNotFoundError` sem gravar
-- [ ] Dono e Barbeiro criam `day_off` → período do dia inteiro (CA-09.2)
-- [ ] Com agendamentos sobrepostos e sem confirmação → `BarberBlockConflictError('O bloqueio conflita com agendamentos existentes.')` com a lista e nada gravado (CA-09.3)
-- [ ] Com confirmação → gravado, `affectedAppointments` com a lista, fake de agendamentos intacto (CA-09.3)
-- [ ] O port de conflito recebe o barbeiro e o período UTC do bloqueio
-- [ ] Gate check passes: `npm test`
+- [x] Barbeiro cria `block` no próprio barbeiro → gravado com tipo, período UTC e motivo; retorno traz barbeiro (id e nome) e `affectedAppointments: []` (CA-09.1)
+- [x] Dono cria para qualquer barbeiro; Barbeiro em outro ou sem ficha → `ScheduleAccessDeniedError` sem gravar; barbeiro inexistente → `BarberNotFoundError` sem gravar
+- [x] Dono e Barbeiro criam `day_off` → período do dia inteiro (CA-09.2)
+- [x] Com agendamentos sobrepostos e sem confirmação → `BarberBlockConflictError('O bloqueio conflita com agendamentos existentes.')` com a lista e nada gravado (CA-09.3)
+- [x] Com confirmação → gravado, `affectedAppointments` com a lista, fake de agendamentos intacto (CA-09.3)
+- [x] O port de conflito recebe o barbeiro e o período UTC do bloqueio
+- [x] Gate check passes: `npm test`
+
+**Status**: ✅ Done
 
 **Tests**: unit
 **Gate**: quick
