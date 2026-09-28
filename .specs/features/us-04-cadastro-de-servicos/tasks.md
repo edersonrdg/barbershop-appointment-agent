@@ -236,15 +236,16 @@ T12 -> T14
 
 **Done when**:
 
-- [ ] cria ativo com os dados enviados, na barbearia da entrada, e devolve o serviço gravado
-- [ ] nome repetido → `ServiceNameAlreadyExistsError`, nada gravado
-- [ ] adicional de serviço ativo da mesma barbearia é gravado; inexistente ou de outra barbearia → "Serviço adicional não encontrado."; inativo → "Os serviços adicionais devem estar ativos."; nada gravado nesses casos
-- [ ] preço ou duração fora da regra → `InvalidValueError`, nada gravado
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: ~7 tests novos passam (no silent deletions)
+- [x] cria ativo com os dados enviados, na barbearia da entrada, e devolve o serviço gravado
+- [x] nome repetido → `ServiceNameAlreadyExistsError`, nada gravado
+- [x] adicional de serviço ativo da mesma barbearia é gravado; inexistente ou de outra barbearia → "Serviço adicional não encontrado."; inativo → "Os serviços adicionais devem estar ativos."; nada gravado nesses casos
+- [x] preço ou duração fora da regra → `InvalidValueError`, nada gravado
+- [x] Gate check passes: `npm test`
+- [x] Test count: ~7 tests novos passam (no silent deletions)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
 **Commit**: `feat(US-04): add create service use case`
 
 ---
