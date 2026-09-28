@@ -35,6 +35,11 @@ export const envSchema = z.object({
     z.string().min(1).optional(),
   ),
   MAIL_FROM: z.string().min(1),
+  // A documentação expõe o mapa da API; fica desligada salvo opt-in explícito.
+  API_DOCS_ENABLED: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
 });
 
 export type Env = z.infer<typeof envSchema>;

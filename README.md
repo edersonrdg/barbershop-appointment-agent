@@ -24,6 +24,7 @@ A especificação completa está no [PRD](docs/PRD.md).
 | Framework | NestJS 11 |
 | Banco de dados | PostgreSQL 17 + TypeORM |
 | Validação | Zod |
+| Documentação da API | Swagger / OpenAPI (`@nestjs/swagger`) |
 | IA | Google Gemini (`@google/genai`) |
 | Observabilidade | Pino (logs), Prometheus (métricas), Terminus (health checks) |
 | Infra local | Docker Compose |
@@ -60,7 +61,7 @@ npm run migration:run
 npm run start:dev
 ```
 
-A API sobe em `http://localhost:3000`.
+A API sobe em `http://localhost:3000`, com a documentação Swagger em `http://localhost:3000/docs` (JSON OpenAPI em `/docs-json`) quando `API_DOCS_ENABLED=true`.
 
 ### Tudo em containers
 
@@ -101,6 +102,7 @@ As variáveis são validadas na inicialização; a aplicação não sobe se falt
 | `SMTP_USER` | Usuário do SMTP | — |
 | `SMTP_PASSWORD` | Senha do SMTP | — |
 | `MAIL_FROM` | Remetente dos e-mails transacionais | — |
+| `API_DOCS_ENABLED` | Publica o Swagger em `/docs` | `false` |
 
 ## Scripts
 

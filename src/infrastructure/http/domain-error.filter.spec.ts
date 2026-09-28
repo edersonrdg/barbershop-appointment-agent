@@ -1,10 +1,19 @@
 import { ArgumentsHost, Logger } from '@nestjs/common';
+import { BarberNameAlreadyExistsError } from '../../domain/errors/barber-name-already-exists.error';
+import { BarberNotFoundError } from '../../domain/errors/barber-not-found.error';
+import { BarberUserAlreadyLinkedError } from '../../domain/errors/barber-user-already-linked.error';
 import { DomainError } from '../../domain/errors/domain.error';
+import { InvalidBarberServiceError } from '../../domain/errors/invalid-barber-service.error';
+import { InvalidBarberUserError } from '../../domain/errors/invalid-barber-user.error';
+import { InvalidWorkingHoursError } from '../../domain/errors/invalid-working-hours.error';
 import { EmailAlreadyRegisteredError } from '../../domain/errors/email-already-registered.error';
 import { InvalidCredentialsError } from '../../domain/errors/invalid-credentials.error';
 import { InvalidOpeningHoursError } from '../../domain/errors/invalid-opening-hours.error';
 import { InvalidPasswordResetTokenError } from '../../domain/errors/invalid-password-reset-token.error';
+import { InvalidServiceAddOnError } from '../../domain/errors/invalid-service-add-on.error';
 import { InvalidValueError } from '../../domain/errors/invalid-value.error';
+import { ServiceNameAlreadyExistsError } from '../../domain/errors/service-name-already-exists.error';
+import { ServiceNotFoundError } from '../../domain/errors/service-not-found.error';
 import { DomainErrorFilter } from './domain-error.filter';
 
 interface CapturedResponse {
@@ -41,6 +50,54 @@ describe('DomainErrorFilter', () => {
     jest.restoreAllMocks();
   });
 
+  it.each([
+    [
+      'InvalidWorkingHoursError',
+      new InvalidWorkingHoursError(
+        'Segunda-feira: o fim da jornada deve ser depois do início.',
+      ),
+      400,
+      'Segunda-feira: o fim da jornada deve ser depois do início.',
+    ],
+    [
+      'InvalidBarberServiceError',
+      new InvalidBarberServiceError(
+        'Os serviços realizados devem estar ativos.',
+      ),
+      400,
+      'Os serviços realizados devem estar ativos.',
+    ],
+    [
+      'InvalidBarberUserError',
+      new InvalidBarberUserError(),
+      400,
+      'Usuário não encontrado.',
+    ],
+    [
+      'BarberNameAlreadyExistsError',
+      new BarberNameAlreadyExistsError(),
+      409,
+      'Já existe um barbeiro com esse nome.',
+    ],
+    [
+      'BarberUserAlreadyLinkedError',
+      new BarberUserAlreadyLinkedError(),
+      409,
+      'Esse usuário já está vinculado a outro barbeiro.',
+    ],
+    [
+      'BarberNotFoundError',
+      new BarberNotFoundError(),
+      404,
+      'Barbeiro não encontrado.',
+    ],
+  ])(
+    'US-05: maps %s to its status with the spec message',
+    (_name, error, statusCode, message) => {
+      expect(handle(error)).toEqual({ statusCode, body: { message } });
+    },
+  );
+
   it('CA-01.3: maps EmailAlreadyRegisteredError to 409 with the spec message', () => {
     expect(handle(new EmailAlreadyRegisteredError())).toEqual({
       statusCode: 409,
@@ -69,6 +126,29 @@ describe('DomainErrorFilter', () => {
     expect(handle(new InvalidOpeningHoursError(message))).toEqual({
       statusCode: 400,
       body: { message },
+    });
+  });
+
+  it('CA-04.1: maps ServiceNameAlreadyExistsError to 409 with the spec message', () => {
+    expect(handle(new ServiceNameAlreadyExistsError())).toEqual({
+      statusCode: 409,
+      body: { message: 'Já existe um serviço com esse nome.' },
+    });
+  });
+
+  it('CA-04.2: maps InvalidServiceAddOnError to 400 with its message', () => {
+    const message = 'Os serviços adicionais devem estar ativos.';
+
+    expect(handle(new InvalidServiceAddOnError(message))).toEqual({
+      statusCode: 400,
+      body: { message },
+    });
+  });
+
+  it('CA-04.3: maps ServiceNotFoundError to 404 with the spec message', () => {
+    expect(handle(new ServiceNotFoundError())).toEqual({
+      statusCode: 404,
+      body: { message: 'Serviço não encontrado.' },
     });
   });
 

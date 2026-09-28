@@ -1,13 +1,18 @@
-import { User, UserRole } from '../../domain/entities/user';
+import { z } from 'zod';
+import { User } from '../../domain/entities/user';
 
-export interface UserListResponse {
-  users: Array<{
-    id: string;
-    name: string;
-    email: string;
-    role: UserRole;
-  }>;
-}
+export const userListResponseSchema = z.object({
+  users: z.array(
+    z.object({
+      id: z.uuid(),
+      name: z.string().meta({ example: 'Carlos Silva' }),
+      email: z.string().meta({ example: 'barbeiro@barbearia.com' }),
+      role: z.enum(['owner', 'barber']),
+    }),
+  ),
+});
+
+export type UserListResponse = z.infer<typeof userListResponseSchema>;
 
 export class UserListPresenter {
   static toResponse(users: User[]): UserListResponse {

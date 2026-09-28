@@ -23,7 +23,17 @@ describe('validateEnv', () => {
       AUTH_SESSION_TTL_SECONDS: 604800,
       SMTP_PORT: 1025,
       SMTP_SECURE: false,
+      API_DOCS_ENABLED: false,
     });
+  });
+
+  it('turns the API docs on only for the literal "true"', () => {
+    expect(
+      validateEnv({ ...validEnv, API_DOCS_ENABLED: 'true' }),
+    ).toMatchObject({ API_DOCS_ENABLED: true });
+    expect(() => validateEnv({ ...validEnv, API_DOCS_ENABLED: 'yes' })).toThrow(
+      /API_DOCS_ENABLED/,
+    );
   });
 
   it('coerces numeric variables from strings', () => {

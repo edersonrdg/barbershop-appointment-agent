@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 4,
+  "next_id": 5,
   "lessons": [
     {
       "id": "L-001",
@@ -59,6 +59,24 @@
       ],
       "created": "2026-09-27T22:16:18Z",
       "last_seen": "2026-09-27T22:16:18Z"
+    },
+    {
+      "id": "L-004",
+      "key": "surviving_mutant::tenant isolation tests for a repository write must target a row of another tenant by its own id forged entity including child rows not only rows with different ids",
+      "text": "Tenant-isolation tests for a repository write must target a row of another tenant by its own id (forged entity), including child rows, not only rows with different ids.",
+      "signal": "surviving_mutant",
+      "scope": "repo-layer",
+      "status": "candidate",
+      "features": [
+        "us-04-cadastro-de-servicos"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md M19 / src/infrastructure/database/repositories/typeorm-service.repository.ts:62 / test/database/typeorm-service.repository.e2e-spec.ts:252 (SVC-26) (repo-layer)"
+      ],
+      "created": "2026-09-28T02:41:41Z",
+      "last_seen": "2026-09-28T02:41:41Z"
     }
   ]
 }

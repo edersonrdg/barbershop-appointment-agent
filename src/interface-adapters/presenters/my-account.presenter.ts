@@ -1,23 +1,29 @@
-import { UserRole } from '../../domain/entities/user';
-import { SubscriptionStatus } from '../../domain/entities/barbershop';
+import { z } from 'zod';
 import { MyAccount } from '../../usecases/get-my-account/get-my-account.use-case';
 
-export interface MyAccountResponse {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    phone: string | null;
-    role: UserRole;
-  };
-  barbershop: {
-    id: string;
-    name: string;
-    timezone: string;
-    subscriptionStatus: SubscriptionStatus;
-    trialEndsAt: string;
-  };
-}
+export const myAccountResponseSchema = z.object({
+  user: z.object({
+    id: z.uuid(),
+    name: z.string().meta({ example: 'Ana Souza' }),
+    email: z.string().meta({ example: 'dono@barbearia.com' }),
+    phone: z.string().nullable().meta({
+      description: 'Telefone em E.164; null para barbeiros convidados.',
+      example: '+5511912345678',
+    }),
+    role: z.enum(['owner', 'barber']),
+  }),
+  barbershop: z.object({
+    id: z.uuid(),
+    name: z.string().meta({ example: 'Barbearia do Zé' }),
+    timezone: z.string().meta({ example: 'America/Sao_Paulo' }),
+    subscriptionStatus: z.enum(['trialing']),
+    trialEndsAt: z.iso.datetime().meta({
+      description: 'Fim do período de teste, em UTC (ISO 8601).',
+    }),
+  }),
+});
+
+export type MyAccountResponse = z.infer<typeof myAccountResponseSchema>;
 
 export class MyAccountPresenter {
   static toResponse({ user, barbershop }: MyAccount): MyAccountResponse {

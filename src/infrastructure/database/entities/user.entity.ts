@@ -1,7 +1,15 @@
-import { Column, Entity, ForeignKey, Index, PrimaryColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ForeignKey,
+  Index,
+  PrimaryColumn,
+  Unique,
+} from 'typeorm';
 import { BarbershopEntity } from './barbershop.entity';
 
 @Entity({ name: 'users' })
+@Unique('users_id_barbershop_unique', ['id', 'barbershopId'])
 export class UserEntity {
   @PrimaryColumn('uuid')
   id!: string;
