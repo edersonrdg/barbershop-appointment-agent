@@ -110,13 +110,15 @@ T5 -> T6
 
 **Done when**:
 
-- [ ] Dono sem `barberId` consulta sem filtro; com `barberId` da barbearia filtra por ele (inclusive barbeiro inativo)
-- [ ] Dono com `barberId` inexistente ou de outra barbearia → `BarberNotFoundError` sem consultar
-- [ ] Barbeiro sem `barberId` ou com o próprio → filtra pelo próprio
-- [ ] Barbeiro com `barberId` de outro (ou sem ficha e com `barberId`) → `ScheduleAccessDeniedError('Acesso negado.')` sem consultar
-- [ ] Barbeiro sem ficha e sem `barberId` → lista vazia, sem consultar
-- [ ] O port recebe o `barbershopId` da sessão e o intervalo UTC do `SchedulePeriod`
-- [ ] Gate check passes: `npm test`
+- [x] Dono sem `barberId` consulta sem filtro; com `barberId` da barbearia filtra por ele (inclusive barbeiro inativo)
+- [x] Dono com `barberId` inexistente ou de outra barbearia → `BarberNotFoundError` sem consultar
+- [x] Barbeiro sem `barberId` ou com o próprio → filtra pelo próprio
+- [x] Barbeiro com `barberId` de outro (ou sem ficha e com `barberId`) → `ScheduleAccessDeniedError('Acesso negado.')` sem consultar
+- [x] Barbeiro sem ficha e sem `barberId` → lista vazia, sem consultar
+- [x] O port recebe o `barbershopId` da sessão e o intervalo UTC do `SchedulePeriod`
+- [x] Gate check passes: `npm test`
+
+**Status**: ✅ Done
 
 **Tests**: unit
 **Gate**: build

@@ -166,15 +166,15 @@ O motor da US-07 grava agendamentos, mas ninguém consegue vê-los: o Dono não 
 | -------------- | ----- | ----- | ------ |
 | AGD-01 | P1 Dono — visão dia | T1 | Implementing |
 | AGD-02 | P1 Dono — visão semana segunda a domingo | T1 | Implementing |
-| AGD-03 | P1 Dono — filtro por barbeiro | Design | Pending |
-| AGD-04 | P1 Dono — barbeiro inexistente | Design | Pending |
+| AGD-03 | P1 Dono — filtro por barbeiro | T2 | Implementing |
+| AGD-04 | P1 Dono — barbeiro inexistente | T2 | Implementing |
 | AGD-05 | P1 Dono — período e fuso na resposta | T1 | Implementing |
 | AGD-06 | P1 Dono — ordem | Design | Pending |
 | AGD-07 | P1 Dono — período vazio | Design | Pending |
-| AGD-08 | P1 Barbeiro — só os próprios | Design | Pending |
-| AGD-09 | P1 Barbeiro — filtro do próprio | Design | Pending |
-| AGD-10 | P1 Barbeiro — outro barbeiro 403 | Design | Pending |
-| AGD-11 | P1 Barbeiro — sem ficha, lista vazia | Design | Pending |
+| AGD-08 | P1 Barbeiro — só os próprios | T2 | Implementing |
+| AGD-09 | P1 Barbeiro — filtro do próprio | T2 | Implementing |
+| AGD-10 | P1 Barbeiro — outro barbeiro 403 | T2 | Implementing |
+| AGD-11 | P1 Barbeiro — sem ficha, lista vazia | T2 | Implementing |
 | AGD-12 | P1 Detalhe — barbeiro, horário, status, origem | Design | Pending |
 | AGD-13 | P1 Detalhe — serviços em ordem | Design | Pending |
 | AGD-14 | P1 Detalhe — cliente | Design | Pending |
@@ -184,8 +184,8 @@ O motor da US-07 grava agendamentos, mas ninguém consegue vê-los: o Dono não 
 | AGD-18 | P1 Cliente — FK composta por barbearia | Design | Pending |
 | AGD-19 | P1 Cliente — cliente opcional | Design | Pending |
 | AGD-20 | P1 Cliente — motor segue gravando | Design | Pending |
-| AGD-21 | P1 Isolamento — RN-26 leitura | Design | Pending |
-| AGD-22 | P1 Isolamento — barbeiro de outra barbearia | Design | Pending |
+| AGD-21 | P1 Isolamento — RN-26 leitura | T2 | Implementing |
+| AGD-22 | P1 Isolamento — barbeiro de outra barbearia | T2 | Implementing |
 | AGD-23 | P1 Isolamento — 401 | Design | Pending |
 | AGD-24 | P1 Isolamento — 400 | Design | Pending |
 | AGD-25 | P1 Isolamento — Swagger | Design | Pending |
