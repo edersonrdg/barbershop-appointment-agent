@@ -6,6 +6,7 @@ import { DatabaseModule } from './infrastructure/database/database.module';
 import { AccountModule } from './infrastructure/modules/account.module';
 import { BarbersModule } from './infrastructure/modules/barbers.module';
 import { BarbershopSettingsModule } from './infrastructure/modules/barbershop-settings.module';
+import { BookingRulesModule } from './infrastructure/modules/booking-rules.module';
 import { ServicesModule } from './infrastructure/modules/services.module';
 import { buildLoggerOptions } from './infrastructure/observability/logger.options';
 import { ObservabilityModule } from './infrastructure/observability/observability.module';
@@ -25,6 +26,7 @@ import { ObservabilityModule } from './infrastructure/observability/observabilit
     ObservabilityModule,
     AccountModule,
     BarbershopSettingsModule,
+    BookingRulesModule,
     ServicesModule,
     BarbersModule,
   ],

@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: inline (sem `design.md`); decisão de armazenamento em AD-008 (`.specs/STATE.md`)
-**Status**: In Progress
+**Status**: Done
 
 Toda task cita US-06, RF-35 e, quando couber, RN-26. Commits: `feat(US-06): ...` (ou `test`/`chore` quando couber), só locais.
 
@@ -283,16 +283,16 @@ T7 -> T8
 
 **Done when**:
 
-- [ ] `CA-06.1`: `GET` de barbearia nova devolve os padrões
-- [ ] `CA-06.2`: `PUT` válido responde 200 com o salvo; `GET` devolve o salvo; `GET /settings/barbershop` não muda; zeros aceitos; `PUT` repetido é idempotente
-- [ ] `CA-06.3`: negativo, ausente e string numérica → 400 no campo, regras inalteradas
-- [ ] Barbeiro 403 e sem sessão 401 nas duas rotas; `PUT` de A não muda B; `barbershopId` no corpo ignorado
-- [ ] `test/api-docs.e2e-spec.ts` passa com as rotas novas
-- [ ] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+- [x] `CA-06.1`: `GET` de barbearia nova devolve os padrões
+- [x] `CA-06.2`: `PUT` válido responde 200 com o salvo; `GET` devolve o salvo; `GET /settings/barbershop` não muda; zeros aceitos; `PUT` repetido é idempotente
+- [x] `CA-06.3`: negativo, ausente e string numérica → 400 no campo, regras inalteradas
+- [x] Barbeiro 403 e sem sessão 401 nas duas rotas; `PUT` de A não muda B; `barbershopId` no corpo ignorado
+- [x] `test/api-docs.e2e-spec.ts` passa com as rotas novas
+- [x] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: build
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-06): expose GET and PUT /settings/rules`
 
 ---

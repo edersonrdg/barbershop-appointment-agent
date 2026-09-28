@@ -143,25 +143,25 @@ As regras que o bot e a agenda vão aplicar (antecedência mínima, prazo de can
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
 | RUL-01 | P1 Padrões — CA-06.1 barbearia nova nasce com padrões | T4 | Done |
-| RUL-02 | P1 Padrões — CA-06.1 `GET` devolve os padrões | - | Pending |
+| RUL-02 | P1 Padrões — CA-06.1 `GET` devolve os padrões | T8 | Done |
 | RUL-03 | P1 Padrões — CA-06.1 migration preenche barbearias existentes | T2 | Done |
-| RUL-04 | P1 Alterar — CA-06.2 `PUT` substitui as regras | - | Pending |
-| RUL-05 | P1 Alterar — CA-06.2 `GET` devolve o que foi salvo | - | Pending |
+| RUL-04 | P1 Alterar — CA-06.2 `PUT` substitui as regras | T8 | Done |
+| RUL-05 | P1 Alterar — CA-06.2 `GET` devolve o que foi salvo | T8 | Done |
 | RUL-06 | P1 Alterar — CA-06.2 leitura vigente pelo repositório | T6 | Done |
-| RUL-07 | P1 Alterar — CA-06.2 nada além das regras muda | - | Pending |
-| RUL-08 | P1 Alterar — CA-06.2 zero aceito em antecedência e cancelamento | - | Pending |
-| RUL-09 | P1 Recusar — CA-06.3 negativo | - | Pending |
-| RUL-10 | P1 Recusar — CA-06.3 vazio | - | Pending |
-| RUL-11 | P1 Recusar — CA-06.3 limites e formato | - | Pending |
+| RUL-07 | P1 Alterar — CA-06.2 nada além das regras muda | T8 | Done |
+| RUL-08 | P1 Alterar — CA-06.2 zero aceito em antecedência e cancelamento | T8 | Done |
+| RUL-09 | P1 Recusar — CA-06.3 negativo | T8 | Done |
+| RUL-10 | P1 Recusar — CA-06.3 vazio | T8 | Done |
+| RUL-11 | P1 Recusar — CA-06.3 limites e formato | T8 | Done |
 | RUL-12 | P1 Recusar — CA-06.3 invariante no domínio | T1 | Done |
 | RUL-13 | P1 Recusar — CA-06.3 `CHECK` no banco | T2 | Done |
-| RUL-14 | P1 Permissão — Barbeiro 403 | - | Pending |
-| RUL-15 | P1 Permissão — sem sessão 401 | - | Pending |
-| RUL-16 | P1 Permissão — RN-26 tenant da sessão | - | Pending |
+| RUL-14 | P1 Permissão — Barbeiro 403 | T8 | Done |
+| RUL-15 | P1 Permissão — sem sessão 401 | T8 | Done |
+| RUL-16 | P1 Permissão — RN-26 tenant da sessão | T8 | Done |
 
 **ID format:** `RUL-NN` (Regras, épico E2). Cada teste cita o `CA-06.x` (ou o `RN`) no nome, conforme o CLAUDE.md.
 
-**Coverage:** 16 total, 0 mapped to tasks, 16 unmapped ⚠️ (o mapeamento sai no `tasks.md`)
+**Coverage:** 16 total, 16 mapped to tasks, 0 unmapped
 
 ---
 

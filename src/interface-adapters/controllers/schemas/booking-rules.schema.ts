@@ -32,7 +32,7 @@ function ruleField(
   return z
     .number({ error: message })
     .refine((value) => isValid(value), message)
-    .meta(meta);
+    .meta({ type: 'integer', ...meta });
 }
 
 export const bookingRulesSchema = z.object({
