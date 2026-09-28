@@ -1,5 +1,11 @@
 import { ArgumentsHost, Logger } from '@nestjs/common';
+import { BarberNameAlreadyExistsError } from '../../domain/errors/barber-name-already-exists.error';
+import { BarberNotFoundError } from '../../domain/errors/barber-not-found.error';
+import { BarberUserAlreadyLinkedError } from '../../domain/errors/barber-user-already-linked.error';
 import { DomainError } from '../../domain/errors/domain.error';
+import { InvalidBarberServiceError } from '../../domain/errors/invalid-barber-service.error';
+import { InvalidBarberUserError } from '../../domain/errors/invalid-barber-user.error';
+import { InvalidWorkingHoursError } from '../../domain/errors/invalid-working-hours.error';
 import { EmailAlreadyRegisteredError } from '../../domain/errors/email-already-registered.error';
 import { InvalidCredentialsError } from '../../domain/errors/invalid-credentials.error';
 import { InvalidOpeningHoursError } from '../../domain/errors/invalid-opening-hours.error';
@@ -43,6 +49,54 @@ describe('DomainErrorFilter', () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
+
+  it.each([
+    [
+      'InvalidWorkingHoursError',
+      new InvalidWorkingHoursError(
+        'Segunda-feira: o fim da jornada deve ser depois do início.',
+      ),
+      400,
+      'Segunda-feira: o fim da jornada deve ser depois do início.',
+    ],
+    [
+      'InvalidBarberServiceError',
+      new InvalidBarberServiceError(
+        'Os serviços realizados devem estar ativos.',
+      ),
+      400,
+      'Os serviços realizados devem estar ativos.',
+    ],
+    [
+      'InvalidBarberUserError',
+      new InvalidBarberUserError(),
+      400,
+      'Usuário não encontrado.',
+    ],
+    [
+      'BarberNameAlreadyExistsError',
+      new BarberNameAlreadyExistsError(),
+      409,
+      'Já existe um barbeiro com esse nome.',
+    ],
+    [
+      'BarberUserAlreadyLinkedError',
+      new BarberUserAlreadyLinkedError(),
+      409,
+      'Esse usuário já está vinculado a outro barbeiro.',
+    ],
+    [
+      'BarberNotFoundError',
+      new BarberNotFoundError(),
+      404,
+      'Barbeiro não encontrado.',
+    ],
+  ])(
+    'US-05: maps %s to its status with the spec message',
+    (_name, error, statusCode, message) => {
+      expect(handle(error)).toEqual({ statusCode, body: { message } });
+    },
+  );
 
   it('CA-01.3: maps EmailAlreadyRegisteredError to 409 with the spec message', () => {
     expect(handle(new EmailAlreadyRegisteredError())).toEqual({

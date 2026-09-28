@@ -4,6 +4,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { validateEnv, type Env } from './infrastructure/config/env.schema';
 import { DatabaseModule } from './infrastructure/database/database.module';
 import { AccountModule } from './infrastructure/modules/account.module';
+import { BarbersModule } from './infrastructure/modules/barbers.module';
 import { BarbershopSettingsModule } from './infrastructure/modules/barbershop-settings.module';
 import { ServicesModule } from './infrastructure/modules/services.module';
 import { buildLoggerOptions } from './infrastructure/observability/logger.options';
@@ -25,6 +26,7 @@ import { ObservabilityModule } from './infrastructure/observability/observabilit
     AccountModule,
     BarbershopSettingsModule,
     ServicesModule,
+    BarbersModule,
   ],
 })
 export class AppModule {}
