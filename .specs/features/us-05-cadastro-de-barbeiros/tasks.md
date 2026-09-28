@@ -365,12 +365,12 @@ T13 -> T15
 
 **Done when**:
 
-- [ ] CA-05.2: usuário vinculado → barbeiro; sem vínculo → `null`; mesmo usuário em outro tenant → `null`
-- [ ] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+- [x] CA-05.2: usuário vinculado → barbeiro; sem vínculo → `null`; mesmo usuário em outro tenant → `null`
+- [x] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
 
 **Tests**: unit
 **Gate**: build
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-05): add find barber by user use case`
 
 ---
