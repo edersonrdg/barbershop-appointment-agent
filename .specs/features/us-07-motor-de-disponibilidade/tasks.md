@@ -289,12 +289,14 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] Devolve só bloqueios dos barbeiros pedidos que tocam o intervalo; encostados de fora não voltam
-- [ ] RN-26: bloqueio de outra barbearia, consultado com o `barberId` dele e o tenant errado, não volta
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] Devolve só bloqueios dos barbeiros pedidos que tocam o intervalo; encostados de fora não voltam
+- [x] RN-26: bloqueio de outra barbearia, consultado com o `barberId` dele e o tenant errado, não volta
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Done
+**Commit**: `feat(US-07): add typeorm barber block repository`
 
 ---
 

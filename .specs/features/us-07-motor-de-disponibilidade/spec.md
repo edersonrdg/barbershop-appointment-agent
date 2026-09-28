@@ -213,7 +213,7 @@ O painel (US-10) e o bot (US-17) vão oferecer e gravar horários, mas ainda nã
 | AVL-01 | P1 Barbeiro — CA-07.1 cabe inteiro no funcionamento e na jornada | T2, T4, T5 | Implementing |
 | AVL-02 | P1 Barbeiro — RN-04 duração somada | T3, T5 | Implementing |
 | AVL-03 | P1 Barbeiro — grade de 30 min por período livre | T4, T5 | Implementing |
-| AVL-04 | P1 Barbeiro — fora de bloqueios e folgas | T4, T5 | Implementing |
+| AVL-04 | P1 Barbeiro — fora de bloqueios e folgas | T4, T5, T8 | Implementing |
 | AVL-05 | P1 Barbeiro — fora de agendamentos | T4, T5 | Implementing |
 | AVL-06 | P1 Barbeiro — intervalos encostados são livres | T4, T5 | Implementing |
 | AVL-07 | P1 Barbeiro — dia fechado ou sem jornada | T2, T4, T5 | Implementing |
@@ -245,7 +245,7 @@ O painel (US-10) e o bot (US-17) vão oferecer e gravar horários, mas ainda nã
 | AVL-33 | P1 Isolamento — serviço inválido | T5, T6 | Implementing |
 | AVL-34 | P1 Isolamento — barbeiro não realiza serviço | T5, T6 | Implementing |
 | AVL-35 | P1 Isolamento — lista de serviços inválida | T5, T6 | Implementing |
-| AVL-36 | P1 Isolamento — RN-26 leituras por tenant | T5 | Implementing |
+| AVL-36 | P1 Isolamento — RN-26 leituras por tenant | T5, T8 | Implementing |
 | AVL-37 | P1 Isolamento — RN-26 FKs compostas | T7 | Implementing |
 | AVL-38 | P2 Métricas — agendamentos gravados | T6 | Implementing |
 | AVL-39 | P2 Métricas — conflitos | T6 | Implementing |
