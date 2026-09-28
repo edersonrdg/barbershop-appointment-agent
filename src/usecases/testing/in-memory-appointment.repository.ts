@@ -1,15 +1,32 @@
 import { Appointment } from '../../domain/entities/appointment';
 import { UtcPeriod } from '../../domain/entities/barbershop';
+import { Client } from '../../domain/entities/client';
 import { AppointmentConflictError } from '../../domain/errors/appointment-conflict.error';
+import { ClientPhoneTakenError } from '../../domain/errors/client-phone-taken.error';
 import {
   AppointmentRepository,
   BusyPeriod,
 } from '../ports/appointment.repository.port';
+import { InMemoryClientRepository } from './in-memory-client.repository';
 
 // Stores snapshots and refuses overlapping confirmed appointments of the same
-// barber, like the database exclusion constraint does.
+// barber, like the database exclusion constraint does. The new client is
+// stored only when the appointment is, as in the database transaction.
 export class InMemoryAppointmentRepository implements AppointmentRepository {
   private appointments: Appointment[] = [];
+  private racingClients: Client[] = [];
+
+  constructor(
+    private readonly clients: InMemoryClientRepository = new InMemoryClientRepository(),
+  ) {}
+
+  /**
+   * Simulates another request storing `client` between the phone lookup and
+   * the next `create` (RN-08 race).
+   */
+  storeClientBeforeNextCreate(client: Client): void {
+    this.racingClients.push(client);
+  }
 
   seed({
     barbershopId,
@@ -38,7 +55,13 @@ export class InMemoryAppointmentRepository implements AppointmentRepository {
     );
   }
 
-  create(appointment: Appointment): Promise<void> {
+  create(
+    appointment: Appointment,
+    newClient: Client | null = null,
+  ): Promise<void> {
+    for (const racing of this.racingClients.splice(0)) {
+      this.clients.add(racing);
+    }
     const overlapping = this.appointments.some(
       (stored) =>
         stored.status === 'confirmed' &&
@@ -49,6 +72,15 @@ export class InMemoryAppointmentRepository implements AppointmentRepository {
     );
     if (overlapping) {
       return Promise.reject(new AppointmentConflictError('RN-07'));
+    }
+    if (newClient) {
+      const taken = this.clients
+        .list(newClient.barbershopId)
+        .some((client) => client.phone === newClient.phone);
+      if (taken) {
+        return Promise.reject(new ClientPhoneTakenError());
+      }
+      this.clients.add(newClient);
     }
     this.appointments.push(snapshot(appointment));
     return Promise.resolve();

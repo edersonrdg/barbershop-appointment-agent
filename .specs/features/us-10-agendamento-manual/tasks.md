@@ -224,15 +224,17 @@ T14
 
 **Done when**:
 
-- [ ] Com cliente novo: `clients` e `appointments.client_id` gravados
-- [ ] Com cliente existente (`newClient` ausente) e `clientId` preenchido: só o agendamento é gravado
-- [ ] Sobreposição (RN-07) com cliente novo → `AppointmentConflictError('RN-07')` e nenhuma linha em `clients`
-- [ ] Telefone já gravado na barbearia → `ClientPhoneTakenError` e nenhuma linha em `appointments`
-- [ ] Sem cliente (motor da US-07) segue gravando `client_id` nulo
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] Com cliente novo: `clients` e `appointments.client_id` gravados
+- [x] Com cliente existente (`newClient` ausente) e `clientId` preenchido: só o agendamento é gravado
+- [x] Sobreposição (RN-07) com cliente novo → `AppointmentConflictError('RN-07')` e nenhuma linha em `clients`
+- [x] Telefone já gravado na barbearia → `ClientPhoneTakenError` e nenhuma linha em `appointments`
+- [x] Sem cliente (motor da US-07) segue gravando `client_id` nulo
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
+
+**Status**: ✅ Done
 
 **Commit**: `feat(US-10): save new clients with their appointment`
 
