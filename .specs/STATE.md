@@ -58,5 +58,13 @@
 - **Date**: 2026-09-27
 - **Status**: active
 
+### AD-008
+- **Decision**: As regras de agendamento (US-06) ficam na tabela `barbershop_booking_rules`, uma linha por barbearia, lidas e gravadas pelo port `BookingRulesRepository` (`findByBarbershopId`, `save`). Os padrões vivem só no value object `BookingRules.defaults()`; o `createWithOwner` grava as regras na mesma transação da barbearia, e o banco não tem `DEFAULT` nessas colunas.
+- **Reason**: Salvar as regras não pode tocar os dados da barbearia (CA-06.2), e as histórias US-07, US-11, US-17, US-18, US-24 e US-25 leem só as regras, sem carregar o agregado `Barbershop`. Uma tabela à parte também não quebra os testes que inserem barbearias por SQL.
+- **Trade-off**: Toda criação de barbearia precisa passar as regras; uma barbearia inserida por fora da aplicação fica sem regras até alguém gravá-las.
+- **Scope**: Regras de agendamento, US-06 em diante.
+- **Date**: 2026-09-28
+- **Status**: active
+
 ## Handoff
 
