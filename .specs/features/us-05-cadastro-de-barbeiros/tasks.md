@@ -262,14 +262,14 @@ T13 -> T15
 
 **Done when**:
 
-- [ ] CA-05.1: substitui tudo, mantém `active` (inclusive inativo), devolve avisos
-- [ ] CA-05.2: `userId: null` desvincula; manter o próprio usuário e o próprio nome (outra caixa) é aceito
-- [ ] Barbeiro inexistente ou de outro tenant → `BarberNotFoundError`; nada muda
-- [ ] Gate check passes: `npm test`
+- [x] CA-05.1: substitui tudo, mantém `active` (inclusive inativo), devolve avisos
+- [x] CA-05.2: `userId: null` desvincula; manter o próprio usuário e o próprio nome (outra caixa) é aceito
+- [x] Barbeiro inexistente ou de outro tenant → `BarberNotFoundError`; nada muda
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-05): add update barber use case`
 
 ---
