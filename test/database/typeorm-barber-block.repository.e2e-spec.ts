@@ -43,8 +43,8 @@ describe('TypeOrmBarberBlockRepository (e2e)', () => {
     endsAt: string,
   ): Promise<void> {
     await dataSource.query(
-      `INSERT INTO barber_blocks (id, barbershop_id, barber_id, starts_at, ends_at, created_at)
-       VALUES ($1, $2, $3, $4, $5, now())`,
+      `INSERT INTO barber_blocks (id, barbershop_id, barber_id, kind, starts_at, ends_at, created_at)
+       VALUES ($1, $2, $3, 'block', $4, $5, now())`,
       [randomUUID(), barbershopId, barberId, startsAt, endsAt],
     );
   }

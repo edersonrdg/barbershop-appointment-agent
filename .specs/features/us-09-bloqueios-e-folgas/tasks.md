@@ -163,12 +163,14 @@ T13
 
 **Done when**:
 
-- [ ] Linha inserida antes da migration fica `kind = 'block'`, `reason = NULL` (teste roda `migration:revert` até antes e reaplica, ou insere pela `up` isolada)
-- [ ] `kind = 'holiday'` recusado por `barber_blocks_kind_check`; `INSERT` sem `kind` recusado (sem `DEFAULT`)
-- [ ] `reason` com 121 caracteres recusado pelo banco
-- [ ] `migration:revert` desfaz sem erro
-- [ ] e2e existentes seguem verdes
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] Linha inserida antes da migration fica `kind = 'block'`, `reason = NULL` (teste roda `migration:revert` até antes e reaplica, ou insere pela `up` isolada)
+- [x] `kind = 'holiday'` recusado por `barber_blocks_kind_check`; `INSERT` sem `kind` recusado (sem `DEFAULT`)
+- [x] `reason` com 121 caracteres recusado pelo banco
+- [x] `migration:revert` desfaz sem erro
+- [x] e2e existentes seguem verdes
+- [x] Gate check passes: `npm test && npm run test:e2e`
+
+**Status**: ✅ Done
 
 **Tests**: e2e
 **Gate**: full
