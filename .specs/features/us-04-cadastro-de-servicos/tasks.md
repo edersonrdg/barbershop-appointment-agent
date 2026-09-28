@@ -377,16 +377,17 @@ T12 -> T14
 
 **Done when**:
 
-- [ ] `priceCents` -1 → erro no campo `priceCents`; `durationMinutes` 0 → erro no campo `durationMinutes`
-- [ ] preço 45.5 e 1.000.001; duração 4, 485, 7 e 30.5; nome com 1 e 61 caracteres após trim → erro no campo certo, cada um testado separado (L-003)
-- [ ] `suggestedAddOnIds` com 6 itens, com repetido ou com item que não é uuid → erro no campo `suggestedAddOnIds`
-- [ ] trim do nome; campos extras (`active`, `barbershopId`) descartados; `suggestedAddOnIds` omitido vira `[]`; preço 0 e durações 5 e 480 aceitos
-- [ ] `serviceId` que não é uuid → erro no campo `serviceId`
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: ~16 tests novos passam (no silent deletions)
+- [x] `priceCents` -1 → erro no campo `priceCents`; `durationMinutes` 0 → erro no campo `durationMinutes`
+- [x] preço 45.5 e 1.000.001; duração 4, 485, 7 e 30.5; nome com 1 e 61 caracteres após trim → erro no campo certo, cada um testado separado (L-003)
+- [x] `suggestedAddOnIds` com 6 itens, com repetido ou com item que não é uuid → erro no campo `suggestedAddOnIds`
+- [x] trim do nome; campos extras (`active`, `barbershopId`) descartados; `suggestedAddOnIds` omitido vira `[]`; preço 0 e durações 5 e 480 aceitos
+- [x] `serviceId` que não é uuid → erro no campo `serviceId`
+- [x] Gate check passes: `npm test`
+- [x] Test count: ~16 tests novos passam (no silent deletions)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
 **Commit**: `feat(US-04): add service request schemas`
 
 ---
