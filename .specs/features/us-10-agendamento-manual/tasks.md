@@ -195,13 +195,15 @@ T14
 
 **Done when**:
 
-- [ ] `findByPhone` devolve o `Client` restaurado pelo telefone E.164 na barbearia
-- [ ] Mesmo telefone em outra barbearia → `null`
-- [ ] Telefone inexistente → `null`
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] `findByPhone` devolve o `Client` restaurado pelo telefone E.164 na barbearia
+- [x] Mesmo telefone em outra barbearia → `null`
+- [x] Telefone inexistente → `null`
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
+
+**Status**: ✅ Done
 
 **Commit**: `feat(US-10): add client repository`
 

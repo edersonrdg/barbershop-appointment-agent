@@ -205,8 +205,8 @@ O motor da US-07 valida e grava agendamentos, e a agenda da US-08 os mostra, mas
 | AGM-03 | P1 Criar — aparece na agenda | T6, T13 | In Tasks |
 | AGM-04 | P1 Criar — sem antecedência mínima | T7, T8, T13 | In Tasks |
 | AGM-05 | P1 Cliente — cria pelo telefone | T1, T2, T5, T7, T8 | Implementing |
-| AGM-06 | P1 Cliente — reusa e mantém nome | T4, T7, T8, T13 | In Tasks |
-| AGM-07 | P1 Cliente — telefone de outra barbearia | T4, T8 | In Tasks |
+| AGM-06 | P1 Cliente — reusa e mantém nome | T4, T7, T8, T13 | Implementing |
+| AGM-07 | P1 Cliente — telefone de outra barbearia | T4, T8 | Implementing |
 | AGM-08 | P1 Cliente — recusa não grava cliente | T5, T8, T13 | In Tasks |
 | AGM-09 | P1 Cliente — corrida do mesmo telefone | T5, T8, T13 | In Tasks |
 | AGM-10 | P1 Recusa — sobreposição 409 | T3, T8, T13 | Implementing |
@@ -226,7 +226,7 @@ O motor da US-07 valida e grava agendamentos, e a agenda da US-08 os mostra, mas
 | AGM-24 | P1 Horários — início devolvido é agendável | T13 | In Tasks |
 | AGM-25 | P1 Horários — validação 400 | T11, T13 | In Tasks |
 | AGM-26 | P1 Horários — barbeiro ou serviço inválido | T9 | In Tasks |
-| AGM-27 | P1 Isolamento — RN-26 | T4, T5, T6, T8, T9, T13 | In Tasks |
+| AGM-27 | P1 Isolamento — RN-26 | T4, T5, T6, T8, T9, T13 | Implementing |
 | AGM-28 | P1 Isolamento — 401 | T13 | In Tasks |
 | AGM-29 | P1 Swagger | T12, T13 | In Tasks |
 | AGM-30 | P1 PRD — forçar como questão em aberto | T14 | In Tasks |
