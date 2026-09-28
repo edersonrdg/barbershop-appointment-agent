@@ -405,13 +405,15 @@ T14
 
 **Done when**:
 
-- [ ] `serviceIds=a,b` vira array na ordem; `barberId` ausente fica ausente
-- [ ] Data inexistente (`2026-02-30`) ou fora de `AAAA-MM-DD` → "Informe uma data válida no formato AAAA-MM-DD."
-- [ ] `serviceIds` e `barberId` inválidos → mensagens de AGM-16
-- [ ] Gate check passes: `npm test`
+- [x] `serviceIds=a,b` vira array na ordem; `barberId` ausente fica ausente
+- [x] Data inexistente (`2026-02-30`) ou fora de `AAAA-MM-DD` → "Informe uma data válida no formato AAAA-MM-DD."
+- [x] `serviceIds` e `barberId` inválidos → mensagens de AGM-16
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
+
+**Status**: ✅ Done
 
 **Commit**: `feat(US-10): add available slots query schema`
 
