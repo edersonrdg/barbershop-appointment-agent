@@ -340,12 +340,12 @@ T13 -> T15
 
 **Done when**:
 
-- [ ] CA-05.1: devolve só ativos, com `serviceIds` e jornada; sem outro tenant
-- [ ] Gate check passes: `npm test`
+- [x] CA-05.1: devolve só ativos, com `serviceIds` e jornada; sem outro tenant
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-05): add list schedulable barbers use case`
 
 ---
