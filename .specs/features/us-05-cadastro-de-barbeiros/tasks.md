@@ -390,15 +390,15 @@ T13 -> T15
 
 **Done when**:
 
-- [ ] `serviceIds` vazio, com 51 itens, com repetidos, com não-uuid → erro no campo; 1 e 50 aceitos
-- [ ] `workingHours` sem um dia, com horário `24:00`/`9:00`, sem `startsAt`, sem `endsAt` (separados, L-003) → erro no campo; `break` omitido vira `null`
-- [ ] `userId` omitido vira `null`; não-uuid recusado; nome 2–60 após trim
-- [ ] Testes do schema de funcionamento continuam passando
-- [ ] Gate check passes: `npm test`
+- [x] `serviceIds` vazio, com 51 itens, com repetidos, com não-uuid → erro no campo; 1 e 50 aceitos
+- [x] `workingHours` sem um dia, com horário `24:00`/`9:00`, sem `startsAt`, sem `endsAt` (separados, L-003) → erro no campo; `break` omitido vira `null`
+- [x] `userId` omitido vira `null`; não-uuid recusado; nome 2–60 após trim
+- [x] Testes do schema de funcionamento continuam passando
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-05): add barber request schemas`
 
 ---
