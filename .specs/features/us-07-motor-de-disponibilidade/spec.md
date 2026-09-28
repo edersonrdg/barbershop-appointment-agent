@@ -210,14 +210,14 @@ O painel (US-10) e o bot (US-17) vão oferecer e gravar horários, mas ainda nã
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| AVL-01 | P1 Barbeiro — CA-07.1 cabe inteiro no funcionamento e na jornada | T2 | Implementing |
+| AVL-01 | P1 Barbeiro — CA-07.1 cabe inteiro no funcionamento e na jornada | T2, T4 | Implementing |
 | AVL-02 | P1 Barbeiro — RN-04 duração somada | T3 | Implementing |
-| AVL-03 | P1 Barbeiro — grade de 30 min por período livre | - | Pending |
-| AVL-04 | P1 Barbeiro — fora de bloqueios e folgas | - | Pending |
-| AVL-05 | P1 Barbeiro — fora de agendamentos | - | Pending |
-| AVL-06 | P1 Barbeiro — intervalos encostados são livres | - | Pending |
-| AVL-07 | P1 Barbeiro — dia fechado ou sem jornada | T2 | Implementing |
-| AVL-08 | P1 Barbeiro — formato e ordem do resultado | - | Pending |
+| AVL-03 | P1 Barbeiro — grade de 30 min por período livre | T4 | Implementing |
+| AVL-04 | P1 Barbeiro — fora de bloqueios e folgas | T4 | Implementing |
+| AVL-05 | P1 Barbeiro — fora de agendamentos | T4 | Implementing |
+| AVL-06 | P1 Barbeiro — intervalos encostados são livres | T4 | Implementing |
+| AVL-07 | P1 Barbeiro — dia fechado ou sem jornada | T2, T4 | Implementing |
+| AVL-08 | P1 Barbeiro — formato e ordem do resultado | T4 | Implementing |
 | AVL-09 | P1 Barbeiro — fuso da barbearia | T1, T2 | Implementing |
 | AVL-10 | P1 Qualquer — todos os aptos | - | Pending |
 | AVL-11 | P1 Qualquer — um barbeiro por início, ordem de nome | - | Pending |
@@ -230,13 +230,13 @@ O painel (US-10) e o bot (US-17) vão oferecer e gravar horários, mas ainda nã
 | AVL-18 | P1 Gravar — grava confirmado | T3 | Implementing |
 | AVL-19 | P1 Gravar — recusa RN-02 | - | Pending |
 | AVL-20 | P1 Gravar — recusa passado | - | Pending |
-| AVL-21 | P1 Gravar — recusa fora do funcionamento | - | Pending |
-| AVL-22 | P1 Gravar — recusa fora da jornada | - | Pending |
-| AVL-23 | P1 Gravar — recusa bloqueio | - | Pending |
-| AVL-24 | P1 Gravar — recusa sobreposição | - | Pending |
-| AVL-25 | P1 Gravar — ordem das regras | - | Pending |
+| AVL-21 | P1 Gravar — recusa fora do funcionamento | T4 | Implementing |
+| AVL-22 | P1 Gravar — recusa fora da jornada | T4 | Implementing |
+| AVL-23 | P1 Gravar — recusa bloqueio | T4 | Implementing |
+| AVL-24 | P1 Gravar — recusa sobreposição | T4 | Implementing |
+| AVL-25 | P1 Gravar — ordem das regras | T4 | Implementing |
 | AVL-26 | P1 Gravar — recusa não grava nada | - | Pending |
-| AVL-27 | P1 Gravar — consulta e gravação concordam | - | Pending |
+| AVL-27 | P1 Gravar — consulta e gravação concordam | T4 | Implementing |
 | AVL-28 | P1 Concorrência — CA-07.4 simultâneas | - | Pending |
 | AVL-29 | P1 Concorrência — constraint de exclusão | - | Pending |
 | AVL-30 | P1 Concorrência — encostados aceitos no banco | - | Pending |

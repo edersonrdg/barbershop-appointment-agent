@@ -169,16 +169,18 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] Cenário do Independent Test da spec devolve exatamente 10:00, 10:30, 11:00, 13:00, 14:45, 16:00
-- [ ] Jornada antes da abertura: grade começa na abertura; período livre menor que a duração não oferece nada
-- [ ] Bloqueio/agendamento encostado (fim == início) não tira o horário; sobreposto de 1 min tira
-- [ ] `earliest` exato é oferecido; 1 min depois do início da grade tira aquele início
-- [ ] `violationOf` devolve cada violação isolada e, com várias, a primeira na ordem
-- [ ] Todo início oferecido tem `violationOf` nulo (AVL-27)
-- [ ] Gate check passes: `npm test`
+- [x] Cenário do Independent Test da spec devolve exatamente 10:00, 10:30, 11:00, 13:00, 14:45, 16:00
+- [x] Jornada antes da abertura: grade começa na abertura; período livre menor que a duração não oferece nada
+- [x] Bloqueio/agendamento encostado (fim == início) não tira o horário; sobreposto de 1 min tira
+- [x] `earliest` exato é oferecido; 1 min depois do início da grade tira aquele início
+- [x] `violationOf` devolve cada violação isolada e, com várias, a primeira na ordem
+- [x] Todo início oferecido tem `violationOf` nulo (AVL-27)
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: build
+**Status**: ✅ Done
+**Commit**: `feat(US-07): add barber day schedule with slot offer and rule violations`
 
 ---
 
