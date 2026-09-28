@@ -464,9 +464,11 @@ T13
 
 **Done when**:
 
-- [ ] RF-26 cita criar, listar e remover bloqueios e folgas
-- [ ] Nenhuma outra regra do PRD muda
-- [ ] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+- [x] RF-26 cita criar, listar e remover bloqueios e folgas
+- [x] Nenhuma outra regra do PRD muda
+- [x] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+
+**Status**: ✅ Done
 
 **Tests**: none
 **Gate**: build
