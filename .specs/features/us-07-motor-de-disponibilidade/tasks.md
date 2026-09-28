@@ -144,11 +144,13 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] `book` grava status `confirmed`, origem, barbeiro, serviços na ordem, início e fim somado
-- [ ] Gate check passes: `npm test`
+- [x] `book` grava status `confirmed`, origem, barbeiro, serviços na ordem, início e fim somado
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
+**Commit**: `feat(US-07): add appointment entity`
 
 ---
 
