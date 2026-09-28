@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { DataSource } from 'typeorm';
 import { BarbershopService } from '../../src/domain/entities/barbershop-service';
 import { ServiceNameAlreadyExistsError } from '../../src/domain/errors/service-name-already-exists.error';
+import { ServiceNotFoundError } from '../../src/domain/errors/service-not-found.error';
 import { ServiceDuration } from '../../src/domain/value-objects/service-duration';
 import { ServicePrice } from '../../src/domain/value-objects/service-price';
 import { validateEnv } from '../../src/infrastructure/config/env.schema';
@@ -268,6 +269,35 @@ describe('TypeOrmServiceRepository (e2e)', () => {
         describeService(await repository.findById(barbershopB, b.id)),
       ).toEqual(bBefore);
     });
+  });
+
+  it('RN-26: save of an entity carrying the id of a service of B and the barbershop of A throws ServiceNotFoundError and B stays the same', async () => {
+    const beardB = await persisted('Barba', barbershopB);
+    const haircutB = buildService('Corte', barbershopB);
+    haircutB.changeSuggestedAddOns([beardB]);
+    await repository.create(haircutB);
+    const before = describeService(
+      await repository.findById(barbershopB, haircutB.id),
+    );
+    const forged = BarbershopService.restore({
+      id: haircutB.id,
+      barbershopId: barbershopA,
+      name: 'Tomado',
+      price: ServicePrice.create(1),
+      duration: ServiceDuration.create(5),
+      active: false,
+      suggestedAddOnIds: [],
+      createdAt: NOW,
+    });
+
+    await expect(repository.save(forged)).rejects.toBeInstanceOf(
+      ServiceNotFoundError,
+    );
+
+    expect(
+      describeService(await repository.findById(barbershopB, haircutB.id)),
+    ).toEqual(before);
+    expect(before?.suggestedAddOnIds).toEqual([beardB.id]);
   });
 
   describe('CA-04.1: repeated names', () => {

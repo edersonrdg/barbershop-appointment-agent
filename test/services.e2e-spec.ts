@@ -545,6 +545,19 @@ describe('/settings/services (e2e)', () => {
       });
     });
 
+    it('a PUT without a session gets 401 and nothing changes', async () => {
+      const haircut = await created(HAIRCUT);
+
+      const response = await putService(undefined, haircut.id, {
+        ...HAIRCUT,
+        priceCents: 1,
+      });
+
+      expect(response.status).toBe(401);
+      expect(response.body).toEqual(UNAUTHORIZED);
+      expect(await currentServices()).toEqual([haircut]);
+    });
+
     it('a barber gets 403 on PUT and nothing changes', async () => {
       const haircut = await created(HAIRCUT);
       const barberToken = await createBarber(
@@ -645,6 +658,24 @@ describe('/settings/services (e2e)', () => {
       expect(response.status).toBe(404);
       expect(response.body).toEqual({ message: 'Serviço não encontrado.' });
       expect(await currentServices(tokenB)).toEqual([foreign]);
+    });
+
+    it('RN-26: activating an inactive service of B from A answers 404 and B stays inactive', async () => {
+      const { accessToken: tokenB } = await signupOwner(
+        app,
+        'dono@barbearia-b.com',
+        'Barbearia B',
+      );
+      const foreign = await created(HAIRCUT, tokenB);
+      await changeStatus(tokenB, foreign.id, 'deactivate').expect(200);
+
+      const response = await changeStatus(ownerToken, foreign.id, 'activate');
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({ message: 'Serviço não encontrado.' });
+      expect(await currentServices(tokenB)).toEqual([
+        { ...foreign, active: false },
+      ]);
     });
 
     it('a barber gets 403 on deactivate and activate and nothing changes', async () => {

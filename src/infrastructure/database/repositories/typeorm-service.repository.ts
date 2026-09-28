@@ -1,6 +1,7 @@
 import { DataSource, EntityManager, In, QueryFailedError } from 'typeorm';
 import { BarbershopService } from '../../../domain/entities/barbershop-service';
 import { ServiceNameAlreadyExistsError } from '../../../domain/errors/service-name-already-exists.error';
+import { ServiceNotFoundError } from '../../../domain/errors/service-not-found.error';
 import { ServiceDuration } from '../../../domain/value-objects/service-duration';
 import { ServicePrice } from '../../../domain/value-objects/service-price';
 import { ServiceRepository } from '../../../usecases/ports/service.repository.port';
@@ -57,7 +58,7 @@ export class TypeOrmServiceRepository implements ServiceRepository {
 
   async save(service: BarbershopService): Promise<void> {
     await this.writeWithNameGuard(async (manager) => {
-      await manager.update(
+      const { affected } = await manager.update(
         ServiceEntity,
         { id: service.id, barbershopId: service.barbershopId },
         {
@@ -67,6 +68,11 @@ export class TypeOrmServiceRepository implements ServiceRepository {
           active: service.active,
         },
       );
+      // RN-26: the add-ons are keyed only by service_id, so they are replaced
+      // only after the service row of this tenant was matched.
+      if (affected !== 1) {
+        throw new ServiceNotFoundError();
+      }
       await manager.delete(ServiceAddOnEntity, { serviceId: service.id });
       await insertAddOns(manager, service);
     });

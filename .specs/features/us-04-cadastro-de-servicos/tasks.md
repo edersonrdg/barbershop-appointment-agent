@@ -76,6 +76,12 @@ T12 -> T13
 T12 -> T14
 ```
 
+### Phase 5: Correções do Verifier (rodada 1)
+
+```
+T15
+```
+
 ---
 
 ## Task Breakdown
@@ -480,6 +486,32 @@ T12 -> T14
 
 ---
 
+### T15: Tenant na troca de adicionais do save
+
+**What**: `TypeOrmServiceRepository.save` só apaga e regrava os adicionais depois que o `UPDATE` atingiu exatamente o serviço daquele `barbershopId`; senão lança `ServiceNotFoundError` e nada muda (mutante M19 do Verifier). Cobre também os dois e2e que faltavam: `PUT` sem sessão → 401 e `activate` de serviço de outra barbearia → 404.
+**Where**: `src/infrastructure/database/repositories/typeorm-service.repository.ts` (e os testes em `test/database/typeorm-service.repository.e2e-spec.ts`, `test/services.e2e-spec.ts`)
+**Depends on**: None
+**Reuses**: `ServiceNotFoundError`
+**Requirement**: SVC-18, SVC-25, SVC-26
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [x] e2e do repositório: `save` de uma entidade com o id de um serviço de B e `barbershopId` de A → `ServiceNotFoundError`; nome, preço, duração, `active` e adicionais do serviço de B ficam iguais
+- [x] e2e HTTP: `PUT` sem sessão → 401 e nada muda; `activate` de um serviço inativo de B a partir de A → 404 e B continua inativo
+- [x] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+
+**Tests**: e2e
+**Gate**: build
+**Status**: ✅ Done
+**Commit**: `fix(US-04): scope add-on replacement to the service tenant`
+
+---
+
 ## Phase Execution Map
 
 ```
@@ -489,6 +521,7 @@ Phase 1:  T1, T2, T3
 Phase 2:  T4, T5
 Phase 3:  T6, T7, T8, T9, T10
 Phase 4:  T11, T12, T13, T14
+Phase 5:  T15
 ```
 
 Dentro da fase, as tasks rodam na ordem listada; as dependências reais estão no Execution Plan.
@@ -532,6 +565,7 @@ Dentro da fase, as tasks rodam na ordem listada; as dependências reais estão n
 | T12 | T11 | T11 -> T12 | ✅ Match |
 | T13 | T12 | T12 -> T13 | ✅ Match |
 | T14 | T12 | T12 -> T14 | ✅ Match |
+| T15 | None | - | ✅ Match |
 
 ## Test Co-location Validation
 
@@ -551,3 +585,4 @@ Dentro da fase, as tasks rodam na ordem listada; as dependências reais estão n
 | T12 | Controller + presenter + módulo + filter | e2e (+ unit do filter) | e2e | ✅ OK |
 | T13 | Controller + filter | e2e (+ unit do filter) | e2e | ✅ OK |
 | T14 | Controller | e2e | e2e | ✅ OK |
+| T15 | Repositório TypeORM | e2e | e2e | ✅ OK |
