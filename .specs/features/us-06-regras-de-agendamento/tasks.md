@@ -178,13 +178,13 @@ T7 -> T8
 
 **Done when**:
 
-- [ ] `CA-06.1`: depois do cadastro, as regras da barbearia são os cinco padrões (unit, com fake)
-- [ ] `CA-06.1`: `createWithOwner` grava as regras no banco; com e-mail duplicado não grava nada (e2e)
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] `CA-06.1`: depois do cadastro, as regras da barbearia são os cinco padrões (unit, com fake)
+- [x] `CA-06.1`: `createWithOwner` grava as regras no banco; com e-mail duplicado não grava nada (e2e)
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: build
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-06): create default booking rules on signup`
 
 ---

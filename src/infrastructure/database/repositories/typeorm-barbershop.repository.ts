@@ -6,6 +6,7 @@ import {
 import { User } from '../../../domain/entities/user';
 import { EmailAlreadyRegisteredError } from '../../../domain/errors/email-already-registered.error';
 import { BarbershopTimezone } from '../../../domain/value-objects/barbershop-timezone';
+import { BookingRules } from '../../../domain/value-objects/booking-rules';
 import { DayOpeningHours } from '../../../domain/value-objects/day-opening-hours';
 import { TimeOfDay } from '../../../domain/value-objects/time-of-day';
 import {
@@ -18,15 +19,21 @@ import {
   WeeklyOpeningHoursDays,
 } from '../../../domain/value-objects/weekly-opening-hours';
 import { BarbershopRepository } from '../../../usecases/ports/barbershop.repository.port';
+import { BarbershopBookingRulesEntity } from '../entities/barbershop-booking-rules.entity';
 import { BarbershopOpeningHoursEntity } from '../entities/barbershop-opening-hours.entity';
 import { BarbershopEntity } from '../entities/barbershop.entity';
 import { UserEntity } from '../entities/user.entity';
 import { isEmailUniqueViolation } from './email-unique-violation';
+import { toColumns } from './typeorm-booking-rules.repository';
 
 export class TypeOrmBarbershopRepository implements BarbershopRepository {
   constructor(private readonly dataSource: DataSource) {}
 
-  async createWithOwner(barbershop: Barbershop, owner: User): Promise<void> {
+  async createWithOwner(
+    barbershop: Barbershop,
+    owner: User,
+    bookingRules: BookingRules,
+  ): Promise<void> {
     try {
       await this.dataSource.transaction(async (manager) => {
         await manager.insert(BarbershopEntity, {
@@ -46,6 +53,10 @@ export class TypeOrmBarbershopRepository implements BarbershopRepository {
           passwordHash: owner.passwordHash,
           role: owner.role,
           createdAt: owner.createdAt,
+        });
+        await manager.insert(BarbershopBookingRulesEntity, {
+          barbershopId: barbershop.id,
+          ...toColumns(bookingRules),
         });
       });
     } catch (error) {

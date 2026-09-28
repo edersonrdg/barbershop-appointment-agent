@@ -4,6 +4,7 @@ import { Barbershop } from '../../src/domain/entities/barbershop';
 import { User } from '../../src/domain/entities/user';
 import { EmailAlreadyRegisteredError } from '../../src/domain/errors/email-already-registered.error';
 import { BarbershopTimezone } from '../../src/domain/value-objects/barbershop-timezone';
+import { BookingRules } from '../../src/domain/value-objects/booking-rules';
 import { DayOpeningHours } from '../../src/domain/value-objects/day-opening-hours';
 import { TimeOfDay } from '../../src/domain/value-objects/time-of-day';
 import { Weekday } from '../../src/domain/value-objects/weekday';
@@ -108,7 +109,7 @@ function describeWeek(barbershop: Barbershop | null) {
 
 async function countRows(
   dataSource: DataSource,
-  table: 'barbershops' | 'users',
+  table: 'barbershops' | 'users' | 'barbershop_booking_rules',
 ): Promise<number> {
   const rows = await dataSource.query<Array<{ count: number }>>(
     `SELECT COUNT(*)::int AS count FROM ${table}`,
@@ -139,7 +140,11 @@ describe('TypeOrmBarbershopRepository (e2e)', () => {
     const barbershop = buildBarbershop();
     const owner = buildOwner(barbershop.id, 'dono@barbearia.com');
 
-    await repository.createWithOwner(barbershop, owner);
+    await repository.createWithOwner(
+      barbershop,
+      owner,
+      BookingRules.defaults(),
+    );
 
     const found = await repository.findById(barbershop.id);
     expect(found).toBeInstanceOf(Barbershop);
@@ -173,6 +178,37 @@ describe('TypeOrmBarbershopRepository (e2e)', () => {
     expect(users[0].created_at.toISOString()).toBe('2026-09-27T12:00:00.000Z');
   });
 
+  it('CA-06.1: createWithOwner writes the booking rules it receives for the new barbershop', async () => {
+    const barbershop = buildBarbershop();
+
+    await repository.createWithOwner(
+      barbershop,
+      buildOwner(barbershop.id, 'dono@barbearia.com'),
+      BookingRules.defaults(),
+    );
+
+    const rows = await dataSource.query<
+      Array<{
+        barbershop_id: string;
+        minimum_advance_minutes: number;
+        cancellation_deadline_minutes: number;
+        no_show_limit: number;
+        waitlist_offer_minutes: number;
+        return_reminder_days: number;
+      }>
+    >('SELECT * FROM barbershop_booking_rules');
+    expect(rows).toEqual([
+      {
+        barbershop_id: barbershop.id,
+        minimum_advance_minutes: 60,
+        cancellation_deadline_minutes: 120,
+        no_show_limit: 2,
+        waitlist_offer_minutes: 15,
+        return_reminder_days: 30,
+      },
+    ]);
+  });
+
   it('CA-01.1: findById returns null for an unknown barbershop', async () => {
     expect(await repository.findById(randomUUID())).toBeNull();
   });
@@ -182,6 +218,7 @@ describe('TypeOrmBarbershopRepository (e2e)', () => {
     await repository.createWithOwner(
       barbershop,
       buildOwner(barbershop.id, 'dono@barbearia.com'),
+      BookingRules.defaults(),
     );
     await dataSource.query(
       `UPDATE barbershops SET address = 'Rua das Flores, 123 - Centro, Campinas/SP', timezone = 'America/Manaus' WHERE id = $1`,
@@ -222,6 +259,7 @@ describe('TypeOrmBarbershopRepository (e2e)', () => {
     await repository.createWithOwner(
       barbershop,
       buildOwner(barbershop.id, 'dono@barbearia.com'),
+      BookingRules.defaults(),
     );
 
     const found = await repository.findById(barbershop.id);
@@ -235,6 +273,7 @@ describe('TypeOrmBarbershopRepository (e2e)', () => {
     await repository.createWithOwner(
       first,
       buildOwner(first.id, 'dono@barbearia.com'),
+      BookingRules.defaults(),
     );
     const second = buildBarbershop('Segunda');
 
@@ -242,12 +281,14 @@ describe('TypeOrmBarbershopRepository (e2e)', () => {
       repository.createWithOwner(
         second,
         buildOwner(second.id, 'dono@barbearia.com'),
+        BookingRules.defaults(),
       ),
     ).rejects.toBeInstanceOf(EmailAlreadyRegisteredError);
 
     expect(await repository.findById(second.id)).toBeNull();
     expect(await countRows(dataSource, 'barbershops')).toBe(1);
     expect(await countRows(dataSource, 'users')).toBe(1);
+    expect(await countRows(dataSource, 'barbershop_booking_rules')).toBe(1);
   });
 
   it('CA-01.3: two concurrent createWithOwner with the same e-mail yield one success, one EmailAlreadyRegisteredError and a single barbershop', async () => {
@@ -258,10 +299,12 @@ describe('TypeOrmBarbershopRepository (e2e)', () => {
       repository.createWithOwner(
         first,
         buildOwner(first.id, 'dono@barbearia.com'),
+        BookingRules.defaults(),
       ),
       repository.createWithOwner(
         second,
         buildOwner(second.id, 'dono@barbearia.com'),
+        BookingRules.defaults(),
       ),
     ]);
 
@@ -285,6 +328,7 @@ describe('TypeOrmBarbershopRepository (e2e)', () => {
       await repository.createWithOwner(
         barbershop,
         buildOwner(barbershop.id, email),
+        BookingRules.defaults(),
       );
       return barbershop;
     }

@@ -1,5 +1,6 @@
 import { Barbershop } from '../../domain/entities/barbershop';
 import { User } from '../../domain/entities/user';
+import { BookingRules } from '../../domain/value-objects/booking-rules';
 import { Email } from '../../domain/value-objects/email';
 import { PhoneNumber } from '../../domain/value-objects/phone-number';
 import {
@@ -51,7 +52,11 @@ export class RegisterBarbershopUseCase {
       now,
     });
 
-    await this.barbershops.createWithOwner(barbershop, owner);
+    await this.barbershops.createWithOwner(
+      barbershop,
+      owner,
+      BookingRules.defaults(),
+    );
     this.metrics.signupCompleted();
 
     return this.accessTokenIssuer.issue({

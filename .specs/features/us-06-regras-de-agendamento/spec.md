@@ -142,7 +142,7 @@ As regras que o bot e a agenda vão aplicar (antecedência mínima, prazo de can
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| RUL-01 | P1 Padrões — CA-06.1 barbearia nova nasce com padrões | - | Pending |
+| RUL-01 | P1 Padrões — CA-06.1 barbearia nova nasce com padrões | T4 | Done |
 | RUL-02 | P1 Padrões — CA-06.1 `GET` devolve os padrões | - | Pending |
 | RUL-03 | P1 Padrões — CA-06.1 migration preenche barbearias existentes | T2 | Done |
 | RUL-04 | P1 Alterar — CA-06.2 `PUT` substitui as regras | - | Pending |
