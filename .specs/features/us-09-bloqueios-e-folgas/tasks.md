@@ -194,11 +194,13 @@ T13
 
 **Done when**:
 
-- [ ] `create` grava tipo e motivo; `findById` devolve o `BarberBlock` restaurado; de outra barbearia → `null`
-- [ ] `delete` apaga só na barbearia informada; id de outra barbearia não apaga
-- [ ] `listStartingIn` inclui o que começa em `start`, exclui o que começa em `end`, filtra por barbeiro quando informado, ordena por início, nome sem diferenciar maiúsculas e id, e não traz linhas de outra barbearia
-- [ ] Bloqueio gravado por `create` aparece em `listBusyPeriods` (motor)
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] `create` grava tipo e motivo; `findById` devolve o `BarberBlock` restaurado; de outra barbearia → `null`
+- [x] `delete` apaga só na barbearia informada; id de outra barbearia não apaga
+- [x] `listStartingIn` inclui o que começa em `start`, exclui o que começa em `end`, filtra por barbeiro quando informado, ordena por início, nome sem diferenciar maiúsculas e id, e não traz linhas de outra barbearia
+- [x] Bloqueio gravado por `create` aparece em `listBusyPeriods` (motor)
+- [x] Gate check passes: `npm test && npm run test:e2e`
+
+**Status**: ✅ Done
 
 **Tests**: e2e
 **Gate**: full

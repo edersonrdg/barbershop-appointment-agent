@@ -188,16 +188,16 @@ O motor da US-07 já respeita bloqueios e folgas (RN-05), mas não há como cri�
 | BLQ-15 | P1 Conflito — formato da lista | - | Pending |
 | BLQ-16 | P1 Conflito — encostar não conflita | - | Pending |
 | BLQ-17 | P1 Conflito — sem conflito, lista vazia | - | Pending |
-| BLQ-18 | P1 Listar — Dono por período | - | Pending |
+| BLQ-18 | P1 Listar — Dono por período | T4 | Implementing |
 | BLQ-19 | P1 Validação — 400 e mensagens | - | Pending |
 | BLQ-20 | P1 Listar — Barbeiro só os próprios | - | Pending |
-| BLQ-21 | P1 Remover — Dono 204 | - | Pending |
+| BLQ-21 | P1 Remover — Dono 204 | T4 | Implementing |
 | BLQ-22 | P1 Remover — motor volta a oferecer | - | Pending |
 | BLQ-23 | P1 Remover — Barbeiro só os próprios | - | Pending |
-| BLQ-24 | P1 Remover — inexistente 404 | T2 | Implementing |
-| BLQ-25 | P1 Isolamento — RN-26 | T3 | Implementing |
+| BLQ-24 | P1 Remover — inexistente 404 | T2, T4 | Implementing |
+| BLQ-25 | P1 Isolamento — RN-26 | T3, T4 | Implementing |
 | BLQ-26 | P1 Isolamento — 401 | - | Pending |
-| BLQ-27 | P1 Dados — tipo e motivo, migration | T2, T3 | Implementing |
+| BLQ-27 | P1 Dados — tipo e motivo, migration | T2, T3, T4 | Implementing |
 | BLQ-28 | P1 Swagger | - | Pending |
 
 **ID format:** `BLQ-NN` (Bloqueios, épico E3). Cada teste cita o `CA-09.x` (ou o `RN`) no nome, conforme o CLAUDE.md.
