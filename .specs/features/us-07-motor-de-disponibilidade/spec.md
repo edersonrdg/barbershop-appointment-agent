@@ -247,8 +247,8 @@ O painel (US-10) e o bot (US-17) vão oferecer e gravar horários, mas ainda nã
 | AVL-35 | P1 Isolamento — lista de serviços inválida | T5, T6 | Implementing |
 | AVL-36 | P1 Isolamento — RN-26 leituras por tenant | T5, T8, T9 | Implementing |
 | AVL-37 | P1 Isolamento — RN-26 FKs compostas | T7 | Implementing |
-| AVL-38 | P2 Métricas — agendamentos gravados | T6 | Implementing |
-| AVL-39 | P2 Métricas — conflitos | T6 | Implementing |
+| AVL-38 | P2 Métricas — agendamentos gravados | T6, T10 | Implementing |
+| AVL-39 | P2 Métricas — conflitos | T6, T10 | Implementing |
 
 **ID format:** `AVL-NN` (Availability, épico E3). Cada teste cita o `CA-07.x` (ou o `RN`) no nome, conforme o CLAUDE.md.
 

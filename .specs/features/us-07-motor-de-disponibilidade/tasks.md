@@ -342,11 +342,13 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] `booked('bot')` e `conflict('manual')` aparecem no registry com o label certo e valor 1
-- [ ] Gate check passes: `npm test`
+- [x] `booked('bot')` e `conflict('manual')` aparecem no registry com o label certo e valor 1
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
+**Commit**: `feat(US-07): add prometheus appointment metrics`
 
 ---
 
