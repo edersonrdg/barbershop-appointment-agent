@@ -173,32 +173,32 @@ A barbearia ainda não tem serviços cadastrados, então o motor de disponibilid
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| SVC-01 | P1 Criar — CA-04.1 `POST` cria ativo | T3, T5, T6, T12 | In Progress |
-| SVC-02 | P1 Criar — CA-04.1 `GET` lista | T5, T9, T12 | In Progress |
-| SVC-03 | P1 Criar — CA-04.1 leitura de disponíveis | T5, T10 | In Progress |
-| SVC-04 | P1 Criar — CA-04.1 `PUT` edita | T3, T7, T13 | In Progress |
-| SVC-05 | P1 Criar — CA-04.1 nome repetido 409 | T5, T6, T7, T12, T13 | In Progress |
-| SVC-06 | P1 Criar — CA-04.1 índice único no banco | T4, T5 | In Progress |
-| SVC-07 | P1 Adicionais — CA-04.2 grava a relação | T3, T5, T6, T12 | In Progress |
-| SVC-08 | P1 Adicionais — CA-04.2 substitui a lista | T5, T7, T13 | In Progress |
-| SVC-09 | P1 Adicionais — CA-04.2 adicional inexistente/outro tenant | T3, T6, T7, T12 | In Progress |
-| SVC-10 | P1 Adicionais — CA-04.2 adicional de si mesmo | T3, T4, T7, T13 | In Progress |
-| SVC-11 | P1 Adicionais — CA-04.2 adicional inativo | T3, T6, T7, T12 | In Progress |
-| SVC-12 | P1 Adicionais — CA-04.2 mais de 5 ou repetidos | T11, T12 | In Progress |
-| SVC-13 | P1 Desativar — CA-04.3 desativa | T3, T8, T14 | In Progress |
-| SVC-14 | P1 Desativar — CA-04.3 some dos disponíveis, fica na lista | T5, T9, T10, T14 | In Progress |
-| SVC-15 | P1 Desativar — CA-04.3 nada além do flag muda | T3, T5, T8, T14 | In Progress |
-| SVC-16 | P1 Desativar — CA-04.3 reativa | T3, T8, T10, T14 | In Progress |
-| SVC-17 | P1 Desativar — CA-04.3 idempotente | T3, T8, T14 | In Progress |
-| SVC-18 | P1 Desativar — CA-04.3 serviço inexistente 404 | T7, T8, T13, T14 | In Progress |
-| SVC-19 | P1 Recusar — CA-04.4 preço negativo | T1, T11, T12 | In Progress |
-| SVC-20 | P1 Recusar — CA-04.4 duração zero | T2, T11, T12 | In Progress |
-| SVC-21 | P1 Recusar — CA-04.4 limites e formato | T1, T2, T11, T12 | In Progress |
-| SVC-22 | P1 Recusar — CA-04.4 invariante no domínio | T1, T2, T3, T6 | In Progress |
-| SVC-23 | P1 Recusar — CA-04.4 `CHECK` no banco | T4 | In Progress |
-| SVC-24 | P1 Permissão — Barbeiro 403 | T12, T13, T14 | In Progress |
-| SVC-25 | P1 Permissão — sem sessão 401 | T12, T14 | In Progress |
-| SVC-26 | P1 Permissão — RN-26 tenant da sessão | T5, T6, T7, T8, T9, T10, T12, T13 | In Progress |
+| SVC-01 | P1 Criar — CA-04.1 `POST` cria ativo | T3, T5, T6, T12 | Verified |
+| SVC-02 | P1 Criar — CA-04.1 `GET` lista | T5, T9, T12 | Verified |
+| SVC-03 | P1 Criar — CA-04.1 leitura de disponíveis | T5, T10 | Verified |
+| SVC-04 | P1 Criar — CA-04.1 `PUT` edita | T3, T7, T13 | Verified |
+| SVC-05 | P1 Criar — CA-04.1 nome repetido 409 | T5, T6, T7, T12, T13 | Verified |
+| SVC-06 | P1 Criar — CA-04.1 índice único no banco | T4, T5 | Verified |
+| SVC-07 | P1 Adicionais — CA-04.2 grava a relação | T3, T5, T6, T12 | Verified |
+| SVC-08 | P1 Adicionais — CA-04.2 substitui a lista | T5, T7, T13 | Verified |
+| SVC-09 | P1 Adicionais — CA-04.2 adicional inexistente/outro tenant | T3, T6, T7, T12 | Verified |
+| SVC-10 | P1 Adicionais — CA-04.2 adicional de si mesmo | T3, T4, T7, T13 | Verified |
+| SVC-11 | P1 Adicionais — CA-04.2 adicional inativo | T3, T6, T7, T12 | Verified |
+| SVC-12 | P1 Adicionais — CA-04.2 mais de 5 ou repetidos | T11, T12 | Verified |
+| SVC-13 | P1 Desativar — CA-04.3 desativa | T3, T8, T14 | Verified |
+| SVC-14 | P1 Desativar — CA-04.3 some dos disponíveis, fica na lista | T5, T9, T10, T14 | Verified |
+| SVC-15 | P1 Desativar — CA-04.3 nada além do flag muda | T3, T5, T8, T14 | Verified |
+| SVC-16 | P1 Desativar — CA-04.3 reativa | T3, T8, T10, T14 | Verified |
+| SVC-17 | P1 Desativar — CA-04.3 idempotente | T3, T8, T14 | Verified |
+| SVC-18 | P1 Desativar — CA-04.3 serviço inexistente 404 | T7, T8, T13, T14 | Verified |
+| SVC-19 | P1 Recusar — CA-04.4 preço negativo | T1, T11, T12 | Verified |
+| SVC-20 | P1 Recusar — CA-04.4 duração zero | T2, T11, T12 | Verified |
+| SVC-21 | P1 Recusar — CA-04.4 limites e formato | T1, T2, T11, T12 | Verified |
+| SVC-22 | P1 Recusar — CA-04.4 invariante no domínio | T1, T2, T3, T6 | Verified |
+| SVC-23 | P1 Recusar — CA-04.4 `CHECK` no banco | T4 | Verified |
+| SVC-24 | P1 Permissão — Barbeiro 403 | T12, T13, T14 | Verified |
+| SVC-25 | P1 Permissão — sem sessão 401 | T12, T14 | Verified |
+| SVC-26 | P1 Permissão — RN-26 tenant da sessão | T5, T6, T7, T8, T9, T10, T12, T13 | Verified |
 
 **ID format:** `SVC-NN` (Serviços, épico E2). Cada teste cita o `CA-04.x` (ou o `RN`) no nome, conforme o CLAUDE.md.
 

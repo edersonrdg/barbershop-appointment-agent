@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/us-04-cadastro-de-servicos/design.md`
-**Status**: In Progress
+**Status**: Done
 
 Toda task cita US-04, RF-33 e, quando couber, RN-26. Commits: `feat(US-04): ...` (ou `test` quando couber), só locais.
 

@@ -2,7 +2,7 @@
 
 **Gathered:** 2026-09-27
 **Spec:** `.specs/features/us-04-cadastro-de-servicos/spec.md`
-**Status:** Ready for design
+**Status:** Done
 
 ---
 
