@@ -315,13 +315,15 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] `create` grava agendamento e serviços na ordem; leitura por SQL confere as colunas
-- [ ] `CA-07.4`: `create` sobreposto lança `AppointmentConflictError` com `rule` RN-07 e não deixa linha em `appointment_services`
-- [ ] `listBusyPeriods` devolve só confirmados dos barbeiros pedidos que tocam o intervalo; RN-26 com tenant errado não devolve nada
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] `create` grava agendamento e serviços na ordem; leitura por SQL confere as colunas
+- [x] `CA-07.4`: `create` sobreposto lança `AppointmentConflictError` com `rule` RN-07 e não deixa linha em `appointment_services`
+- [x] `listBusyPeriods` devolve só confirmados dos barbeiros pedidos que tocam o intervalo; RN-26 com tenant errado não devolve nada
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: build
+**Status**: ✅ Done
+**Commit**: `feat(US-07): add typeorm appointment repository with overlap translation`
 
 ---
 

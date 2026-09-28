@@ -227,7 +227,7 @@ O painel (US-10) e o bot (US-17) vão oferecer e gravar horários, mas ainda nã
 | AVL-15 | P1 Antecedência — painel só a partir de agora | T5 | Implementing |
 | AVL-16 | P1 Antecedência — fronteira exata | T5 | Implementing |
 | AVL-17 | P1 Antecedência — regra vigente | T5 | Implementing |
-| AVL-18 | P1 Gravar — grava confirmado | T3, T6 | Implementing |
+| AVL-18 | P1 Gravar — grava confirmado | T3, T6, T9 | Implementing |
 | AVL-19 | P1 Gravar — recusa RN-02 | T6 | Implementing |
 | AVL-20 | P1 Gravar — recusa passado | T6 | Implementing |
 | AVL-21 | P1 Gravar — recusa fora do funcionamento | T4, T6 | Implementing |
@@ -235,9 +235,9 @@ O painel (US-10) e o bot (US-17) vão oferecer e gravar horários, mas ainda nã
 | AVL-23 | P1 Gravar — recusa bloqueio | T4, T6 | Implementing |
 | AVL-24 | P1 Gravar — recusa sobreposição | T4, T6 | Implementing |
 | AVL-25 | P1 Gravar — ordem das regras | T4, T6 | Implementing |
-| AVL-26 | P1 Gravar — recusa não grava nada | T6 | Implementing |
+| AVL-26 | P1 Gravar — recusa não grava nada | T6, T9 | Implementing |
 | AVL-27 | P1 Gravar — consulta e gravação concordam | T4, T6 | Implementing |
-| AVL-28 | P1 Concorrência — CA-07.4 simultâneas | - | Pending |
+| AVL-28 | P1 Concorrência — CA-07.4 simultâneas | T9 | Implementing |
 | AVL-29 | P1 Concorrência — constraint de exclusão | T7 | Implementing |
 | AVL-30 | P1 Concorrência — encostados aceitos no banco | T7 | Implementing |
 | AVL-31 | P1 Concorrência — barbeiros diferentes | T7 | Implementing |
@@ -245,7 +245,7 @@ O painel (US-10) e o bot (US-17) vão oferecer e gravar horários, mas ainda nã
 | AVL-33 | P1 Isolamento — serviço inválido | T5, T6 | Implementing |
 | AVL-34 | P1 Isolamento — barbeiro não realiza serviço | T5, T6 | Implementing |
 | AVL-35 | P1 Isolamento — lista de serviços inválida | T5, T6 | Implementing |
-| AVL-36 | P1 Isolamento — RN-26 leituras por tenant | T5, T8 | Implementing |
+| AVL-36 | P1 Isolamento — RN-26 leituras por tenant | T5, T8, T9 | Implementing |
 | AVL-37 | P1 Isolamento — RN-26 FKs compostas | T7 | Implementing |
 | AVL-38 | P2 Métricas — agendamentos gravados | T6 | Implementing |
 | AVL-39 | P2 Métricas — conflitos | T6 | Implementing |
