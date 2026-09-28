@@ -367,13 +367,15 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] `CA-07.4`: duas gravações do mesmo horário com `Promise.all`, com as leituras seguradas numa barreira até ambas lerem: uma resolve, a outra rejeita com `AppointmentConflictError` RN-07; a tabela tem uma linha
-- [ ] `CA-07.1`/`CA-07.5`: horário devolvido pela consulta no banco real é gravado, e a consulta seguinte não o devolve mais
-- [ ] O `AppModule` sobe e `/metrics` expõe os dois contadores
-- [ ] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+- [x] `CA-07.4`: duas gravações do mesmo horário com `Promise.all`, com as leituras seguradas numa barreira até ambas lerem: uma resolve, a outra rejeita com `AppointmentConflictError` RN-07; a tabela tem uma linha
+- [x] `CA-07.1`/`CA-07.5`: horário devolvido pela consulta no banco real é gravado, e a consulta seguinte não o devolve mais
+- [x] O `AppModule` sobe e `/metrics` expõe os dois contadores
+- [x] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: build
+**Status**: ✅ Done
+**Commit**: `feat(US-07): add scheduling module wiring the availability engine`
 
 ---
 
