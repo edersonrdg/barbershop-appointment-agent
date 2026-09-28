@@ -169,12 +169,14 @@ T5 -> T6
 
 **Done when**:
 
-- [ ] Inclui início exatamente em `range.start`; exclui início exatamente em `range.end`; agendamento que começa antes e termina dentro fica de fora
-- [ ] Filtra por barbeiro quando informado
-- [ ] Ordena por início, nome do barbeiro sem diferenciar maiúsculas, id
-- [ ] Traz barbeiro, cliente (ou `null`), serviços na ordem de `position`, status e origem
-- [ ] Não devolve dados de outra barbearia, nem com `barberId` forjado
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] Inclui início exatamente em `range.start`; exclui início exatamente em `range.end`; agendamento que começa antes e termina dentro fica de fora
+- [x] Filtra por barbeiro quando informado
+- [x] Ordena por início, nome do barbeiro sem diferenciar maiúsculas, id
+- [x] Traz barbeiro, cliente (ou `null`), serviços na ordem de `position`, status e origem
+- [x] Não devolve dados de outra barbearia, nem com `barberId` forjado
+- [x] Gate check passes: `npm test && npm run test:e2e`
+
+**Status**: ✅ Done
 
 **Tests**: e2e
 **Gate**: build

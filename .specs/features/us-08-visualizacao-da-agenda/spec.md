@@ -50,6 +50,7 @@ O motor da US-07 grava agendamentos, mas ninguém consegue vê-los: o Dono não 
 | Instantes na resposta | Início e fim em ISO 8601 UTC, com o fuso da barbearia e as datas locais do período na resposta | O cliente converte na borda; CA-03.3 já expõe o fuso | y |
 | Entrada inválida | `400` do `ZodValidationPipe` para visão fora de `day`/`week`, data fora de `AAAA-MM-DD` ou inexistente, `barberId` que não é UUID | Validação na borda (CLAUDE.md) | y |
 | Mensagens de validação | `view`: "Escolha a visão: day ou week."; `date`: "Informe uma data válida no formato AAAA-MM-DD."; `barberId`: "Informe um id de barbeiro válido." (mesma da US-05) | Registrado na T5: a spec só fixava o `400` | y |
+| Desempate por id (AGD-06) | Fica no `ORDER BY` como garantia de ordem estável, sem teste | Hoje não há como dois agendamentos empatarem em início e nome: a constraint de exclusão barra o mesmo barbeiro, e o nome do barbeiro é único na barbearia (US-05) | y |
 | Idempotência, concorrência, ciclo de vida | N/A: leitura sem efeito colateral | — | y |
 | Falha de dependência externa | N/A: só Postgres; falha do banco segue o tratamento padrão (500) | — | y |
 | Rate limit | N/A: nenhuma rota do painel tem limite hoje e nenhum RNF pede | — | y |
@@ -170,17 +171,17 @@ O motor da US-07 grava agendamentos, mas ninguém consegue vê-los: o Dono não 
 | AGD-03 | P1 Dono — filtro por barbeiro | T2 | Implementing |
 | AGD-04 | P1 Dono — barbeiro inexistente | T2 | Implementing |
 | AGD-05 | P1 Dono — período e fuso na resposta | T1 | Implementing |
-| AGD-06 | P1 Dono — ordem | Design | Pending |
+| AGD-06 | P1 Dono — ordem | T4 | Implementing |
 | AGD-07 | P1 Dono — período vazio | Design | Pending |
 | AGD-08 | P1 Barbeiro — só os próprios | T2 | Implementing |
 | AGD-09 | P1 Barbeiro — filtro do próprio | T2 | Implementing |
 | AGD-10 | P1 Barbeiro — outro barbeiro 403 | T2 | Implementing |
 | AGD-11 | P1 Barbeiro — sem ficha, lista vazia | T2 | Implementing |
-| AGD-12 | P1 Detalhe — barbeiro, horário, status, origem | Design | Pending |
-| AGD-13 | P1 Detalhe — serviços em ordem | Design | Pending |
-| AGD-14 | P1 Detalhe — cliente | Design | Pending |
-| AGD-15 | P1 Detalhe — sem cliente | Design | Pending |
-| AGD-16 | P1 Detalhe — RF-28 origem | Design | Pending |
+| AGD-12 | P1 Detalhe — barbeiro, horário, status, origem | T4 | Implementing |
+| AGD-13 | P1 Detalhe — serviços em ordem | T4 | Implementing |
+| AGD-14 | P1 Detalhe — cliente | T4 | Implementing |
+| AGD-15 | P1 Detalhe — sem cliente | T4 | Implementing |
+| AGD-16 | P1 Detalhe — RF-28 origem | T4 | Implementing |
 | AGD-17 | P1 Cliente — telefone único por barbearia | T3 | Implementing |
 | AGD-18 | P1 Cliente — FK composta por barbearia | T3 | Implementing |
 | AGD-19 | P1 Cliente — cliente opcional | T3 | Implementing |
