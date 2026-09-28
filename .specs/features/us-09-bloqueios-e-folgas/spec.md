@@ -191,10 +191,10 @@ O motor da US-07 já respeita bloqueios e folgas (RN-05), mas não há como cri�
 | BLQ-18 | P1 Listar — Dono por período | T4, T8 | Implementing |
 | BLQ-19 | P1 Validação — 400 e mensagens | - | Pending |
 | BLQ-20 | P1 Listar — Barbeiro só os próprios | T6, T8 | Implementing |
-| BLQ-21 | P1 Remover — Dono 204 | T4 | Implementing |
+| BLQ-21 | P1 Remover — Dono 204 | T4, T9 | Implementing |
 | BLQ-22 | P1 Remover — motor volta a oferecer | - | Pending |
-| BLQ-23 | P1 Remover — Barbeiro só os próprios | T6 | Implementing |
-| BLQ-24 | P1 Remover — inexistente 404 | T2, T4 | Implementing |
+| BLQ-23 | P1 Remover — Barbeiro só os próprios | T6, T9 | Implementing |
+| BLQ-24 | P1 Remover — inexistente 404 | T2, T4, T9 | Implementing |
 | BLQ-25 | P1 Isolamento — RN-26 | T3, T4, T5, T8 | Implementing |
 | BLQ-26 | P1 Isolamento — 401 | - | Pending |
 | BLQ-27 | P1 Dados — tipo e motivo, migration | T2, T3, T4 | Implementing |

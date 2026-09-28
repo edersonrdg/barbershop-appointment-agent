@@ -346,10 +346,12 @@ T13
 
 **Done when**:
 
-- [ ] Dono remove bloqueio de qualquer barbeiro da barbearia
-- [ ] Barbeiro remove o próprio; o de outro → `ScheduleAccessDeniedError` e nada apagado
-- [ ] Bloqueio inexistente ou de outra barbearia → `BarberBlockNotFoundError` e nada apagado
-- [ ] Gate check passes: `npm test`
+- [x] Dono remove bloqueio de qualquer barbeiro da barbearia
+- [x] Barbeiro remove o próprio; o de outro → `ScheduleAccessDeniedError` e nada apagado
+- [x] Bloqueio inexistente ou de outra barbearia → `BarberBlockNotFoundError` e nada apagado
+- [x] Gate check passes: `npm test`
+
+**Status**: ✅ Done
 
 **Tests**: unit
 **Gate**: quick
