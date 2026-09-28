@@ -210,23 +210,23 @@ O painel (US-10) e o bot (US-17) vão oferecer e gravar horários, mas ainda nã
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| AVL-01 | P1 Barbeiro — CA-07.1 cabe inteiro no funcionamento e na jornada | T2, T4 | Implementing |
-| AVL-02 | P1 Barbeiro — RN-04 duração somada | T3 | Implementing |
-| AVL-03 | P1 Barbeiro — grade de 30 min por período livre | T4 | Implementing |
-| AVL-04 | P1 Barbeiro — fora de bloqueios e folgas | T4 | Implementing |
-| AVL-05 | P1 Barbeiro — fora de agendamentos | T4 | Implementing |
-| AVL-06 | P1 Barbeiro — intervalos encostados são livres | T4 | Implementing |
-| AVL-07 | P1 Barbeiro — dia fechado ou sem jornada | T2, T4 | Implementing |
-| AVL-08 | P1 Barbeiro — formato e ordem do resultado | T4 | Implementing |
-| AVL-09 | P1 Barbeiro — fuso da barbearia | T1, T2 | Implementing |
-| AVL-10 | P1 Qualquer — todos os aptos | - | Pending |
-| AVL-11 | P1 Qualquer — um barbeiro por início, ordem de nome | - | Pending |
-| AVL-12 | P1 Qualquer — sem inativos e sem inaptos | - | Pending |
-| AVL-13 | P1 Qualquer — ninguém apto | - | Pending |
-| AVL-14 | P1 Antecedência — bot aplica RN-02 | - | Pending |
-| AVL-15 | P1 Antecedência — painel só a partir de agora | - | Pending |
-| AVL-16 | P1 Antecedência — fronteira exata | - | Pending |
-| AVL-17 | P1 Antecedência — regra vigente | - | Pending |
+| AVL-01 | P1 Barbeiro — CA-07.1 cabe inteiro no funcionamento e na jornada | T2, T4, T5 | Implementing |
+| AVL-02 | P1 Barbeiro — RN-04 duração somada | T3, T5 | Implementing |
+| AVL-03 | P1 Barbeiro — grade de 30 min por período livre | T4, T5 | Implementing |
+| AVL-04 | P1 Barbeiro — fora de bloqueios e folgas | T4, T5 | Implementing |
+| AVL-05 | P1 Barbeiro — fora de agendamentos | T4, T5 | Implementing |
+| AVL-06 | P1 Barbeiro — intervalos encostados são livres | T4, T5 | Implementing |
+| AVL-07 | P1 Barbeiro — dia fechado ou sem jornada | T2, T4, T5 | Implementing |
+| AVL-08 | P1 Barbeiro — formato e ordem do resultado | T4, T5 | Implementing |
+| AVL-09 | P1 Barbeiro — fuso da barbearia | T1, T2, T5 | Implementing |
+| AVL-10 | P1 Qualquer — todos os aptos | T5 | Implementing |
+| AVL-11 | P1 Qualquer — um barbeiro por início, ordem de nome | T5 | Implementing |
+| AVL-12 | P1 Qualquer — sem inativos e sem inaptos | T5 | Implementing |
+| AVL-13 | P1 Qualquer — ninguém apto | T5 | Implementing |
+| AVL-14 | P1 Antecedência — bot aplica RN-02 | T5 | Implementing |
+| AVL-15 | P1 Antecedência — painel só a partir de agora | T5 | Implementing |
+| AVL-16 | P1 Antecedência — fronteira exata | T5 | Implementing |
+| AVL-17 | P1 Antecedência — regra vigente | T5 | Implementing |
 | AVL-18 | P1 Gravar — grava confirmado | T3 | Implementing |
 | AVL-19 | P1 Gravar — recusa RN-02 | - | Pending |
 | AVL-20 | P1 Gravar — recusa passado | - | Pending |
@@ -241,11 +241,11 @@ O painel (US-10) e o bot (US-17) vão oferecer e gravar horários, mas ainda nã
 | AVL-29 | P1 Concorrência — constraint de exclusão | - | Pending |
 | AVL-30 | P1 Concorrência — encostados aceitos no banco | - | Pending |
 | AVL-31 | P1 Concorrência — barbeiros diferentes | - | Pending |
-| AVL-32 | P1 Isolamento — barbeiro inválido | - | Pending |
-| AVL-33 | P1 Isolamento — serviço inválido | - | Pending |
-| AVL-34 | P1 Isolamento — barbeiro não realiza serviço | - | Pending |
-| AVL-35 | P1 Isolamento — lista de serviços inválida | - | Pending |
-| AVL-36 | P1 Isolamento — RN-26 leituras por tenant | - | Pending |
+| AVL-32 | P1 Isolamento — barbeiro inválido | T5 | Implementing |
+| AVL-33 | P1 Isolamento — serviço inválido | T5 | Implementing |
+| AVL-34 | P1 Isolamento — barbeiro não realiza serviço | T5 | Implementing |
+| AVL-35 | P1 Isolamento — lista de serviços inválida | T5 | Implementing |
+| AVL-36 | P1 Isolamento — RN-26 leituras por tenant | T5 | Implementing |
 | AVL-37 | P1 Isolamento — RN-26 FKs compostas | - | Pending |
 | AVL-38 | P2 Métricas — agendamentos gravados | - | Pending |
 | AVL-39 | P2 Métricas — conflitos | - | Pending |

@@ -199,16 +199,18 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] `CA-07.1`: Independent Test da spec (um barbeiro) devolve só os inícios esperados, com `barberId`, início e fim UTC em ordem
-- [ ] `CA-07.2`: Independent Test "qualquer barbeiro" (Ana/Bruno/Caio/Davi); ninguém apto → `[]`
-- [ ] `CA-07.3`: relógio 10:05 e antecedência 60: bot a partir de 11:30, `manual` a partir de 10:30; fronteira exata; regra alterada vale na consulta seguinte; barbearia sem regras usa 60 min
-- [ ] Erros: barbeiro inexistente/inativo/de outra barbearia → `BarberNotFoundError`; serviço inexistente/inativo → `ServiceNotFoundError`; barbeiro que não realiza → `ServiceNotPerformedError`; lista vazia/repetida e data inválida → `InvalidValueError`
-- [ ] RN-26: bloqueio e agendamento de outra barbearia com o mesmo `barberId` não tiram horários
-- [ ] Data passada → `[]`; barbearia fechada ou barbeiro sem jornada no dia → `[]`
-- [ ] Gate check passes: `npm test`
+- [x] `CA-07.1`: Independent Test da spec (um barbeiro) devolve só os inícios esperados, com `barberId`, início e fim UTC em ordem
+- [x] `CA-07.2`: Independent Test "qualquer barbeiro" (Ana/Bruno/Caio/Davi); ninguém apto → `[]`
+- [x] `CA-07.3`: relógio 10:05 e antecedência 60: bot a partir de 11:30, `manual` a partir de 10:30; fronteira exata; regra alterada vale na consulta seguinte; barbearia sem regras usa 60 min
+- [x] Erros: barbeiro inexistente/inativo/de outra barbearia → `BarberNotFoundError`; serviço inexistente/inativo → `ServiceNotFoundError`; barbeiro que não realiza → `ServiceNotPerformedError`; lista vazia/repetida e data inválida → `InvalidValueError`
+- [x] RN-26: bloqueio e agendamento de outra barbearia com o mesmo `barberId` não tiram horários
+- [x] Data passada → `[]`; barbearia fechada ou barbeiro sem jornada no dia → `[]`
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
+**Commit**: `feat(US-07): add available slots query for one or any barber`
 
 ---
 
