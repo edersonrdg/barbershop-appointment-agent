@@ -265,16 +265,17 @@ T12 -> T14
 
 **Done when**:
 
-- [ ] troca os dados, mantém `active` (inclusive um inativo continua inativo) e devolve o serviço salvo
-- [ ] substitui a lista de adicionais, inclusive por vazia
-- [ ] manter o mesmo nome ou mudar só maiúsculas é aceito; nome de outro serviço → `ServiceNameAlreadyExistsError`
-- [ ] a própria id na lista → "Um serviço não pode ser adicional de si mesmo."; nada gravado
-- [ ] serviço inexistente ou de outra barbearia → `ServiceNotFoundError`; nada gravado
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: ~7 tests novos passam (no silent deletions)
+- [x] troca os dados, mantém `active` (inclusive um inativo continua inativo) e devolve o serviço salvo
+- [x] substitui a lista de adicionais, inclusive por vazia
+- [x] manter o mesmo nome ou mudar só maiúsculas é aceito; nome de outro serviço → `ServiceNameAlreadyExistsError`
+- [x] a própria id na lista → "Um serviço não pode ser adicional de si mesmo."; nada gravado
+- [x] serviço inexistente ou de outra barbearia → `ServiceNotFoundError`; nada gravado
+- [x] Gate check passes: `npm test`
+- [x] Test count: ~7 tests novos passam (no silent deletions)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Done
 **Commit**: `feat(US-04): add update service use case`
 
 ---
