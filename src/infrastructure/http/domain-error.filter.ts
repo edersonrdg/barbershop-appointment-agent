@@ -19,6 +19,7 @@ import { InvalidOpeningHoursError } from '../../domain/errors/invalid-opening-ho
 import { InvalidServiceAddOnError } from '../../domain/errors/invalid-service-add-on.error';
 import { InvalidPasswordResetTokenError } from '../../domain/errors/invalid-password-reset-token.error';
 import { InvitationDeliveryFailedError } from '../../domain/errors/invitation-delivery-failed.error';
+import { ScheduleAccessDeniedError } from '../../domain/errors/schedule-access-denied.error';
 import { ServiceNameAlreadyExistsError } from '../../domain/errors/service-name-already-exists.error';
 import { ServiceNotFoundError } from '../../domain/errors/service-not-found.error';
 import { InvalidWorkingHoursError } from '../../domain/errors/invalid-working-hours.error';
@@ -41,6 +42,7 @@ const STATUS_BY_ERROR = new Map<unknown, HttpStatus>([
   [BarberUserAlreadyLinkedError, HttpStatus.CONFLICT],
   [BarberNotFoundError, HttpStatus.NOT_FOUND],
   [InvitationDeliveryFailedError, HttpStatus.BAD_GATEWAY],
+  [ScheduleAccessDeniedError, HttpStatus.FORBIDDEN],
 ]);
 
 @Catch(DomainError)

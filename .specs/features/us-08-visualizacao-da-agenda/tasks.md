@@ -224,12 +224,14 @@ T5 -> T6
 
 **Done when**:
 
-- [ ] Dono: visão dia, visão semana, filtro por barbeiro, período e fuso na resposta, lista vazia
-- [ ] Barbeiro: só os próprios; próprio `barberId`; outro `barberId` → `403 { message: 'Acesso negado.' }`; sem ficha → lista vazia
-- [ ] Cada agendamento traz barbeiro, cliente (ou `null`), serviços em ordem, início e fim ISO UTC, status e origem
-- [ ] Outra barbearia não aparece; `barberId` de outra barbearia → `404`; sem token → `401`; `view=month` → `400`
-- [ ] Rota no Swagger com resumo citando US-08, resposta 200, erros 403 e 404; `test/api-docs.e2e-spec.ts` passa
-- [ ] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+- [x] Dono: visão dia, visão semana, filtro por barbeiro, período e fuso na resposta, lista vazia
+- [x] Barbeiro: só os próprios; próprio `barberId`; outro `barberId` → `403 { message: 'Acesso negado.' }`; sem ficha → lista vazia
+- [x] Cada agendamento traz barbeiro, cliente (ou `null`), serviços em ordem, início e fim ISO UTC, status e origem
+- [x] Outra barbearia não aparece; `barberId` de outra barbearia → `404`; sem token → `401`; `view=month` → `400`
+- [x] Rota no Swagger com resumo citando US-08, resposta 200, erros 403 e 404; `test/api-docs.e2e-spec.ts` passa
+- [x] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+
+**Status**: ✅ Done
 
 **Tests**: e2e
 **Gate**: build

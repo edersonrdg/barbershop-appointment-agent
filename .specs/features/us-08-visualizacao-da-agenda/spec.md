@@ -166,35 +166,35 @@ O motor da US-07 grava agendamentos, mas ninguém consegue vê-los: o Dono não 
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| AGD-01 | P1 Dono — visão dia | T1 | Implementing |
-| AGD-02 | P1 Dono — visão semana segunda a domingo | T1 | Implementing |
-| AGD-03 | P1 Dono — filtro por barbeiro | T2 | Implementing |
-| AGD-04 | P1 Dono — barbeiro inexistente | T2 | Implementing |
-| AGD-05 | P1 Dono — período e fuso na resposta | T1 | Implementing |
+| AGD-01 | P1 Dono — visão dia | T1, T2, T6 | Implementing |
+| AGD-02 | P1 Dono — visão semana segunda a domingo | T1, T2, T6 | Implementing |
+| AGD-03 | P1 Dono — filtro por barbeiro | T2, T4, T6 | Implementing |
+| AGD-04 | P1 Dono — barbeiro inexistente | T2, T6 | Implementing |
+| AGD-05 | P1 Dono — período e fuso na resposta | T1, T2, T6 | Implementing |
 | AGD-06 | P1 Dono — ordem | T4 | Implementing |
-| AGD-07 | P1 Dono — período vazio | Design | Pending |
-| AGD-08 | P1 Barbeiro — só os próprios | T2 | Implementing |
-| AGD-09 | P1 Barbeiro — filtro do próprio | T2 | Implementing |
-| AGD-10 | P1 Barbeiro — outro barbeiro 403 | T2 | Implementing |
-| AGD-11 | P1 Barbeiro — sem ficha, lista vazia | T2 | Implementing |
-| AGD-12 | P1 Detalhe — barbeiro, horário, status, origem | T4 | Implementing |
-| AGD-13 | P1 Detalhe — serviços em ordem | T4 | Implementing |
-| AGD-14 | P1 Detalhe — cliente | T4 | Implementing |
-| AGD-15 | P1 Detalhe — sem cliente | T4 | Implementing |
-| AGD-16 | P1 Detalhe — RF-28 origem | T4 | Implementing |
+| AGD-07 | P1 Dono — período vazio | T6 | Implementing |
+| AGD-08 | P1 Barbeiro — só os próprios | T2, T6 | Implementing |
+| AGD-09 | P1 Barbeiro — filtro do próprio | T2, T6 | Implementing |
+| AGD-10 | P1 Barbeiro — outro barbeiro 403 | T2, T6 | Implementing |
+| AGD-11 | P1 Barbeiro — sem ficha, lista vazia | T2, T6 | Implementing |
+| AGD-12 | P1 Detalhe — barbeiro, horário, status, origem | T4, T6 | Implementing |
+| AGD-13 | P1 Detalhe — serviços em ordem | T4, T6 | Implementing |
+| AGD-14 | P1 Detalhe — cliente | T4, T6 | Implementing |
+| AGD-15 | P1 Detalhe — sem cliente | T4, T6 | Implementing |
+| AGD-16 | P1 Detalhe — RF-28 origem | T4, T6 | Implementing |
 | AGD-17 | P1 Cliente — telefone único por barbearia | T3 | Implementing |
 | AGD-18 | P1 Cliente — FK composta por barbearia | T3 | Implementing |
 | AGD-19 | P1 Cliente — cliente opcional | T3 | Implementing |
 | AGD-20 | P1 Cliente — motor segue gravando | T3 | Implementing |
-| AGD-21 | P1 Isolamento — RN-26 leitura | T2 | Implementing |
-| AGD-22 | P1 Isolamento — barbeiro de outra barbearia | T2 | Implementing |
-| AGD-23 | P1 Isolamento — 401 | Design | Pending |
-| AGD-24 | P1 Isolamento — 400 | T5 | Implementing |
-| AGD-25 | P1 Isolamento — Swagger | Design | Pending |
+| AGD-21 | P1 Isolamento — RN-26 leitura | T2, T4, T6 | Implementing |
+| AGD-22 | P1 Isolamento — barbeiro de outra barbearia | T2, T4, T6 | Implementing |
+| AGD-23 | P1 Isolamento — 401 | T6 | Implementing |
+| AGD-24 | P1 Isolamento — 400 | T1, T5, T6 | Implementing |
+| AGD-25 | P1 Isolamento — Swagger | T6 | Implementing |
 
 **ID format:** `AGD-NN` (Agenda, épico E3). Cada teste cita o `CA-08.x` (ou o `RN`) no nome, conforme o CLAUDE.md.
 
-**Coverage:** 25 total, 0 mapped to tasks, 25 unmapped ⚠️ (tasks ainda não criadas)
+**Coverage:** 25 total, 25 mapped to tasks, 0 unmapped (aguardando o Verifier)
 
 **CA-08.4:** fora do escopo (pendência registrada; ver Out of Scope).
 
