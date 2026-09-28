@@ -96,15 +96,15 @@ T13 -> T15
 
 **Done when**:
 
-- [ ] Fim igual ou antes do início → "{Dia}: o fim da jornada deve ser depois do início."
-- [ ] Intervalo encostado no início, encostado no fim, com fim igual ao início, com fim antes do início, ou fora da jornada → mensagem do intervalo (cada lado testado separadamente, L-003)
-- [ ] Intervalo um minuto dentro de cada limite é aceito
-- [ ] `workPeriods` devolve 1 período sem intervalo e 2 com intervalo
-- [ ] Gate check passes: `npm test`
+- [x] Fim igual ou antes do início → "{Dia}: o fim da jornada deve ser depois do início."
+- [x] Intervalo encostado no início, encostado no fim, com fim igual ao início, com fim antes do início, ou fora da jornada → mensagem do intervalo (cada lado testado separadamente, L-003)
+- [x] Intervalo um minuto dentro de cada limite é aceito
+- [x] `workPeriods` devolve 1 período sem intervalo e 2 com intervalo
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
-**Status**: Pending
+**Status**: ✅ Done
 **Commit**: `feat(US-05): add DayWorkingHours value object`
 
 ---
