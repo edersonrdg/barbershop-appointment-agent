@@ -149,15 +149,16 @@ T12 -> T14
 
 **Done when**:
 
-- [ ] `create` devolve serviço com `active: true`, `suggestedAddOnIds: []` e os valores dos VOs
-- [ ] `update` troca nome, preço e duração e mantém `active` e adicionais
-- [ ] `changeSuggestedAddOns` guarda os ids na ordem; recusa com a mensagem exata: outra barbearia ("Serviço adicional não encontrado."), o próprio serviço ("Um serviço não pode ser adicional de si mesmo."), inativo ("Os serviços adicionais devem estar ativos."); na recusa a lista anterior fica igual
-- [ ] `deactivate` e `activate` só trocam `active`; repetidos não mudam nada
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: ~10 tests novos passam (no silent deletions)
+- [x] `create` devolve serviço com `active: true`, `suggestedAddOnIds: []` e os valores dos VOs
+- [x] `update` troca nome, preço e duração e mantém `active` e adicionais
+- [x] `changeSuggestedAddOns` guarda os ids na ordem; recusa com a mensagem exata: outra barbearia ("Serviço adicional não encontrado."), o próprio serviço ("Um serviço não pode ser adicional de si mesmo."), inativo ("Os serviços adicionais devem estar ativos."); na recusa a lista anterior fica igual
+- [x] `deactivate` e `activate` só trocam `active`; repetidos não mudam nada
+- [x] Gate check passes: `npm test`
+- [x] Test count: ~10 tests novos passam (no silent deletions)
 
 **Tests**: unit
 **Gate**: build
+**Status**: ✅ Done
 **Commit**: `feat(US-04): add BarbershopService entity with add-on rules`
 
 ---
