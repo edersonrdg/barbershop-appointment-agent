@@ -394,13 +394,21 @@ describe('WhatsApp first contact (e2e)', () => {
       );
 
       await messageUpsert().expect(204);
+
+      expect(await metricValue('whatsapp_clients_created_total')).toBe(
+        created + 1,
+      );
+      expect(
+        await metricValue('whatsapp_privacy_notices_total{outcome="sent"}'),
+      ).toBe(sent + 1);
+      expect(
+        await metricValue('whatsapp_privacy_notices_total{outcome="failed"}'),
+      ).toBe(failed);
+
       await dataSource.query('DELETE FROM clients');
       connector.failing.add('sendText');
       await messageUpsert().expect(204);
 
-      expect(await metricValue('whatsapp_clients_created_total')).toBe(
-        created + 2,
-      );
       expect(
         await metricValue('whatsapp_privacy_notices_total{outcome="sent"}'),
       ).toBe(sent + 1);

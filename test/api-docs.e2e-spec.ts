@@ -157,7 +157,8 @@ describe('API docs (e2e)', () => {
     const hook = document.paths['/webhooks/whatsapp/evolution'].post!;
 
     expect(hook.description).toContain('messages.upsert');
-    expect(`${hook.summary} ${hook.description}`).toContain('US-14');
+    expect(hook.summary).toContain('US-14');
+    expect(hook.description).toContain('(US-14)');
   });
 
   it('serves the UI and the JSON document once enabled', async () => {
