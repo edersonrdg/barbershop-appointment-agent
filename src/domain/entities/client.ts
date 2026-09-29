@@ -12,6 +12,7 @@ export interface ClientProps {
   name: string;
   phone: string;
   createdAt: Date;
+  returnReminderEnabled: boolean;
 }
 
 export class Client {
@@ -36,6 +37,8 @@ export class Client {
       name: normalizeName(name),
       phone: phone.value,
       createdAt: now,
+      // RN-21: the return reminder stays off until the client opts in (CA-25.1).
+      returnReminderEnabled: false,
     });
   }
 
@@ -61,6 +64,10 @@ export class Client {
 
   get createdAt(): Date {
     return this.props.createdAt;
+  }
+
+  get returnReminderEnabled(): boolean {
+    return this.props.returnReminderEnabled;
   }
 }
 

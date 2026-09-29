@@ -28,4 +28,9 @@ export class ClientEntity {
   // means the client was never reset.
   @Column({ name: 'no_show_reset_at', type: 'timestamptz', nullable: true })
   noShowResetAt!: Date | null;
+
+  // RN-21: the return reminder is off until the client opts in (CA-25.1); the
+  // default keeps every insert that predates US-25 valid.
+  @Column({ name: 'return_reminder_enabled', type: 'boolean', default: false })
+  returnReminderEnabled!: boolean;
 }

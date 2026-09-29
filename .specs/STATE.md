@@ -74,5 +74,13 @@
 - **Date**: 2026-09-29
 - **Status**: active
 
+### AD-010
+- **Decision**: O opt-in do lembrete de retorno fica em `clients.return_reminder_enabled boolean NOT NULL DEFAULT false`, criado na US-12 como mínimo estrutural. O `Client.create` também nasce com `false`, e o insert da US-10 grava o valor do domínio. A US-25 só passa a alterar a coluna e acrescenta o registro de consentimento (CA-25.5).
+- **Reason**: O perfil da US-12 precisa mostrar o status do lembrete (CA-12.2), e o padrão do CA-25.1 é desativado. O `DEFAULT` mantém válidos os `INSERT INTO clients` dos e2e e os clientes que a US-14 vai criar.
+- **Trade-off**: Diverge do AD-008 (padrões só no domínio, sem `DEFAULT` no banco): aqui o padrão vive nos dois lugares, e os dois precisam continuar `false`.
+- **Scope**: Tabela `clients`, US-12 em diante (US-14, US-25).
+- **Date**: 2026-09-29
+- **Status**: active
+
 ## Handoff
 

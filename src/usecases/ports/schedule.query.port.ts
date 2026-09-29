@@ -48,4 +48,15 @@ export interface ScheduleQuery {
     barbershopId: string,
     appointmentId: string,
   ): Promise<ScheduleEntry | null>;
+
+  /**
+   * The appointments of `clientId` in the barbershop, only of `barberId` when
+   * it is not null, ordered by start and id, in the same entry format as
+   * `listStartingIn`.
+   */
+  listForClient(
+    barbershopId: string,
+    clientId: string,
+    barberId: string | null,
+  ): Promise<ScheduleEntry[]>;
 }

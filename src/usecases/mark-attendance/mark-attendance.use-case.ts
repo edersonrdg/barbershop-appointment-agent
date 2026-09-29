@@ -1,11 +1,11 @@
 import { AttendanceStatus } from '../../domain/entities/appointment';
 import { AppointmentNotFoundError } from '../../domain/errors/appointment-not-found.error';
-import { BookingRules } from '../../domain/value-objects/booking-rules';
 import { AppointmentRepository } from '../ports/appointment.repository.port';
 import { BookingRulesRepository } from '../ports/booking-rules.repository.port';
 import { Clock } from '../ports/clock.port';
 import { NoShowLedger } from '../ports/no-show-ledger.port';
 import { ScheduleEntry, ScheduleQuery } from '../ports/schedule.query.port';
+import { clientNoShowStatus } from '../shared/client-no-show-status';
 import {
   BarberAccessPolicy,
   BarberAccessRequest,
@@ -62,20 +62,18 @@ export class MarkAttendanceUseCase {
     };
   }
 
-  // RN-12: the block follows the limit in force, read on every mark (ATD-10);
-  // a barbershop without stored rules uses the defaults (AD-008).
   private async clientSummary(
     barbershopId: string,
     clientId: string,
   ): Promise<AttendanceClientSummary> {
-    const rules =
-      (await this.bookingRules.findByBarbershopId(barbershopId)) ??
-      BookingRules.defaults();
-    const noShowCount = await this.ledger.countFor(barbershopId, clientId);
     return {
       id: clientId,
-      noShowCount,
-      selfBookingBlocked: rules.blocksSelfBooking(noShowCount),
+      ...(await clientNoShowStatus(
+        this.ledger,
+        this.bookingRules,
+        barbershopId,
+        clientId,
+      )),
     };
   }
 }
