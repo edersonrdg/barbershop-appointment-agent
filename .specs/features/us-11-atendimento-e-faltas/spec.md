@@ -177,9 +177,9 @@ A agenda mostra e grava agendamentos, mas não registra o que aconteceu com eles
 | ATD-05 | P1 Marcar — mesmo status não muda contador | T1 | Implementing |
 | ATD-06 | P1 Marcar — sem cliente | - | Pending |
 | ATD-07 | P1 Contador — falta soma 1 | - | Pending |
-| ATD-08 | P1 Contador — bloqueado se ≥ limite | - | Pending |
-| ATD-09 | P1 Contador — 1 falta + limite 2 bloqueia | - | Pending |
-| ATD-10 | P1 Contador — segue o limite vigente | - | Pending |
+| ATD-08 | P1 Contador — bloqueado se ≥ limite | T2 | Implementing |
+| ATD-09 | P1 Contador — 1 falta + limite 2 bloqueia | T2 | Implementing |
+| ATD-10 | P1 Contador — segue o limite vigente | T2 | Implementing |
 | ATD-11 | P1 Contador — manual para bloqueado | - | Pending |
 | ATD-12 | P1 Contador — só a barbearia | - | Pending |
 | ATD-13 | P1 Correção — falta → atendido tira 1 | T1 | Implementing |
@@ -192,8 +192,8 @@ A agenda mostra e grava agendamentos, mas não registra o que aconteceu com eles
 | ATD-20 | P1 Perfil — Barbeiro em outro 403 | - | Pending |
 | ATD-21 | P1 Perfil — 401 | - | Pending |
 | ATD-22 | P1 Swagger | - | Pending |
-| ATD-23 | P1 Reset — 90 dias zera | - | Pending |
-| ATD-24 | P1 Reset — menos de 90 dias mantém | - | Pending |
+| ATD-23 | P1 Reset — 90 dias zera | T2 | Implementing |
+| ATD-24 | P1 Reset — menos de 90 dias mantém | T2 | Implementing |
 | ATD-25 | P1 Reset — idempotente | - | Pending |
 | ATD-26 | P1 Reset — diária às 03:00 | - | Pending |
 | ATD-27 | P1 Reset — por barbearia, isola falhas | - | Pending |

@@ -143,14 +143,14 @@ T12
 
 **Done when**:
 
-- [ ] Limite 2: 1 → `false`, 2 → `true`, 3 → `true`; limite 1: 1 → `true`, 0 → `false`
-- [ ] `noShowResetCutoff(2026-12-30T12:00Z)` = `2026-10-01T12:00Z`
-- [ ] Gate check passes: `npm test`
+- [x] Limite 2: 1 → `false`, 2 → `true`, 3 → `true`; limite 1: 1 → `true`, 0 → `false`
+- [x] `noShowResetCutoff(2026-12-30T12:00Z)` = `2026-10-01T12:00Z`
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
 
-**Status**: ⏳ Pending
+**Status**: ✅ Done
 
 **Commit**: `feat(US-11): add no-show block and reset rules`
 
