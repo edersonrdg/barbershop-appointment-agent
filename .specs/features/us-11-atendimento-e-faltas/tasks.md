@@ -342,14 +342,14 @@ T12
 
 **Done when**:
 
-- [ ] Aceita `attended` e `no_show`; recusa `confirmed`, `cancelled`, ausente e não string com "Informe o status: attended ou no_show."
-- [ ] Recusa id que não é UUID com "Informe um id de agendamento válido."
-- [ ] Gate check passes: `npm test`
+- [x] Aceita `attended` e `no_show`; recusa `confirmed`, `cancelled`, ausente e não string com "Informe o status: attended ou no_show."
+- [x] Recusa id que não é UUID com "Informe um id de agendamento válido."
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
 
-**Status**: ⏳ Pending
+**Status**: ✅ Done
 
 **Commit**: `feat(US-11): validate attendance payload`
 

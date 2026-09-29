@@ -186,7 +186,7 @@ A agenda mostra e grava agendamentos, mas não registra o que aconteceu com eles
 | ATD-14 | P1 Correção — atendido → falta soma 1 | T1, T5, T7 | Implementing |
 | ATD-15 | P1 Correção — antes do reset não conta | T3, T5, T7 | Implementing |
 | ATD-16 | P1 Correção — concorrência | T7 | Implementing |
-| ATD-17 | P1 Validação — 400 e mensagens | - | Pending |
+| ATD-17 | P1 Validação — 400 e mensagens | T9 | Implementing |
 | ATD-18 | P1 Validação — 404 | T4, T7 | Implementing |
 | ATD-19 | P1 Perfil — Barbeiro nos próprios | T7 | Implementing |
 | ATD-20 | P1 Perfil — Barbeiro em outro 403 | T7 | Implementing |
