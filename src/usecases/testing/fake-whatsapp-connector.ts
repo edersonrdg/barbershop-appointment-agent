@@ -3,13 +3,20 @@ import { WhatsAppConnectorUnavailableError } from '../../domain/errors/whatsapp-
 import { WhatsAppConnector } from '../ports/whatsapp-connector.port';
 
 export type FakeConnectorCall =
-  'ensureInstance' | 'requestQrCode' | 'getState' | 'ping';
+  'ensureInstance' | 'requestQrCode' | 'getState' | 'sendText' | 'ping';
+
+export interface SentText {
+  barbershopId: string;
+  phone: string;
+  text: string;
+}
 
 export class FakeWhatsAppConnector implements WhatsAppConnector {
   readonly calls: { operation: FakeConnectorCall; barbershopId?: string }[] =
     [];
   state: WhatsAppConnectorState = 'connecting';
   qrCodes: string[] = [];
+  readonly sentTexts: SentText[] = [];
   failing = new Set<FakeConnectorCall>();
   private issued = 0;
 
@@ -28,6 +35,16 @@ export class FakeWhatsAppConnector implements WhatsAppConnector {
     return this.call('getState', barbershopId, this.state);
   }
 
+  // Only delivered texts are recorded, like a real send.
+  async sendText(
+    barbershopId: string,
+    phone: string,
+    text: string,
+  ): Promise<void> {
+    await this.call('sendText', barbershopId, undefined);
+    this.sentTexts.push({ barbershopId, phone, text });
+  }
+
   ping(): Promise<void> {
     return this.call('ping', undefined, undefined);
   }
@@ -36,6 +53,7 @@ export class FakeWhatsAppConnector implements WhatsAppConnector {
     this.calls.length = 0;
     this.state = 'connecting';
     this.qrCodes = [];
+    this.sentTexts.length = 0;
     this.failing.clear();
     this.issued = 0;
   }

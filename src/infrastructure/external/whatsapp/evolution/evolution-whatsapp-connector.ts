@@ -11,7 +11,8 @@ export interface EvolutionConfig {
   webhookSecret: string;
 }
 
-type Operation = 'ensureInstance' | 'requestQrCode' | 'getState' | 'ping';
+type Operation =
+  'ensureInstance' | 'requestQrCode' | 'getState' | 'sendText' | 'ping';
 
 interface EvolutionResponse {
   status: number;
@@ -20,6 +21,8 @@ interface EvolutionResponse {
 
 const CONNECTOR_STATES: readonly string[] = ['open', 'connecting', 'close'];
 const QR_CODE_PREFIX = 'data:image/png;base64,';
+// US-13 listens to the connection; US-14 on, to the client's messages.
+const WEBHOOK_EVENTS = ['CONNECTION_UPDATE', 'MESSAGES_UPSERT'];
 
 // Evolution API v2.3.7 (AD-011). Instances are named after the barbershop id,
 // so the webhook can find the tenant without a lookup table.
@@ -48,6 +51,14 @@ export class EvolutionWhatsAppConnector implements WhatsAppConnector {
     );
     if (state.status !== 404) {
       this.assertOk(operation, state);
+      // Instances created before US-14 only listen to the connection.
+      const updated = await this.call(
+        operation,
+        'POST',
+        `/webhook/set/${barbershopId}`,
+        { webhook: this.webhook() },
+      );
+      this.assertOk(operation, updated);
       return;
     }
     const created = await this.call(operation, 'POST', '/instance/create', {
@@ -57,13 +68,7 @@ export class EvolutionWhatsAppConnector implements WhatsAppConnector {
       // CA-13.4: the Owner's phone keeps its notifications and unread badges.
       alwaysOnline: false,
       readMessages: false,
-      webhook: {
-        enabled: true,
-        url: this.config.webhookUrl,
-        byEvents: false,
-        events: ['CONNECTION_UPDATE'],
-        headers: { authorization: `Bearer ${this.config.webhookSecret}` },
-      },
+      webhook: this.webhook(),
     });
     this.assertOk(operation, created);
   }
@@ -99,8 +104,33 @@ export class EvolutionWhatsAppConnector implements WhatsAppConnector {
       : 'close';
   }
 
+  async sendText(
+    barbershopId: string,
+    phone: string,
+    text: string,
+  ): Promise<void> {
+    const operation = 'sendText';
+    const response = await this.call(
+      operation,
+      'POST',
+      `/message/sendText/${barbershopId}`,
+      { number: phone.replace(/^\+/, ''), text },
+    );
+    this.assertOk(operation, response);
+  }
+
   async ping(): Promise<void> {
     this.assertOk('ping', await this.call('ping', 'GET', '/'));
+  }
+
+  private webhook() {
+    return {
+      enabled: true,
+      url: this.config.webhookUrl,
+      byEvents: false,
+      events: WEBHOOK_EVENTS,
+      headers: { authorization: `Bearer ${this.config.webhookSecret}` },
+    };
   }
 
   private async call(

@@ -73,13 +73,13 @@ Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-first-contact.e2e-s
 
 ### S4 - Fornecedor isolado, instâncias e operação · ~6 arquivos · ~35 KB · ~9k
 
-**C18** - O adaptador cria a instância nova com `webhook.events` igual a `["CONNECTION_UPDATE", "MESSAGES_UPSERT"]` (AC 21)
+**C18** - O adaptador cria a instância nova com `webhook.events` igual a `["CONNECTION_UPDATE", "MESSAGES_UPSERT"]` (AC 21) ✅
 Proof: `npx jest src/infrastructure/external/whatsapp/evolution/evolution-whatsapp-connector.spec.ts -t "\(C18\)"`
 
-**C19** - O adaptador, quando a instância já existe (`connectionState` responde `200`), chama `POST /webhook/set/{barbershopId}` com o header `apikey` e o corpo `{ webhook: { enabled: true, url: WHATSAPP_WEBHOOK_URL, byEvents: false, events: ["CONNECTION_UPDATE", "MESSAGES_UPSERT"], headers: { authorization: "Bearer <WHATSAPP_WEBHOOK_SECRET>" } } }`, sem chamar `POST /instance/create`; se essa chamada responde 5xx, `ensureInstance` rejeita com `WhatsAppConnectorUnavailableError` (AC 22)
+**C19** - O adaptador, quando a instância já existe (`connectionState` responde `200`), chama `POST /webhook/set/{barbershopId}` com o header `apikey` e o corpo `{ webhook: { enabled: true, url: WHATSAPP_WEBHOOK_URL, byEvents: false, events: ["CONNECTION_UPDATE", "MESSAGES_UPSERT"], headers: { authorization: "Bearer <WHATSAPP_WEBHOOK_SECRET>" } } }`, sem chamar `POST /instance/create`; se essa chamada responde 5xx, `ensureInstance` rejeita com `WhatsAppConnectorUnavailableError` (AC 22) ✅
 Proof: `npx jest src/infrastructure/external/whatsapp/evolution/evolution-whatsapp-connector.spec.ts -t "\(C19\)"`
 
-**C20** - `sendText("<id>", "+5511987654321", "oi")` chama `POST /message/sendText/<id>` com o header `apikey` e o corpo `{ number: "5511987654321", text: "oi" }`; rejeita com `WhatsAppConnectorUnavailableError` e soma 1 em `whatsapp_connector_errors_total{operation="sendText"}` em cada um dos 4 casos: sem resposta em `EVOLUTION_TIMEOUT_MS`, erro de rede, status 5xx e corpo `{ error: true }` com status 200 (AC 23, door 1)
+**C20** - `sendText("<id>", "+5511987654321", "oi")` chama `POST /message/sendText/<id>` com o header `apikey` e o corpo `{ number: "5511987654321", text: "oi" }`; rejeita com `WhatsAppConnectorUnavailableError` e soma 1 em `whatsapp_connector_errors_total{operation="sendText"}` em cada um dos 4 casos: sem resposta em `EVOLUTION_TIMEOUT_MS`, erro de rede, status 5xx e corpo `{ error: true }` com status 200 (AC 23, door 1) ✅
 Proof: `npx jest src/infrastructure/external/whatsapp/evolution/evolution-whatsapp-connector.spec.ts -t "\(C20\)"`
 
 **C21** - Durante um primeiro contato com envio bem-sucedido e outro com o `sendText` falhando, nenhuma chamada a `Logger` (`log`, `warn`, `error`, `debug`, `verbose`) recebe argumento cujo JSON contenha `987654321`, `João Silva` ou `inteligência artificial` (AC 24)

@@ -10,5 +10,7 @@ export interface WhatsAppConnector {
   // Resolves to a `data:image/png;base64,...` QR code.
   requestQrCode(barbershopId: string): Promise<string>;
   getState(barbershopId: string): Promise<WhatsAppConnectorState>;
+  // Sends `text` from the barbershop's number to the E.164 `phone`.
+  sendText(barbershopId: string, phone: string, text: string): Promise<void>;
   ping(): Promise<void>;
 }
