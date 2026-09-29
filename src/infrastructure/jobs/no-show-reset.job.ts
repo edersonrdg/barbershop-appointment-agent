@@ -20,15 +20,27 @@ export class NoShowResetJob {
   })
   async run(): Promise<void> {
     try {
-      const result = await this.resetExpiredNoShows.execute();
-      // LGPD: only counts, never a client's phone or name.
-      this.logger.log(result, 'No-show reset finished.');
-    } catch (error) {
-      const err = error as { name?: string; code?: string };
-      this.logger.error(
-        { err: { name: err.name, code: err.code } },
-        'No-show reset failed.',
+      const { clientsReset, failures } =
+        await this.resetExpiredNoShows.execute();
+      for (const { barbershopId, error } of failures) {
+        this.logger.error(
+          { barbershopId, err: errorIdentity(error) },
+          'No-show reset failed for a barbershop.',
+        );
+      }
+      this.logger.log(
+        { clientsReset, failedBarbershops: failures.length },
+        'No-show reset finished.',
       );
+    } catch (error) {
+      this.logger.error({ err: errorIdentity(error) }, 'No-show reset failed.');
     }
   }
+}
+
+// LGPD: an error message may carry a client's phone or name, so only the
+// error's name and code are logged.
+function errorIdentity(error: unknown): { name?: string; code?: string } {
+  const { name, code } = error as { name?: string; code?: string };
+  return { name, code };
 }

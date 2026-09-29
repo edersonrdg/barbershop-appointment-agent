@@ -300,7 +300,7 @@ T12
 
 ### T8: ResetExpiredNoShowsUseCase
 
-**What**: Use case que percorre `listIds()`, chama `resetExpired` com `noShowResetCutoff(now)` e devolve `{ clientsReset, failedBarbershops }`, seguindo após erro de uma barbearia.
+**What**: Use case que percorre `listIds()`, chama `resetExpired` com `noShowResetCutoff(now)` e devolve `{ clientsReset, failures }` (ajustado em F1), seguindo após erro de uma barbearia.
 **Where**: `src/usecases/reset-expired-no-shows/reset-expired-no-shows.use-case.ts`
 **Depends on**: None
 **Reuses**: `NoShowLedger`, `FixedClock`
@@ -315,7 +315,7 @@ T12
 
 - [x] CA-11.3: agora `2026-12-30T12:00Z`; cliente A com última falta em `2026-10-01T12:00Z` bloqueado → zerado e desbloqueado; cliente B com `2026-10-02T12:00Z` mantém
 - [x] Segunda execução: `clientsReset: 0`, contadores iguais
-- [x] Falha na primeira barbearia não impede a segunda; `failedBarbershops: 1`
+- [x] Falha na primeira barbearia não impede a segunda; `failures` traz a barbearia A (ajustado em F1)
 - [x] Gate check passes: `npm test`
 
 **Tests**: unit
@@ -440,6 +440,19 @@ T12
 **Status**: ✅ Done
 
 **Commit**: `feat(US-11): schedule the daily no-show reset`
+
+---
+
+### Correções do Verifier (iteração 1)
+
+O Verifier (1ª execução) deu FAIL com 4 lacunas. Cada uma virou uma correção:
+
+| ID | Lacuna | Correção | Requisito | Status |
+| -- | ------ | -------- | --------- | ------ |
+| F1 | O erro de uma barbearia no reset não era logado (Assumption "Falha da rotina") | O use case devolve `failures` (barbearia + erro); o job loga um erro por barbearia com nome e código, sem a mensagem (LGPD). Teste: `src/infrastructure/jobs/no-show-reset.job.spec.ts` | ATD-27 | ✅ Done |
+| F2 | O e2e do ATD-04 na rota não discriminava (o mutante de `listBusyPeriods` só com `confirmed` passava) | Agendamento de 60 min do Bruno em andamento marcado como falta; o primeiro início oferecido tem de ser 14:00Z. Mutante reinjetado e morto | ATD-04 | ✅ Done |
+| F3 | ATD-11 só testado para o Dono | e2e do Barbeiro agendando para si um cliente bloqueado → `201` | ATD-11 | ✅ Done |
+| F4 | Edge case "correção depois de um reset" só testava a marcação | Teste unitário marca e corrige um agendamento posterior ao reset (2 → 1) | ATD-15 (edge case) | ✅ Done |
 
 ---
 

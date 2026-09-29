@@ -112,8 +112,8 @@ graph TD
 ### Use case: `ResetExpiredNoShowsUseCase`
 
 - **Location**: `src/usecases/reset-expired-no-shows/reset-expired-no-shows.use-case.ts`
-- **Output**: `{ clientsReset: number; failedBarbershops: number }`
-- **Fluxo**: `listIds()`; para cada barbearia, `resetExpired(id, noShowResetCutoff(now), now)`; erro de uma barbearia conta em `failedBarbershops` e segue (ATD-27).
+- **Output**: `{ clientsReset: number; failures: { barbershopId: string; error: unknown }[] }`
+- **Fluxo**: `listIds()`; para cada barbearia, `resetExpired(id, noShowResetCutoff(now), now)`; o erro de uma barbearia entra em `failures` e a rotina segue (ATD-27).
 
 ### HTTP
 
@@ -124,7 +124,7 @@ graph TD
 ### Rotina: `NoShowResetJob`
 
 - **Location**: `src/infrastructure/jobs/no-show-reset.job.ts`
-- `@Cron('0 3 * * *', { name: 'no-show-reset', timeZone: 'America/Sao_Paulo' })` chama o use case e loga `clientsReset` e `failedBarbershops` com o `Logger` do Nest.
+- `@Cron('0 3 * * *', { name: 'no-show-reset', timeZone: 'America/Sao_Paulo' })` chama o use case, loga um erro por barbearia em `failures` (id da barbearia, nome e código do erro, nunca a mensagem, por LGPD) e um resumo com `clientsReset` e `failedBarbershops` com o `Logger` do Nest.
 - Módulo `src/infrastructure/modules/attendance.module.ts` registra use cases, ledger e job; `app.module.ts` importa `ScheduleModule.forRoot()` de `@nestjs/schedule` (com alias, porque já existe o `ScheduleModule` da agenda).
 
 ---

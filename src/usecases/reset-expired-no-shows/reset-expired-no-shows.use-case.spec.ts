@@ -102,7 +102,7 @@ describe('ResetExpiredNoShowsUseCase', () => {
       selfBookingBlocked: true,
     });
     expect(ledger.resetAtOf('barbershop-a', 'b')).toBeNull();
-    expect(result).toEqual({ clientsReset: 2, failedBarbershops: 0 });
+    expect(result).toEqual({ clientsReset: 2, failures: [] });
   });
 
   it('CA-11.3: a second run resets nobody and leaves the counters as the first left them (ATD-25)', async () => {
@@ -111,7 +111,7 @@ describe('ResetExpiredNoShowsUseCase', () => {
 
     const second = await useCase.execute();
 
-    expect(second).toEqual({ clientsReset: 0, failedBarbershops: 0 });
+    expect(second).toEqual({ clientsReset: 0, failures: [] });
     expect(await clientState('barbershop-a', 'a')).toEqual({
       noShowCount: 0,
       selfBookingBlocked: false,
@@ -125,7 +125,11 @@ describe('ResetExpiredNoShowsUseCase', () => {
 
     const result = await useCase.execute();
 
-    expect(result).toEqual({ clientsReset: 1, failedBarbershops: 1 });
+    expect(result.clientsReset).toBe(1);
+    expect(result.failures.map(({ barbershopId }) => barbershopId)).toEqual([
+      'barbershop-a',
+    ]);
+    expect(result.failures[0].error).toBeInstanceOf(Error);
     expect((await clientState('barbershop-b', 'c')).noShowCount).toBe(0);
     expect((await clientState('barbershop-a', 'a')).noShowCount).toBe(2);
   });
