@@ -1,7 +1,7 @@
 # US-10: Agendamento manual pelo painel — Design
 
 **Spec**: `.specs/features/us-10-agendamento-manual/spec.md`
-**Status**: Draft
+**Status**: Approved
 
 ---
 

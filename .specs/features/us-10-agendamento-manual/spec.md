@@ -201,40 +201,40 @@ O motor da US-07 valida e grava agendamentos, e a agenda da US-08 os mostra, mas
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| AGM-01 | P1 Criar — grava manual, 201 | T2, T6, T7, T8, T13 | Implementing |
-| AGM-02 | P1 Criar — fim e ordem dos serviços | T8 | Implementing |
-| AGM-03 | P1 Criar — aparece na agenda | T6, T13 | Implementing |
-| AGM-04 | P1 Criar — sem antecedência mínima | T7, T8, T13 | Implementing |
-| AGM-05 | P1 Cliente — cria pelo telefone | T1, T2, T5, T7, T8 | Implementing |
-| AGM-06 | P1 Cliente — reusa e mantém nome | T4, T7, T8, T13 | Implementing |
-| AGM-07 | P1 Cliente — telefone de outra barbearia | T4, T8 | Implementing |
-| AGM-08 | P1 Cliente — recusa não grava cliente | T5, T8, T13 | Implementing |
-| AGM-09 | P1 Cliente — corrida do mesmo telefone | T5, T8, T13 | Implementing |
-| AGM-10 | P1 Recusa — sobreposição 409 | T3, T8, T13 | Implementing |
-| AGM-11 | P1 Recusa — concorrência 409 | T3, T13 | Implementing |
-| AGM-12 | P1 Recusa — RN-05 422 | T3, T8, T13 | Implementing |
-| AGM-13 | P1 Recusa — passado 422 | T3, T8 | Implementing |
-| AGM-14 | P1 Recusa — serviço não realizado 400 | T3, T8 | Implementing |
-| AGM-15 | P1 Recusa — barbeiro ou serviço 404 | T8, T13 | Implementing |
-| AGM-16 | P1 Validação — 400 e mensagens | T1, T10, T13 | Implementing |
-| AGM-17 | P1 Perfil — Barbeiro para si | T8 | Implementing |
-| AGM-18 | P1 Perfil — Barbeiro para outro 403 | T8, T13 | Implementing |
-| AGM-19 | P1 Perfil — Dono para qualquer barbeiro | T8 | Implementing |
-| AGM-20 | P1 Horários — por barbeiro | T9, T12, T13 | Implementing |
-| AGM-21 | P1 Horários — qualquer barbeiro | T9 | Implementing |
-| AGM-22 | P1 Horários — sem antecedência mínima | T9, T13 | Implementing |
-| AGM-23 | P1 Horários — Barbeiro só a própria | T9 | Implementing |
-| AGM-24 | P1 Horários — início devolvido é agendável | T13 | Implementing |
-| AGM-25 | P1 Horários — validação 400 | T11, T13 | Implementing |
-| AGM-26 | P1 Horários — barbeiro ou serviço inválido | T9 | Implementing |
-| AGM-27 | P1 Isolamento — RN-26 | T4, T5, T6, T8, T9, T13 | Implementing |
-| AGM-28 | P1 Isolamento — 401 | T13 | Implementing |
-| AGM-29 | P1 Swagger | T12, T13 | Implementing |
-| AGM-30 | P1 PRD — forçar como questão em aberto | T14 | Implementing |
+| AGM-01 | P1 Criar — grava manual, 201 | T2, T6, T7, T8, T13 | Verified |
+| AGM-02 | P1 Criar — fim e ordem dos serviços | T8 | Verified |
+| AGM-03 | P1 Criar — aparece na agenda | T6, T13 | Verified |
+| AGM-04 | P1 Criar — sem antecedência mínima | T7, T8, T13 | Verified |
+| AGM-05 | P1 Cliente — cria pelo telefone | T1, T2, T5, T7, T8 | Verified |
+| AGM-06 | P1 Cliente — reusa e mantém nome | T4, T7, T8, T13 | Verified |
+| AGM-07 | P1 Cliente — telefone de outra barbearia | T4, T8 | Verified |
+| AGM-08 | P1 Cliente — recusa não grava cliente | T5, T8, T13 | Verified |
+| AGM-09 | P1 Cliente — corrida do mesmo telefone | T5, T8, T13 | Verified |
+| AGM-10 | P1 Recusa — sobreposição 409 | T3, T8, T13 | Verified |
+| AGM-11 | P1 Recusa — concorrência 409 | T3, T13 | Verified |
+| AGM-12 | P1 Recusa — RN-05 422 | T3, T8, T13 | Verified |
+| AGM-13 | P1 Recusa — passado 422 | T3, T8 | Verified |
+| AGM-14 | P1 Recusa — serviço não realizado 400 | T3, T8 | Verified |
+| AGM-15 | P1 Recusa — barbeiro ou serviço 404 | T8, T13 | Verified |
+| AGM-16 | P1 Validação — 400 e mensagens | T1, T10, T13 | Verified |
+| AGM-17 | P1 Perfil — Barbeiro para si | T8 | Verified |
+| AGM-18 | P1 Perfil — Barbeiro para outro 403 | T8, T13 | Verified |
+| AGM-19 | P1 Perfil — Dono para qualquer barbeiro | T8 | Verified |
+| AGM-20 | P1 Horários — por barbeiro | T9, T12, T13 | Verified |
+| AGM-21 | P1 Horários — qualquer barbeiro | T9 | Verified |
+| AGM-22 | P1 Horários — sem antecedência mínima | T9, T13 | Verified |
+| AGM-23 | P1 Horários — Barbeiro só a própria | T9 | Verified |
+| AGM-24 | P1 Horários — início devolvido é agendável | T13 | Verified |
+| AGM-25 | P1 Horários — validação 400 | T11, T13 | Verified |
+| AGM-26 | P1 Horários — barbeiro ou serviço inválido | T9 | Verified |
+| AGM-27 | P1 Isolamento — RN-26 | T4, T5, T6, T8, T9, T13 | Verified |
+| AGM-28 | P1 Isolamento — 401 | T13 | Verified |
+| AGM-29 | P1 Swagger | T12, T13 | Verified |
+| AGM-30 | P1 PRD — forçar como questão em aberto | T14 | Verified |
 
 **ID format:** `AGM-NN` (Agendamento Manual, épico E3). Cada teste cita o `CA-10.x` (ou o `RN`) no nome, conforme o CLAUDE.md.
 
-**Coverage:** 30 total, 30 mapped to tasks, 0 unmapped ✅
+**Coverage:** 30 total, 30 mapped to tasks, 0 unmapped, 30 verified ✅ (Verifier, `validation.md`)
 
 ---
 

@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/us-10-agendamento-manual/design.md`
-**Status**: Draft
+**Status**: Done
 
 Toda task cita US-10 e os `AGM`/`RN` que implementa. Testes citam o `CA-10.x` (ou a `RN`) no nome. Commits: `feat(US-10): ...` (ou `refactor`/`test`/`docs`), só locais. Branch: `feat/us-10-manual-booking`, a partir da `main` (US-09 mergeada, PR #10).
 
