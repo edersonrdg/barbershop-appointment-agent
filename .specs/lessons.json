@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 16,
+  "next_id": 17,
   "lessons": [
     {
       "id": "L-001",
@@ -280,6 +280,24 @@
       ],
       "created": "2026-09-29T23:11:38Z",
       "last_seen": "2026-09-29T23:11:38Z"
+    },
+    {
+      "id": "L-016",
+      "key": "ac_gap::when a controller acts on a field of a use case result assert that field on the value the use case returns not only on a stubbed result in the controller test",
+      "text": "When a controller acts on a field of a use case result, assert that field on the value the use case returns, not only on a stubbed result in the controller test.",
+      "signal": "ac_gap",
+      "scope": "usecase-controller-seam",
+      "status": "candidate",
+      "features": [
+        "us-16-transferencia-para-atendimento-humano"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "C26 - src/usecases/answer-client-question/answer-client-question.use-case.spec.ts:144-150 (usecase-controller-seam)"
+      ],
+      "created": "2026-09-29T23:48:03Z",
+      "last_seen": "2026-09-29T23:48:03Z"
     }
   ]
 }

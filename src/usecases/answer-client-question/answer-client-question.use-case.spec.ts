@@ -149,9 +149,20 @@ async function setup({
     });
     return connector.sentTexts.map((sent) => sent.text);
   };
+  const execute = (result: MessageInterpretation, text = 'quanto custa?') => {
+    interpreter.next = result;
+    nextId += 1;
+    return useCase.execute({
+      barbershopId: barbershop.id,
+      phone: PHONE,
+      messageId: `message-${nextId}`,
+      text,
+    });
+  };
   const conversation = () => conversations.row(barbershop.id, client.id);
   return {
     reply,
+    execute,
     interpreter,
     connector,
     conversations,
@@ -331,6 +342,40 @@ describe('AnswerClientQuestionUseCase', () => {
         });
       },
     );
+
+    it('AC 27 (C26): returns the requested reason with the hand-off', async () => {
+      const { execute } = await setup();
+
+      await expect(
+        execute(interpretation({ humanRequested: true })),
+      ).resolves.toEqual({
+        outcome: 'sent',
+        kind: 'handoff',
+        handoff: 'requested',
+      });
+    });
+
+    it('AC 27 (C26): returns the not_understood reason with the hand-off', async () => {
+      const { execute } = await setup();
+      await execute(interpretation({}));
+
+      await expect(execute(interpretation({}))).resolves.toEqual({
+        outcome: 'sent',
+        kind: 'handoff',
+        handoff: 'not_understood',
+      });
+    });
+
+    it('AC 3 (C3): a failed hand-off notice returns the error and the reason and keeps the pause', async () => {
+      const { execute, connector, conversation } = await setup();
+      connector.failing.add('sendText');
+
+      const result = await execute(interpretation({ humanRequested: true }));
+
+      expect(result).toMatchObject({ outcome: 'failed', handoff: 'requested' });
+      expect(result.outcome === 'failed' && result.error).toBeInstanceOf(Error);
+      expect(conversation()?.pausedAt).toEqual(NOW);
+    });
 
     it('CA-16.2 (C6): an answer and an off-topic refusal reset the failures', async () => {
       const { reply, conversation } = await setup({

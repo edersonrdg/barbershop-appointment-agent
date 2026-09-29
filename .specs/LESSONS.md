@@ -102,6 +102,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: AC 20 - client-question-reply.ts:79-81; message-interpretation.schema.ts services max(80) (llm)
 - last seen: 2026-09-29T23:11:38Z
 
+### L-016 - When a controller acts on a field of a use case result, assert that field on the value the use case returns, not only on a stubbed result in the controller test.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `usecase-controller-seam` · harmful: 0
+- features: us-16-transferencia-para-atendimento-humano
+- evidence: C26 - src/usecases/answer-client-question/answer-client-question.use-case.spec.ts:144-150 (usecase-controller-seam)
+- last seen: 2026-09-29T23:48:03Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

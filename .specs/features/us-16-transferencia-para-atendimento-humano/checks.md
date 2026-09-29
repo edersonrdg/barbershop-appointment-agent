@@ -30,6 +30,7 @@ Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-
 **C3** - Com o fake do conector falhando no `sendText` e a interpretação `{ humanRequested: true }`, o webhook responde `204`, a conversa fica com `paused_at` preenchido, o controller loga o erro com `barbershopId` e o nome do erro, e a serialização do que foi logado não contém o telefone nem o texto da mensagem (AC 3) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C3\)"`
 Proof: `npx jest src/infrastructure/external/whatsapp/evolution/evolution-webhook.controller.spec.ts -t "\(C3\)"`
+Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "\(C3\)"`
 
 **C4** - O schema da interpretação exige `humanRequested` booleano: o adaptador do Gemini rejeita com `MessageInterpreterUnavailableError` um JSON sem `humanRequested` e um com `humanRequested: "sim"`, resolve com `humanRequested: true` repassado; o `responseJsonSchema` enviado tem `humanRequested` em `properties` e em `required`; e o `systemInstruction` contém "humanRequested" (door 1) ✅
 Proof: `npx jest src/infrastructure/external/gemini/gemini-message-interpreter.spec.ts -t "\(C4\)"`
@@ -111,6 +112,7 @@ Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts
 
 **C26** - Na transferência, o use case devolve o motivo no resultado e o controller do webhook loga um objeto com `barbershopId` e `reason`, e a serialização do que foi logado não contém o telefone nem o texto do cliente (AC 27; renegociado com o usuário: `usecases/` não importa o `Logger`) ✅
 Proof: `npx jest src/infrastructure/external/whatsapp/evolution/evolution-webhook.controller.spec.ts -t "\(C26\)"`
+Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "\(C26\)"`
 
 **C27** - No documento OpenAPI, `GET /whatsapp/conversations/waiting-human` e `POST /whatsapp/conversations/{clientId}/resume` têm `summary` contendo `US-16`, `x-roles` = `['owner']`, resposta de sucesso (`200` com schema, `204`) e as respostas `401` e `403`; o `POST` tem `404` com o exemplo "Cliente não encontrado."; e a descrição de `POST /webhooks/whatsapp/evolution` contém `US-16` (AC 28) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/api-docs.e2e-spec.ts -t "\(C27\)"`
@@ -166,3 +168,4 @@ Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-questions.e2e-spec.
 - **Boundary:** C1-C30 closed by the `feat(US-16)` commit after `3ff9d5f`
 - **Settled mid-build:** C26 renegociado com o usuário: `usecases/` não pode importar o `Logger` (boundaries), então o use case devolve o motivo da transferência no resultado e o controller do webhook loga; a prova passou para `evolution-webhook.controller.spec.ts`. Os ids C2, C6, C7 e C20 também existem no spec do use case da US-15; o seletor `-t` roda os dois, e os da US-16 ficam no `describe('US-16 hand-off')`. Nenhuma asserção da US-14 ou da US-15 mudou: as fixtures de interpretação ganharam `humanRequested: false` e o setup do spec do use case ganhou o cliente e a conversa, que o use case agora exige
 - **Abandoned:** ler `UPDATE ... RETURNING` como lista de linhas - o driver Postgres do TypeORM devolve `[linhas, contagem]` para `UPDATE`, e a pausa nunca vencia (C1, C5, C8 vermelhos); o repositório desempacota o par
+- **Verifier round 1 (FAIL):** C26 não tinha asserção sobre o `handoff` devolvido pelo use case, e o ramo de falha do aviso (C3) não era afirmado no use case. Fix: o spec do use case afirma o resultado `{ outcome: 'sent', kind: 'handoff', handoff }` para os dois motivos e `{ outcome: 'failed', error, handoff: 'requested' }` com a pausa mantida; C3 e C26 ganharam essa segunda prova (só acrescentada, nenhuma removida). O título do teste do C18 passou a mostrar o booleano

@@ -477,7 +477,7 @@ describe('WhatsApp hand-off to a human (e2e)', () => {
       ['12h01', 12 * HOUR_MS + MINUTE_MS, 12 * HOUR_MS + MINUTE_MS, true],
       ['13h with activity 11h ago', 13 * HOUR_MS, 11 * HOUR_MS, false],
     ])(
-      'CA-16.5 (C18): a pause %s old answers: %s',
+      'CA-16.5 (C18): a pause %s old (paused %i ms ago, last activity %i ms ago) answers: %s',
       async (_case, pausedAgo, lastActivityAgo, answered) => {
         await insertConversation(shopA, joao, {
           pausedAgo,
