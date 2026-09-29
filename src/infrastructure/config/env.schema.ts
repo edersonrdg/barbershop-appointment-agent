@@ -35,6 +35,13 @@ export const envSchema = z.object({
     z.string().min(1).optional(),
   ),
   MAIL_FROM: z.string().min(1),
+  // WhatsApp (US-13): Evolution API self-hosted, reached by the adapter only.
+  EVOLUTION_API_URL: z.string().url(),
+  EVOLUTION_API_KEY: z.string().min(1),
+  EVOLUTION_TIMEOUT_MS: z.coerce.number().int().positive().default(10000),
+  // Where the Evolution API posts the webhooks; it must reach this API.
+  WHATSAPP_WEBHOOK_URL: z.string().url(),
+  WHATSAPP_WEBHOOK_SECRET: z.string().min(32),
   // A documentação expõe o mapa da API; fica desligada salvo opt-in explícito.
   API_DOCS_ENABLED: z
     .enum(['true', 'false'])

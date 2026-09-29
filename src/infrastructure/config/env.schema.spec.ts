@@ -9,6 +9,10 @@ const validEnv = {
   APP_WEB_URL: 'https://painel.exemplo.com.br',
   SMTP_HOST: 'localhost',
   MAIL_FROM: 'BarberBot <nao-responda@barberbot.local>',
+  EVOLUTION_API_URL: 'http://localhost:8080',
+  EVOLUTION_API_KEY: 'evolution-key',
+  WHATSAPP_WEBHOOK_URL: 'http://localhost:3000/webhooks/whatsapp/evolution',
+  WHATSAPP_WEBHOOK_SECRET: 'w'.repeat(32),
 };
 
 describe('validateEnv', () => {
@@ -95,5 +99,32 @@ describe('validateEnv', () => {
 
     expect(env.SMTP_USER).toBeUndefined();
     expect(env.SMTP_PASSWORD).toBeUndefined();
+  });
+
+  describe('CA-13.1 (C36): WhatsApp connector variables', () => {
+    it.each([
+      'EVOLUTION_API_URL',
+      'EVOLUTION_API_KEY',
+      'WHATSAPP_WEBHOOK_URL',
+      'WHATSAPP_WEBHOOK_SECRET',
+    ])('fails without %s', (name) => {
+      expect(() => validateEnv({ ...validEnv, [name]: undefined })).toThrow(
+        new RegExp(name),
+      );
+    });
+
+    it('requires a webhook secret of at least 32 characters', () => {
+      expect(() =>
+        validateEnv({ ...validEnv, WHATSAPP_WEBHOOK_SECRET: 'w'.repeat(31) }),
+      ).toThrow(/WHATSAPP_WEBHOOK_SECRET/);
+      expect(
+        validateEnv({ ...validEnv, WHATSAPP_WEBHOOK_SECRET: 'w'.repeat(32) })
+          .WHATSAPP_WEBHOOK_SECRET,
+      ).toBe('w'.repeat(32));
+    });
+
+    it('defaults the connector timeout to 10000 ms', () => {
+      expect(validateEnv(validEnv).EVOLUTION_TIMEOUT_MS).toBe(10000);
+    });
   });
 });
