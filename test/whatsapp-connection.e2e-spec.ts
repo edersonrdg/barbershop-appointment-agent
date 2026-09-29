@@ -399,6 +399,10 @@ describe('WhatsApp connection (e2e)', () => {
       const response = await connectionUpdate(shopA, 'open').expect(204);
 
       expect(response.text).toBe('');
+      expect(await connectionOf(shopA)).toMatchObject({
+        status: 'connected',
+        disconnected_at: null,
+      });
       connector.state = 'open';
       const current = await status().expect(200);
       expect((current.body as { status: string }).status).toBe('connected');
@@ -544,7 +548,7 @@ describe('WhatsApp connection (e2e)', () => {
       ).toBe(false);
     });
 
-    describe('C35: whatsapp_connections constraints', () => {
+    describe('door 1 (C35): whatsapp_connections constraints', () => {
       it('rejects an unknown status', async () => {
         await expect(setConnection(shopA, 'foo' as Status)).rejects.toThrow(
           /whatsapp_connections_status_check/,
