@@ -228,14 +228,14 @@ T12
 
 **Done when**:
 
-- [ ] e2e: `countFor` conta só `no_show` do cliente na barbearia, ignora `attended`/`confirmed`, outro cliente e outra barbearia, e ignora faltas com `starts_at <= no_show_reset_at`
-- [ ] e2e: `resetExpired` zera (grava `no_show_reset_at`) quem tem a falta contada mais recente em `cutoff` exato e antes dele; mantém quem tem uma falta depois do `cutoff`; não toca outra barbearia; segunda execução devolve 0 e não muda nada
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] e2e: `countFor` conta só `no_show` do cliente na barbearia, ignora `attended`/`confirmed`, outro cliente e outra barbearia, e ignora faltas com `starts_at <= no_show_reset_at`
+- [x] e2e: `resetExpired` zera (grava `no_show_reset_at`) quem tem a falta contada mais recente em `cutoff` exato e antes dele; mantém quem tem uma falta depois do `cutoff`; não toca outra barbearia; segunda execução devolve 0 e não muda nada
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
 
-**Status**: ⏳ Pending
+**Status**: ✅ Done
 
 **Commit**: `feat(US-11): count and reset no-shows per client`
 
