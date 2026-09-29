@@ -14,6 +14,7 @@ import { BarberNameAlreadyExistsError } from '../../domain/errors/barber-name-al
 import { BarberNotFoundError } from '../../domain/errors/barber-not-found.error';
 import { BarberUnavailableError } from '../../domain/errors/barber-unavailable.error';
 import { BarberUserAlreadyLinkedError } from '../../domain/errors/barber-user-already-linked.error';
+import { ClientNotFoundError } from '../../domain/errors/client-not-found.error';
 import { DomainError } from '../../domain/errors/domain.error';
 import { EmailAlreadyRegisteredError } from '../../domain/errors/email-already-registered.error';
 import { InvalidBarberServiceError } from '../../domain/errors/invalid-barber-service.error';
@@ -61,6 +62,7 @@ const STATUS_BY_ERROR = new Map<unknown, HttpStatus>([
   [ServiceNotPerformedError, HttpStatus.BAD_REQUEST],
   [AppointmentNotFoundError, HttpStatus.NOT_FOUND],
   [AppointmentNotStartedError, HttpStatus.UNPROCESSABLE_ENTITY],
+  [ClientNotFoundError, HttpStatus.NOT_FOUND],
 ]);
 
 @Catch(DomainError)

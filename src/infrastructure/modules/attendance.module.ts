@@ -93,6 +93,6 @@ import { SchedulingModule } from './scheduling.module';
     },
     NoShowResetJob,
   ],
-  exports: [MarkAttendanceUseCase],
+  exports: [MarkAttendanceUseCase, NO_SHOW_LEDGER],
 })
 export class AttendanceModule {}

@@ -27,7 +27,8 @@ Reaproveita o contador derivado da US-11 (`NoShowLedger.countFor` + `BookingRule
 | domain | termo novo: perfil do cliente - leitura que junta cliente, agendamentos, faltas, bloqueio e serviços mais usados; nenhuma regra nova de negócio, só leitura |
 | domain | termo existente: `selfBookingBlocked` / `noShowCount` - hoje só a resposta de `PATCH /appointments/{id}/status` (US-11) os devolve; o perfil passa a devolvê-los com a mesma regra, e a resposta da US-11 não muda |
 | stored data | `ALTER TABLE clients ADD return_reminder_enabled ... DEFAULT false`: todo cliente existente fica `false`, que é o padrão do CA-25.1; o Postgres 17 adiciona coluna com default constante sem reescrever a tabela. Nada a migrar à mão |
-| código existente | os 9 `INSERT INTO clients` dos e2e e o insert de `TypeOrmAppointmentRepository.create` não citam a coluna e continuam válidos por causa do `DEFAULT` |
+| código existente | os 9 `INSERT INTO clients` dos e2e não citam a coluna e continuam válidos por causa do `DEFAULT`; o insert de `TypeOrmAppointmentRepository.create` (US-10) passa a gravar `returnReminderEnabled` do `Client`, que nasce `false` |
+| código existente | `MarkAttendanceUseCase` (US-11) passa a calcular faltas e bloqueio pelo mesmo helper do perfil; a resposta da US-11 não muda |
 
 ## Relations
 

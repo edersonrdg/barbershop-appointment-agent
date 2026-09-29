@@ -19,7 +19,7 @@ export class InMemoryScheduleQuery implements ScheduleQuery {
     barbershopId: string,
     entry: Pick<ScheduleEntry, 'id' | 'startsAt'> & {
       barber: ScheduleEntry['barber'];
-    },
+    } & Partial<ScheduleEntry>,
   ): void {
     this.stored.push({
       barbershopId,
@@ -84,5 +84,27 @@ export class InMemoryScheduleQuery implements ScheduleQuery {
         tenant === barbershopId && entry.id === appointmentId,
     );
     return Promise.resolve(found?.entry ?? null);
+  }
+
+  listForClient(
+    barbershopId: string,
+    clientId: string,
+    barberId: string | null,
+  ): Promise<ScheduleEntry[]> {
+    return Promise.resolve(
+      this.stored
+        .filter(
+          ({ barbershopId: tenant, entry }) =>
+            tenant === barbershopId &&
+            entry.client?.id === clientId &&
+            (barberId === null || entry.barber.id === barberId),
+        )
+        .map(({ entry }) => entry)
+        .sort(
+          (a, b) =>
+            a.startsAt.getTime() - b.startsAt.getTime() ||
+            a.id.localeCompare(b.id),
+        ),
+    );
   }
 }
