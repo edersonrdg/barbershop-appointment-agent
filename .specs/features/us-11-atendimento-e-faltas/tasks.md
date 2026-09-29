@@ -171,15 +171,15 @@ T12
 
 **Done when**:
 
-- [ ] `npm run migration:generate` depois da migration não gera diferença (entidades e banco alinhados)
-- [ ] e2e de schema: `attended` e `no_show` aceitos; `cancelled` recusado pelo check; `attended` sobreposto a `confirmed` do mesmo barbeiro recusado (`23P01`); `no_show_reset_at` aceita nulo
-- [ ] `migration:revert` volta ao schema anterior sem erro
-- [ ] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+- [x] `npm run migration:generate` depois da migration não gera diferença (entidades e banco alinhados)
+- [x] e2e de schema: `attended` e `no_show` aceitos; `cancelled` recusado pelo check; `attended` sobreposto a `confirmed` do mesmo barbeiro recusado (`23P01`); `no_show_reset_at` aceita nulo
+- [x] `migration:revert` volta ao schema anterior sem erro
+- [x] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: build
 
-**Status**: ⏳ Pending
+**Status**: ✅ Done
 
 **Commit**: `feat(US-11): add attendance statuses and no-show reset column`
 
