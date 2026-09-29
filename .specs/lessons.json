@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 14,
+  "next_id": 16,
   "lessons": [
     {
       "id": "L-001",
@@ -244,6 +244,42 @@
       ],
       "created": "2026-09-29T22:38:12Z",
       "last_seen": "2026-09-29T22:38:12Z"
+    },
+    {
+      "id": "L-014",
+      "key": "spec_precision_gap::when a check claims which part of an input is kept first n last n build the test input from distinguishable characters so the assertion checks content not only length",
+      "text": "When a check claims which part of an input is kept (first N, last N), build the test input from distinguishable characters so the assertion checks content, not only length.",
+      "signal": "spec_precision_gap",
+      "scope": "tests",
+      "status": "candidate",
+      "features": [
+        "us-15-duvidas-sobre-a-barbearia"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "C20 - answer-client-question.use-case.spec.ts:260-262 (tests)"
+      ],
+      "created": "2026-09-29T23:11:38Z",
+      "last_seen": "2026-09-29T23:11:38Z"
+    },
+    {
+      "id": "L-015",
+      "key": "spec_precision_gap::when a bound limits model output echoed back to a user apply it to every field whose text can reach the reply not only the field the criterion names",
+      "text": "When a bound limits model output echoed back to a user, apply it to every field whose text can reach the reply, not only the field the criterion names.",
+      "signal": "spec_precision_gap",
+      "scope": "llm",
+      "status": "candidate",
+      "features": [
+        "us-15-duvidas-sobre-a-barbearia"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AC 20 - client-question-reply.ts:79-81; message-interpretation.schema.ts services max(80) (llm)"
+      ],
+      "created": "2026-09-29T23:11:38Z",
+      "last_seen": "2026-09-29T23:11:38Z"
     }
   ]
 }
