@@ -1,5 +1,10 @@
 import { Logger } from '@nestjs/common';
 import {
+  AnswerClientQuestionInput,
+  AnswerClientQuestionUseCase,
+  ClientReplyResult,
+} from '../../../../usecases/answer-client-question/answer-client-question.use-case';
+import {
   ApplyWhatsAppConnectionStateInput,
   ApplyWhatsAppConnectionStateResult,
   ApplyWhatsAppConnectionStateUseCase,
@@ -32,10 +37,12 @@ function controllerReturning(result: ApplyWhatsAppConnectionStateResult) {
     },
   } as unknown as ApplyWhatsAppConnectionStateUseCase;
   const { receiveMessage } = receivingMessages();
+  const { answerQuestion } = answering();
   return {
     controller: new EvolutionWebhookController(
       useCase,
       receiveMessage,
+      answerQuestion,
       new FixedClock(NOW),
     ),
     calls,
@@ -53,18 +60,32 @@ function receivingMessages() {
   return { receiveMessage, calls };
 }
 
-function messageController() {
+function answering(result: ClientReplyResult = { outcome: 'none' }) {
+  const calls: AnswerClientQuestionInput[] = [];
+  const answerQuestion = {
+    execute: (input: AnswerClientQuestionInput) => {
+      calls.push(input);
+      return Promise.resolve(result);
+    },
+  } as unknown as AnswerClientQuestionUseCase;
+  return { answerQuestion, calls };
+}
+
+function messageController(reply?: ClientReplyResult) {
   const applyState = {
     execute: () => Promise.reject(new Error('not a connection update')),
   } as unknown as ApplyWhatsAppConnectionStateUseCase;
   const { receiveMessage, calls } = receivingMessages();
+  const { answerQuestion, calls: answers } = answering(reply);
   return {
     controller: new EvolutionWebhookController(
       applyState,
       receiveMessage,
+      answerQuestion,
       new FixedClock(NOW),
     ),
     calls,
+    answers,
   };
 }
 
@@ -207,11 +228,12 @@ describe('EvolutionWebhookController', () => {
     ['with a numeric remoteJid', message({}, { remoteJid: 5511987654321 })],
     ['without fromMe', message({}, { fromMe: undefined })],
   ])('CA-14.1 (C15): ignores a message %s', async (_case, payload) => {
-    const { controller, calls } = messageController();
+    const { controller, calls, answers } = messageController();
 
     await expect(controller.receive(payload)).resolves.toBeUndefined();
 
     expect(calls).toEqual([]);
+    expect(answers).toEqual([]);
   });
 
   it('CA-14.1 (C15): hands a 300 s old client message to the use case with only the tenant, phone and profile name', async () => {
@@ -226,5 +248,67 @@ describe('EvolutionWebhookController', () => {
         profileName: 'João Silva',
       },
     ]);
+  });
+
+  it.each([
+    ['conversation', { conversation: 'quanto custa o corte?' }],
+    [
+      'extendedTextMessage',
+      { extendedTextMessage: { text: 'quanto custa o corte?' } },
+    ],
+  ])(
+    'CA-15.1: hands the id and the %s text to the answer use case',
+    async (_case, content) => {
+      const { controller, answers } = messageController();
+
+      await controller.receive(message({ message: content }));
+
+      expect(answers).toEqual([
+        {
+          barbershopId: SHOP,
+          phone: '+5511987654321',
+          messageId: 'MESSAGE-1',
+          text: 'quanto custa o corte?',
+        },
+      ]);
+    },
+  );
+
+  it.each([
+    ['an audio', message({ message: { audioMessage: {} } })],
+    ['no message', message({ message: undefined })],
+    ['no id', message({}, { id: undefined })],
+  ])(
+    'AC 14: does not answer a message with %s, but still hands the contact to US-14',
+    async (_case, payload) => {
+      const { controller, calls, answers } = messageController();
+
+      await controller.receive(payload);
+
+      expect(calls).toHaveLength(1);
+      expect(answers).toEqual([]);
+    },
+  );
+
+  it('AC 18 (C19): logs a failed reply with only the barbershop id and the error identity', async () => {
+    const { controller } = messageController({
+      outcome: 'failed',
+      error: new SmtpError('send to +5511987654321 failed: quanto custa?'),
+    });
+
+    await controller.receive(
+      message({ message: { conversation: 'quanto custa?' } }),
+    );
+
+    const error = spies[1];
+    expect(error).toHaveBeenCalledTimes(1);
+    const [[context]] = error.mock.calls as unknown[][];
+    expect(context).toEqual({
+      barbershopId: SHOP,
+      err: { name: 'SmtpError', code: 'EENVELOPE' },
+    });
+    const logged = loggedArguments(spies);
+    expect(logged).not.toContain('5511987654321');
+    expect(logged).not.toContain('quanto custa');
   });
 });

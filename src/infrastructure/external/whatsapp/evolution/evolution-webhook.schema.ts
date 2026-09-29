@@ -23,13 +23,23 @@ export const evolutionWebhookSchema = z.looseObject({
 
 export type EvolutionWebhook = z.infer<typeof evolutionWebhookSchema>;
 
-// US-14: only what identifies the client of a `messages.upsert`; the message
-// content is not read.
+// US-14: what identifies the client of a `messages.upsert`; US-15: the
+// message id and its text, when the message is a text.
 export const evolutionMessageSchema = z.looseObject({
   key: z.looseObject({
     remoteJid: z.string(),
     fromMe: z.boolean(),
+    id: z.string().min(1).nullish().catch(undefined),
   }),
   pushName: z.string().nullish(),
   messageTimestamp: z.number(),
+  message: z
+    .looseObject({
+      conversation: z.string().nullish(),
+      extendedTextMessage: z
+        .looseObject({ text: z.string().nullish() })
+        .nullish(),
+    })
+    .nullish()
+    .catch(undefined),
 });

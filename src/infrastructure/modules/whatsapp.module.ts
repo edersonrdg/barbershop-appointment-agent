@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import type { Registry } from 'prom-client';
 import { DataSource } from 'typeorm';
 import { WhatsAppConnectionController } from '../../interface-adapters/controllers/whatsapp-connection.controller';
+import { AnswerClientQuestionUseCase } from '../../usecases/answer-client-question/answer-client-question.use-case';
 import { ApplyWhatsAppConnectionStateUseCase } from '../../usecases/apply-whatsapp-connection-state/apply-whatsapp-connection-state.use-case';
 import { ConnectWhatsAppUseCase } from '../../usecases/connect-whatsapp/connect-whatsapp.use-case';
 import { GetWhatsAppConnectionUseCase } from '../../usecases/get-whatsapp-connection/get-whatsapp-connection.use-case';
@@ -19,6 +20,18 @@ import {
   EMAIL_SENDER,
   EmailSender,
 } from '../../usecases/ports/email-sender.port';
+import {
+  INBOUND_MESSAGE_REPOSITORY,
+  InboundMessageRepository,
+} from '../../usecases/ports/inbound-message.repository.port';
+import {
+  MESSAGE_INTERPRETER,
+  MessageInterpreter,
+} from '../../usecases/ports/message-interpreter.port';
+import {
+  SERVICE_REPOSITORY,
+  ServiceRepository,
+} from '../../usecases/ports/service.repository.port';
 import {
   ID_GENERATOR,
   IdGenerator,
@@ -41,6 +54,7 @@ import {
 } from '../../usecases/ports/whatsapp-metrics.port';
 import { ReceiveWhatsAppMessageUseCase } from '../../usecases/receive-whatsapp-message/receive-whatsapp-message.use-case';
 import type { Env } from '../config/env.schema';
+import { TypeOrmInboundMessageRepository } from '../database/repositories/typeorm-inbound-message.repository';
 import { TypeOrmClientRepository } from '../database/repositories/typeorm-client.repository';
 import { TypeOrmWhatsAppConnectionRepository } from '../database/repositories/typeorm-whatsapp-connection.repository';
 import { EvolutionWebhookController } from '../external/whatsapp/evolution/evolution-webhook.controller';
@@ -52,12 +66,15 @@ import { PrometheusWhatsAppMetrics } from '../observability/prometheus-whatsapp-
 import { SystemClock } from '../security/system-clock';
 import { UuidIdGenerator } from '../security/uuid-id-generator';
 import { AccountModule } from './account.module';
+import { GeminiModule } from './gemini.module';
+import { ServicesModule } from './services.module';
 
-// US-13: WhatsApp connection; US-14: first contact and privacy notice. Global so the readiness check can ping the
+// US-13: WhatsApp connection; US-14: first contact and privacy notice; US-15:
+// answers to the client's questions. Global so the readiness check can ping the
 // connector through the port (AD-011).
 @Global()
 @Module({
-  imports: [AccountModule, ObservabilityModule],
+  imports: [AccountModule, ObservabilityModule, ServicesModule, GeminiModule],
   controllers: [WhatsAppConnectionController, EvolutionWebhookController],
   providers: [
     { provide: CLOCK, useClass: SystemClock },
@@ -91,6 +108,12 @@ import { AccountModule } from './account.module';
       inject: [DataSource],
       useFactory: (dataSource: DataSource) =>
         new TypeOrmClientRepository(dataSource),
+    },
+    {
+      provide: INBOUND_MESSAGE_REPOSITORY,
+      inject: [DataSource],
+      useFactory: (dataSource: DataSource) =>
+        new TypeOrmInboundMessageRepository(dataSource),
     },
     {
       provide: WHATSAPP_METRICS,
@@ -189,6 +212,39 @@ import { AccountModule } from './account.module';
           ids,
           clock,
           config.get('PRIVACY_POLICY_URL', { infer: true }),
+        ),
+    },
+    {
+      provide: AnswerClientQuestionUseCase,
+      inject: [
+        WHATSAPP_CONNECTION_REPOSITORY,
+        BARBERSHOP_REPOSITORY,
+        SERVICE_REPOSITORY,
+        INBOUND_MESSAGE_REPOSITORY,
+        MESSAGE_INTERPRETER,
+        WHATSAPP_CONNECTOR,
+        WHATSAPP_METRICS,
+        CLOCK,
+      ],
+      useFactory: (
+        connections: WhatsAppConnectionRepository,
+        barbershops: BarbershopRepository,
+        services: ServiceRepository,
+        inboundMessages: InboundMessageRepository,
+        interpreter: MessageInterpreter,
+        connector: WhatsAppConnector,
+        metrics: WhatsAppMetrics,
+        clock: Clock,
+      ) =>
+        new AnswerClientQuestionUseCase(
+          connections,
+          barbershops,
+          services,
+          inboundMessages,
+          interpreter,
+          connector,
+          metrics,
+          clock,
         ),
     },
   ],

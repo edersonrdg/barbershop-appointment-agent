@@ -161,6 +161,13 @@ describe('API docs (e2e)', () => {
     expect(hook.description).toContain('(US-14)');
   });
 
+  it('US-15 (C28): describes the answers to client questions on the webhook', () => {
+    const hook = document.paths['/webhooks/whatsapp/evolution'].post!;
+
+    expect(hook.summary).toContain('US-15');
+    expect(hook.description).toContain('US-15');
+  });
+
   it('serves the UI and the JSON document once enabled', async () => {
     const docsApp = (await createAccountTestApp([], setupApiDocs)).app;
 

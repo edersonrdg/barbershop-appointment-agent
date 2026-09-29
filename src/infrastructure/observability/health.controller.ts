@@ -11,6 +11,8 @@ import {
 import { z } from 'zod';
 import { ApiZodResponse } from '../../interface-adapters/controllers/api-docs/api-zod-response.decorator';
 import { Public } from '../../interface-adapters/controllers/public.decorator';
+import { MESSAGE_INTERPRETER } from '../../usecases/ports/message-interpreter.port';
+import type { MessageInterpreter } from '../../usecases/ports/message-interpreter.port';
 import { WHATSAPP_CONNECTOR } from '../../usecases/ports/whatsapp-connector.port';
 import type { WhatsAppConnector } from '../../usecases/ports/whatsapp-connector.port';
 
@@ -35,6 +37,8 @@ export class HealthController {
     private readonly database: TypeOrmHealthIndicator,
     private readonly indicators: HealthIndicatorService,
     @Inject(WHATSAPP_CONNECTOR) private readonly whatsapp: WhatsAppConnector,
+    @Inject(MESSAGE_INTERPRETER)
+    private readonly interpreter: MessageInterpreter,
   ) {}
 
   @Get('live')
@@ -53,7 +57,7 @@ export class HealthController {
   @HealthCheck()
   @ApiOperation({
     summary:
-      'Readiness: dependências críticas (o banco e o conector de WhatsApp) respondem',
+      'Readiness: dependências críticas (o banco, o conector de WhatsApp e o Gemini) respondem',
   })
   @ApiZodResponse({
     status: HttpStatus.OK,
@@ -69,7 +73,19 @@ export class HealthController {
     return this.health.check([
       () => this.database.pingCheck('database', { timeout: 1500 }),
       () => this.whatsappCheck(),
+      () => this.geminiCheck(),
     ]);
+  }
+
+  // US-15: the bot cannot answer without Gemini.
+  private async geminiCheck(): Promise<HealthIndicatorResult> {
+    const indicator = this.indicators.check('gemini');
+    try {
+      await this.interpreter.ping();
+      return indicator.up();
+    } catch {
+      return indicator.down();
+    }
   }
 
   // RNF-07: the WhatsApp connector is a critical integration (US-13).

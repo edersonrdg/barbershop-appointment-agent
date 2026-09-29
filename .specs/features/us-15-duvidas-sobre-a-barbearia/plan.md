@@ -12,11 +12,11 @@ Com a entrega, a mensagem de texto de um cliente recebe na hora uma resposta com
 
 Reaproveita o webhook, o controller e o `ReceiveWhatsAppMessageUseCase` da US-14 (cadastro e aviso seguem iguais e vêm antes da resposta), o `WhatsAppConnector.sendText` para responder, o `ServiceRepository.listActiveByBarbershop` e o `BarbershopRepository.findById` como única fonte dos dados da resposta, e o `WEEKDAY_LABELS` para os dias.
 
-1. `POST /webhooks/whatsapp/evolution` com `messages.upsert` -> `EvolutionWebhookController` (exists) - aplica os filtros da US-14 e passa a extrair também `data.key.id` e o texto (`data.message.conversation` ou `data.message.extendedTextMessage.text`); entrega `{ barbershopId, phone, profileName, messageId, text }`
-2. `ReceiveWhatsAppMessageUseCase` (exists) - cadastro e aviso como na US-14; com texto não vazio, reivindica o `messageId` (door 3) e só quem reivindicou segue
-3. use case de resposta (new, no door - placement) - carrega a barbearia e os serviços ativos, chama `MessageInterpreter.interpret` (door 1) com o texto e os nomes do catálogo
+1. `POST /webhooks/whatsapp/evolution` com `messages.upsert` -> `EvolutionWebhookController` (exists) - aplica os filtros da US-14 e passa a extrair também `data.key.id` e o texto (`data.message.conversation` ou `data.message.extendedTextMessage.text`)
+2. `ReceiveWhatsAppMessageUseCase` (exists) - cadastro e aviso como na US-14, sem mudança; o controller só segue para a resposta quando a mensagem tem id e texto
+3. `AnswerClientQuestionUseCase` (new, no door - placement) - confere a conexão, reivindica `(barbershopId, messageId)` (door 3) e só quem reivindicou segue; carrega a barbearia e os serviços ativos e chama `MessageInterpreter.interpret` (door 1) com o texto e os nomes do catálogo
 4. `GeminiMessageInterpreter` (door 2) - `generateContent` com saída JSON, valida com Zod, registra latência, tokens e desfecho; devolve só a interpretação estruturada
-5. use case de resposta - monta o texto a partir dos dados do banco (nunca do texto do modelo, exceto o nome do serviço desconhecido, limitado); em falha do intérprete, monta o texto de indisponibilidade
+5. mesmo use case - monta o texto a partir dos dados do banco (nunca do texto do modelo, exceto o nome do serviço desconhecido, limitado); em falha do intérprete, monta o texto de indisponibilidade
 6. out: `WhatsAppConnector.sendText` (exists) -> Evolution; o webhook responde `204` em todos os casos
 
 ## Impact
@@ -29,7 +29,7 @@ Reaproveita o webhook, o controller e o `ReceiveWhatsAppMessageUseCase` da US-14
 | webhook existente | `POST /webhooks/whatsapp/evolution` passa a responder ao texto de `messages.upsert`; entrada, saída e status não mudam. A descrição no Swagger é atualizada |
 | rota existente | `GET /health/ready` ganha o indicador `gemini`; com o Gemini fora, a rota passa a responder `503` (regra do CLAUDE.md para integrações críticas) |
 | configuração | `GEMINI_API_KEY` e `GEMINI_MODEL` (já no `.env.example`) entram no `env.schema.ts` como obrigatórias; nova `GEMINI_TIMEOUT_MS` com padrão 8000. A aplicação deixa de subir sem chave e modelo |
-| código existente | o `FakeWhatsAppConnector` não muda; os e2e que sobem a aplicação passam a trocar o intérprete por um fake, e o `validEnv` de `env.schema.spec.ts` ganha as variáveis |
+| código existente | o `FakeWhatsAppConnector` não muda; os e2e que consultam `/health/ready` ou mandam mensagens passam a trocar o intérprete por um fake, e o `validEnv` de `env.schema.spec.ts` ganha as variáveis. O e2e da US-14 passa a mandar uma foto em vez de um texto: com texto, a US-15 também responde, e os checks da US-14 contam só o aviso |
 
 ## Relations
 

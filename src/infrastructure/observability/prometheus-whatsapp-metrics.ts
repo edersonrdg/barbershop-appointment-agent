@@ -1,5 +1,6 @@
 import { Counter, Registry } from 'prom-client';
 import {
+  ClientReplyKind,
   PrivacyNoticeOutcome,
   WhatsAppMetrics,
 } from '../../usecases/ports/whatsapp-metrics.port';
@@ -8,6 +9,7 @@ export class PrometheusWhatsAppMetrics implements WhatsAppMetrics {
   private readonly disconnectionsTotal: Counter;
   private readonly clientsCreatedTotal: Counter;
   private readonly privacyNoticesTotal: Counter<'outcome'>;
+  private readonly repliesTotal: Counter<'kind'>;
 
   constructor(registry: Registry) {
     this.disconnectionsTotal = new Counter({
@@ -26,6 +28,12 @@ export class PrometheusWhatsAppMetrics implements WhatsAppMetrics {
       labelNames: ['outcome'],
       registers: [registry],
     });
+    this.repliesTotal = new Counter({
+      name: 'whatsapp_replies_total',
+      help: 'Total de respostas do bot enviadas pelo WhatsApp, por tipo',
+      labelNames: ['kind'],
+      registers: [registry],
+    });
   }
 
   disconnected(): void {
@@ -38,5 +46,9 @@ export class PrometheusWhatsAppMetrics implements WhatsAppMetrics {
 
   privacyNotice(outcome: PrivacyNoticeOutcome): void {
     this.privacyNoticesTotal.inc({ outcome });
+  }
+
+  reply(kind: ClientReplyKind): void {
+    this.repliesTotal.inc({ kind });
   }
 }
