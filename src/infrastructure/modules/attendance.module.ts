@@ -6,6 +6,10 @@ import {
   AppointmentRepository,
 } from '../../usecases/ports/appointment.repository.port';
 import {
+  BARBERSHOP_REPOSITORY,
+  BarbershopRepository,
+} from '../../usecases/ports/barbershop.repository.port';
+import {
   BARBER_REPOSITORY,
   BarberRepository,
 } from '../../usecases/ports/barber.repository.port';
@@ -22,18 +26,22 @@ import {
   SCHEDULE_QUERY,
   ScheduleQuery,
 } from '../../usecases/ports/schedule.query.port';
+import { ResetExpiredNoShowsUseCase } from '../../usecases/reset-expired-no-shows/reset-expired-no-shows.use-case';
 import { BarberAccessPolicy } from '../../usecases/shared/barber-access-policy';
 import { TypeOrmNoShowLedger } from '../database/repositories/typeorm-no-show-ledger';
+import { NoShowResetJob } from '../jobs/no-show-reset.job';
 import { SystemClock } from '../security/system-clock';
+import { AccountModule } from './account.module';
 import { BarbersModule } from './barbers.module';
 import { BookingRulesModule } from './booking-rules.module';
 import { ScheduleModule } from './schedule.module';
 import { SchedulingModule } from './scheduling.module';
 
-// US-11: attendance, no-show counter and self-booking block. The route lives in
-// the AppointmentsController, whose module imports this one.
+// US-11: attendance, no-show counter, self-booking block and the daily reset.
+// The route lives in the AppointmentsController, whose module imports this one.
 @Module({
   imports: [
+    AccountModule,
     BarbersModule,
     BookingRulesModule,
     SchedulingModule,
@@ -74,6 +82,16 @@ import { SchedulingModule } from './scheduling.module';
           clock,
         ),
     },
+    {
+      provide: ResetExpiredNoShowsUseCase,
+      inject: [BARBERSHOP_REPOSITORY, NO_SHOW_LEDGER, CLOCK],
+      useFactory: (
+        barbershops: BarbershopRepository,
+        ledger: NoShowLedger,
+        clock: Clock,
+      ) => new ResetExpiredNoShowsUseCase(barbershops, ledger, clock),
+    },
+    NoShowResetJob,
   ],
   exports: [MarkAttendanceUseCase],
 })

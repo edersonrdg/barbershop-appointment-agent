@@ -192,11 +192,11 @@ A agenda mostra e grava agendamentos, mas não registra o que aconteceu com eles
 | ATD-20 | P1 Perfil — Barbeiro em outro 403 | T7, T11 | Implementing |
 | ATD-21 | P1 Perfil — 401 | T11 | Implementing |
 | ATD-22 | P1 Swagger | T11 | Implementing |
-| ATD-23 | P1 Reset — 90 dias zera | T2, T5, T8 | Implementing |
+| ATD-23 | P1 Reset — 90 dias zera | T2, T5, T8, T12 | Implementing |
 | ATD-24 | P1 Reset — menos de 90 dias mantém | T2, T5, T8 | Implementing |
 | ATD-25 | P1 Reset — idempotente | T5, T8 | Implementing |
-| ATD-26 | P1 Reset — diária às 03:00 | - | Pending |
-| ATD-27 | P1 Reset — por barbearia, isola falhas | T6, T8 | Implementing |
+| ATD-26 | P1 Reset — diária às 03:00 | T12 | Implementing |
+| ATD-27 | P1 Reset — por barbearia, isola falhas | T6, T8, T12 | Implementing |
 
 **ID format:** `ATD-NN` (Atendimento, épico E3). Cada teste cita o `CA-11.x` (ou o `RN`) no nome, conforme o CLAUDE.md.
 

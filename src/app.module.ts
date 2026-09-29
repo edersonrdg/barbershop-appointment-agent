@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule as CronScheduleModule } from '@nestjs/schedule';
 import { LoggerModule } from 'nestjs-pino';
 import { validateEnv, type Env } from './infrastructure/config/env.schema';
 import { DatabaseModule } from './infrastructure/database/database.module';
@@ -26,6 +27,7 @@ import { ObservabilityModule } from './infrastructure/observability/observabilit
           LOG_LEVEL: config.get('LOG_LEVEL', { infer: true }),
         }),
     }),
+    CronScheduleModule.forRoot(),
     DatabaseModule,
     ObservabilityModule,
     AccountModule,

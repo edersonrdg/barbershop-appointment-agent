@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/us-11-atendimento-e-faltas/design.md`
-**Status**: In Progress
+**Status**: Done
 
 Toda task cita US-11 e os `ATD`/`RN` que implementa. Testes citam o `CA-11.x` (ou a `RN`) no nome. Commits: `feat(US-11): ...` (ou `refactor`/`test`/`docs`), só locais. Branch: `feat/us-11-attendance-and-no-shows`, a partir da `main` (US-10 mergeada, PR #11).
 
@@ -429,15 +429,15 @@ T12
 
 **Done when**:
 
-- [ ] e2e: o `SchedulerRegistry` tem o job `no-show-reset` com `0 3 * * *` e fuso `America/Sao_Paulo`
-- [ ] e2e CA-11.3: com `FixedClock`, rodar o job zera no banco o cliente com falta de 90 dias e mantém o de 89
-- [ ] Log da execução sem telefone nem nome
-- [ ] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
+- [x] e2e: o `SchedulerRegistry` tem o job `no-show-reset` com `0 3 * * *` e fuso `America/Sao_Paulo`
+- [x] e2e CA-11.3: com `FixedClock`, rodar o job zera no banco o cliente com falta de 90 dias e mantém o de 89
+- [x] Log da execução sem telefone nem nome
+- [x] Gate check passes: `npm run lint && npm run build && npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: build
 
-**Status**: ⏳ Pending
+**Status**: ✅ Done
 
 **Commit**: `feat(US-11): schedule the daily no-show reset`
 
