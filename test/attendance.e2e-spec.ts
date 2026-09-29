@@ -116,11 +116,13 @@ describe('Attendance (e2e)', () => {
     barberId = ana,
     clientId = maria,
     status = 'confirmed',
+    minutes = 30,
   }: {
     startsAt: string;
     barberId?: string;
     clientId?: string | null;
     status?: string;
+    minutes?: number;
   }): Promise<string> {
     const id = randomUUID();
     const start = new Date(startsAt);
@@ -133,7 +135,7 @@ describe('Attendance (e2e)', () => {
         barberId,
         clientId,
         start,
-        new Date(start.getTime() + 30 * 60 * 1000),
+        new Date(start.getTime() + minutes * 60 * 1000),
         status,
       ],
     );
@@ -304,20 +306,26 @@ describe('Attendance (e2e)', () => {
       expect(await statusOf(walkIn)).toBe('no_show');
     });
 
-    it('RN-03: a no-show keeps holding the slot, so the engine does not offer it (ATD-04)', async () => {
-      await marked(today, 'no_show');
+    it('RN-03: a no-show keeps holding the rest of its slot, so the engine does not offer it (ATD-04)', async () => {
+      // Bruno's 10:00-11:00 (local) appointment is still running at 10:05; the
+      // panel offers starts from now, so only the held slot keeps 10:30 out.
+      const running = await insertAppointment({
+        startsAt: utc('13:00'),
+        barberId: bruno,
+        minutes: 60,
+      });
+      await marked(running, 'no_show');
 
       const response = await request(app.getHttpServer())
         .get('/appointments/available-slots')
-        .query({ date: MONDAY, serviceIds: haircut, barberId: ana })
+        .query({ date: MONDAY, serviceIds: haircut, barberId: bruno })
         .set('Authorization', `Bearer ${ownerToken}`)
         .expect(200);
 
       const starts = (
         response.body as { slots: { startsAt: string }[] }
       ).slots.map((slot) => slot.startsAt);
-      expect(starts.length).toBeGreaterThan(0);
-      expect(starts.every((start) => start >= utc('13:30'))).toBe(true);
+      expect(starts[0]).toBe(utc('14:00'));
     });
   });
 
@@ -381,6 +389,31 @@ describe('Attendance (e2e)', () => {
       expect((response.body as AttendanceBody['appointment']).client?.id).toBe(
         maria,
       );
+    });
+
+    it('RN-12: a barber still books a blocked client manually for themselves (ATD-11)', async () => {
+      await insertAppointment({
+        startsAt: utc('13:00', LAST_MONDAY),
+        status: 'no_show',
+      });
+      expect((await marked(today, 'no_show')).client?.selfBookingBlocked).toBe(
+        true,
+      );
+
+      const response = await request(app.getHttpServer())
+        .post('/appointments')
+        .set('Authorization', `Bearer ${brunoToken}`)
+        .send({
+          barberId: bruno,
+          serviceIds: [haircut],
+          startsAt: utc('15:00'),
+          client: { name: 'Maria', phone: '11987654321' },
+        })
+        .expect(201);
+
+      const booked = response.body as AttendanceBody['appointment'];
+      expect(booked.client?.id).toBe(maria);
+      expect(booked.barber.id).toBe(bruno);
     });
   });
 

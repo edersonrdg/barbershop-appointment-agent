@@ -337,13 +337,20 @@ describe('MarkAttendanceUseCase', () => {
     expect(await statusOf('old')).toBe('attended');
   });
 
-  it('RN-13: an appointment that started after the last reset changes the counter normally', async () => {
-    const { ledger, mark } = await setup();
-    ledger.setResetAt('barbershop-a', 'maria', at('12:00', LAST_MONDAY));
+  it('RN-13: marking and correcting an appointment that started after the last reset changes the counter normally', async () => {
+    const { ledger, seed, mark } = await setup();
+    await seed({
+      id: 'recent',
+      startsAt: at('10:00', LAST_MONDAY),
+      status: 'no_show',
+    });
+    ledger.setResetAt('barbershop-a', 'maria', at('12:00', TWO_MONDAYS_AGO));
 
-    const result = await mark({ status: 'no_show' });
+    const marked = await mark({ status: 'no_show' });
+    const corrected = await mark({ status: 'attended' });
 
-    expect(result.client?.noShowCount).toBe(1);
+    expect(marked.client?.noShowCount).toBe(2);
+    expect(corrected.client?.noShowCount).toBe(1);
   });
 
   it('CA-11.4: two concurrent marks end with one of the sent statuses and a matching counter (ATD-16)', async () => {
