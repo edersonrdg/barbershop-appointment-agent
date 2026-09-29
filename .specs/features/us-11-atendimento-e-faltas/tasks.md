@@ -313,15 +313,15 @@ T12
 
 **Done when**:
 
-- [ ] CA-11.3: agora `2026-12-30T12:00Z`; cliente A com última falta em `2026-10-01T12:00Z` bloqueado → zerado e desbloqueado; cliente B com `2026-10-02T12:00Z` mantém
-- [ ] Segunda execução: `clientsReset: 0`, contadores iguais
-- [ ] Falha na primeira barbearia não impede a segunda; `failedBarbershops: 1`
-- [ ] Gate check passes: `npm test`
+- [x] CA-11.3: agora `2026-12-30T12:00Z`; cliente A com última falta em `2026-10-01T12:00Z` bloqueado → zerado e desbloqueado; cliente B com `2026-10-02T12:00Z` mantém
+- [x] Segunda execução: `clientsReset: 0`, contadores iguais
+- [x] Falha na primeira barbearia não impede a segunda; `failedBarbershops: 1`
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
 
-**Status**: ⏳ Pending
+**Status**: ✅ Done
 
 **Commit**: `feat(US-11): reset no-show counters after 90 days`
 
