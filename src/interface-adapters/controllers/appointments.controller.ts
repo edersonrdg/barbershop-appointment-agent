@@ -4,12 +4,20 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateManualAppointmentUseCase } from '../../usecases/create-manual-appointment/create-manual-appointment.use-case';
 import { ListPanelSlotsUseCase } from '../../usecases/list-panel-slots/list-panel-slots.use-case';
+import { MarkAttendanceUseCase } from '../../usecases/mark-attendance/mark-attendance.use-case';
+import {
+  AttendancePresenter,
+  AttendanceResponse,
+  attendanceResponseSchema,
+} from '../presenters/attendance.presenter';
 import {
   AvailableSlotsPresenter,
   AvailableSlotsResponse,
@@ -29,6 +37,14 @@ import type { AvailableSlotsQueryParams } from './schemas/available-slots.query.
 import { availableSlotsQuerySchema } from './schemas/available-slots.query.schema';
 import type { CreateAppointmentBody } from './schemas/create-appointment.schema';
 import { createAppointmentSchema } from './schemas/create-appointment.schema';
+import type {
+  AppointmentIdParam,
+  MarkAttendanceBody,
+} from './schemas/mark-attendance.schema';
+import {
+  appointmentIdParamSchema,
+  markAttendanceSchema,
+} from './schemas/mark-attendance.schema';
 import { ZodValidationPipe } from './zod-validation.pipe';
 
 // Open to barbers; the use cases limit them to their own barber (CA-10.5).
@@ -39,6 +55,7 @@ export class AppointmentsController {
   constructor(
     private readonly createAppointment: CreateManualAppointmentUseCase,
     private readonly listSlots: ListPanelSlotsUseCase,
+    private readonly markAttendance: MarkAttendanceUseCase,
   ) {}
 
   @Post()
@@ -132,6 +149,51 @@ export class AppointmentsController {
         userId: session.userId,
         role: session.role,
         ...query,
+      }),
+    );
+  }
+
+  @Patch(':id/status')
+  @Roles('owner', 'barber')
+  @ApiOperation({
+    summary: 'Marca um agendamento como atendido ou falta (US-11)',
+    description:
+      'Registra o comparecimento (attended) ou a falta (no_show) de um agendamento que já começou, e corrige a marcação trocando um pelo outro; não volta para confirmed. Marcar o status que o agendamento já tem não muda nada. O contador de faltas do cliente conta as faltas na barbearia desde o último reset (RN-11, RN-13), e o cliente fica bloqueado para autoagendamento enquanto o contador atinge o limite de faltas vigente (RN-12). O Dono marca qualquer agendamento; o Barbeiro, só os próprios. O agendamento marcado continua ocupando o horário.',
+  })
+  @ApiZodResponse({
+    status: HttpStatus.OK,
+    description:
+      'Agendamento com o novo status e o resumo de faltas do cliente (null sem cliente).',
+    schema: attendanceResponseSchema,
+  })
+  @ApiErrorResponse(
+    HttpStatus.FORBIDDEN,
+    'Barbeiro marcando agendamento de outro barbeiro, ou sem ficha de barbeiro.',
+    'Acesso negado.',
+  )
+  @ApiErrorResponse(
+    HttpStatus.NOT_FOUND,
+    'Agendamento inexistente na barbearia da sessão (RN-26).',
+    'Agendamento não encontrado.',
+  )
+  @ApiErrorResponse(
+    HttpStatus.UNPROCESSABLE_ENTITY,
+    'O agendamento ainda não começou (RF-27).',
+    'O agendamento ainda não começou.',
+  )
+  async setStatus(
+    @CurrentSession() session: AuthenticatedSession,
+    @Param(new ZodValidationPipe(appointmentIdParamSchema))
+    params: AppointmentIdParam,
+    @Body(new ZodValidationPipe(markAttendanceSchema)) body: MarkAttendanceBody,
+  ): Promise<AttendanceResponse> {
+    return AttendancePresenter.toResponse(
+      await this.markAttendance.execute({
+        barbershopId: session.barbershopId,
+        userId: session.userId,
+        role: session.role,
+        appointmentId: params.id,
+        status: body.status,
       }),
     );
   }

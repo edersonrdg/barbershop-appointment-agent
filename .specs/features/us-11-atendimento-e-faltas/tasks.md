@@ -397,18 +397,18 @@ T12
 
 **Done when**:
 
-- [ ] e2e CA-11.1: marcar após o início → `200` com `appointment.status` novo; antes do início → `422` com a mensagem; a agenda do dia mostra `attended`/`no_show`
-- [ ] e2e CA-11.2: 1 falta + limite 2 + nova falta → `client.noShowCount: 2`, `selfBookingBlocked: true`
-- [ ] e2e CA-11.4: correção `no_show → attended` → contador −1
-- [ ] e2e: motor não oferece o horário de um agendamento `no_show`; agendamento manual para cliente bloqueado → `201`; sem cliente → `client: null`
-- [ ] e2e: `400` com cada mensagem, `401`, `403` (Barbeiro em outro), `404` (outra barbearia)
-- [ ] `test/api-docs.e2e-spec.ts` passa com a rota nova
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] e2e CA-11.1: marcar após o início → `200` com `appointment.status` novo; antes do início → `422` com a mensagem; a agenda do dia mostra `attended`/`no_show`
+- [x] e2e CA-11.2: 1 falta + limite 2 + nova falta → `client.noShowCount: 2`, `selfBookingBlocked: true`
+- [x] e2e CA-11.4: correção `no_show → attended` → contador −1
+- [x] e2e: motor não oferece o horário de um agendamento `no_show`; agendamento manual para cliente bloqueado → `201`; sem cliente → `client: null`
+- [x] e2e: `400` com cada mensagem, `401`, `403` (Barbeiro em outro), `404` (outra barbearia)
+- [x] `test/api-docs.e2e-spec.ts` passa com a rota nova
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
 
-**Status**: ⏳ Pending
+**Status**: ✅ Done
 
 **Commit**: `feat(US-11): expose attendance route`
 
