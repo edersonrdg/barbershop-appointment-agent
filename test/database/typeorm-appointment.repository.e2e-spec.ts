@@ -3,7 +3,7 @@ import { DataSource, QueryFailedError } from 'typeorm';
 import {
   Appointment,
   AppointmentOrigin,
-  AppointmentStatus,
+  AttendanceStatus,
 } from '../../src/domain/entities/appointment';
 import { Client } from '../../src/domain/entities/client';
 import { AppointmentConflictError } from '../../src/domain/errors/appointment-conflict.error';
@@ -432,7 +432,7 @@ describe('TypeOrmAppointmentRepository (e2e)', () => {
       ).toHaveLength(1);
     });
 
-    it.each<AppointmentStatus>(['attended', 'no_show'])(
+    it.each<AttendanceStatus>(['attended', 'no_show'])(
       'RN-03: a %s appointment keeps holding the slot (ATD-04)',
       async (status) => {
         const barberId = await insertBarber(barbershopA);
