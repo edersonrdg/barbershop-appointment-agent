@@ -23,4 +23,9 @@ export class ClientEntity {
 
   @Column({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
+
+  // RN-13: no-shows that started up to this instant no longer count; null
+  // means the client was never reset.
+  @Column({ name: 'no_show_reset_at', type: 'timestamptz', nullable: true })
+  noShowResetAt!: Date | null;
 }

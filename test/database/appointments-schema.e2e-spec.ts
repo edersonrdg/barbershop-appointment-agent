@@ -258,6 +258,55 @@ describe('Appointments schema (e2e)', () => {
     });
   });
 
+  describe('US-11: attendance statuses', () => {
+    it.each(['attended', 'no_show'])(
+      'CA-11.1: accepts the %s status (ATD-01)',
+      async (status) => {
+        const id = await insertAppointment({
+          startsAt: '2026-10-05T13:00:00Z',
+          endsAt: '2026-10-05T13:30:00Z',
+          status,
+        });
+
+        const [row] = await dataSource.query<{ status: string }[]>(
+          'SELECT status FROM appointments WHERE id = $1',
+          [id],
+        );
+        expect(row.status).toBe(status);
+      },
+    );
+
+    it.each([
+      ['confirmed', 'attended'],
+      ['confirmed', 'no_show'],
+      ['attended', 'confirmed'],
+      ['no_show', 'confirmed'],
+    ])(
+      'RN-03: a %s appointment keeps holding the slot against an overlapping %s one (ATD-04)',
+      async (existing, incoming) => {
+        await insertAppointment({
+          startsAt: '2026-10-05T13:00:00Z',
+          endsAt: '2026-10-05T13:30:00Z',
+          status: existing,
+        });
+
+        const insert = insertAppointment({
+          startsAt: '2026-10-05T13:15:00Z',
+          endsAt: '2026-10-05T13:45:00Z',
+          status: incoming,
+        });
+
+        await expect(insert).rejects.toMatchObject({
+          driverError: {
+            code: EXCLUSION_VIOLATION,
+            constraint: 'appointments_no_overlap',
+          },
+        });
+        expect(await count('appointments')).toBe(1);
+      },
+    );
+  });
+
   describe('RN-26: composite foreign keys', () => {
     it('rejects an appointment whose barber belongs to another barbershop', async () => {
       const insert = insertAppointment({

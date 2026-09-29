@@ -149,6 +149,7 @@ import { ServicesModule } from './services.module';
   exports: [
     ListAvailableSlotsUseCase,
     BookAppointmentUseCase,
+    APPOINTMENT_REPOSITORY,
     BARBER_BLOCK_REPOSITORY,
   ],
 })

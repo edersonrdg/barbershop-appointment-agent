@@ -64,6 +64,17 @@ class BarrierAppointmentRepository implements AppointmentRepository {
   create(appointment: Appointment): Promise<void> {
     return this.inner.create(appointment);
   }
+
+  findById(
+    barbershopId: string,
+    appointmentId: string,
+  ): Promise<Appointment | null> {
+    return this.inner.findById(barbershopId, appointmentId);
+  }
+
+  saveStatus(appointment: Appointment): Promise<void> {
+    return this.inner.saveStatus(appointment);
+  }
 }
 
 describe('Scheduling (e2e)', () => {

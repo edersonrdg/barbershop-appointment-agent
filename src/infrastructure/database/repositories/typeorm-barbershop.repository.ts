@@ -107,6 +107,13 @@ export class TypeOrmBarbershopRepository implements BarbershopRepository {
       }
     });
   }
+
+  async listIds(): Promise<string[]> {
+    const rows = await this.dataSource
+      .getRepository(BarbershopEntity)
+      .find({ select: { id: true } });
+    return rows.map((row) => row.id);
+  }
 }
 
 function toOpeningHoursRows(

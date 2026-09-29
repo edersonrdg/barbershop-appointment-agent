@@ -12,8 +12,9 @@ export interface BusyPeriod {
 
 export interface AppointmentRepository {
   /**
-   * The confirmed appointments of the barbers among `barberIds` in the
-   * barbershop whose `[start, end)` overlaps `range`; touching ones are left out.
+   * The confirmed, attended and no-show appointments (all hold the slot, RN-03)
+   * of the barbers among `barberIds` in the barbershop whose `[start, end)`
+   * overlaps `range`; touching ones are left out.
    */
   listBusyPeriods(
     barbershopId: string,
@@ -28,4 +29,17 @@ export interface AppointmentRepository {
    * client with the phone of `newClient`; then nothing is persisted.
    */
   create(appointment: Appointment, newClient?: Client | null): Promise<void>;
+  /**
+   * The appointment of the barbershop with its services in the booked order,
+   * or `null` when it does not exist there (RN-26).
+   */
+  findById(
+    barbershopId: string,
+    appointmentId: string,
+  ): Promise<Appointment | null>;
+  /**
+   * Stores the status of `appointment`, matching both its id and its
+   * barbershop; nothing else of the appointment changes (RF-27).
+   */
+  saveStatus(appointment: Appointment): Promise<void>;
 }

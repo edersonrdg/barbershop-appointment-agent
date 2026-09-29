@@ -1,5 +1,8 @@
 import { DataSource, In, LessThan, MoreThan, QueryFailedError } from 'typeorm';
-import { Appointment } from '../../../domain/entities/appointment';
+import {
+  Appointment,
+  AppointmentStatus,
+} from '../../../domain/entities/appointment';
 import { UtcPeriod } from '../../../domain/entities/barbershop';
 import { Client } from '../../../domain/entities/client';
 import { AppointmentConflictError } from '../../../domain/errors/appointment-conflict.error';
@@ -16,6 +19,12 @@ const EXCLUSION_VIOLATION = '23P01';
 const APPOINTMENTS_NO_OVERLAP = 'appointments_no_overlap';
 const UNIQUE_VIOLATION = '23505';
 const CLIENTS_BARBERSHOP_PHONE_UNIQUE = 'clients_barbershop_phone_unique';
+// RN-03: attended and no-show appointments keep holding the slot (ATD-04).
+const SLOT_HOLDING_STATUSES: AppointmentStatus[] = [
+  'confirmed',
+  'attended',
+  'no_show',
+];
 
 export class TypeOrmAppointmentRepository implements AppointmentRepository {
   constructor(private readonly dataSource: DataSource) {}
@@ -30,7 +39,7 @@ export class TypeOrmAppointmentRepository implements AppointmentRepository {
       where: {
         barbershopId,
         barberId: In([...barberIds]),
-        status: 'confirmed',
+        status: In(SLOT_HOLDING_STATUSES),
         startsAt: LessThan(range.end),
         endsAt: MoreThan(range.start),
       },
@@ -41,6 +50,43 @@ export class TypeOrmAppointmentRepository implements AppointmentRepository {
       start: row.startsAt,
       end: row.endsAt,
     }));
+  }
+
+  async findById(
+    barbershopId: string,
+    appointmentId: string,
+  ): Promise<Appointment | null> {
+    const row = await this.dataSource
+      .getRepository(AppointmentEntity)
+      .findOneBy({ id: appointmentId, barbershopId });
+    if (!row) return null;
+    const services = await this.dataSource
+      .getRepository(AppointmentServiceEntity)
+      .find({
+        where: { appointmentId, barbershopId },
+        order: { position: 'ASC' },
+      });
+    return Appointment.restore({
+      id: row.id,
+      barbershopId: row.barbershopId,
+      barberId: row.barberId,
+      clientId: row.clientId,
+      serviceIds: services.map((service) => service.serviceId),
+      startsAt: row.startsAt,
+      endsAt: row.endsAt,
+      status: row.status,
+      origin: row.origin,
+      createdAt: row.createdAt,
+    });
+  }
+
+  async saveStatus(appointment: Appointment): Promise<void> {
+    await this.dataSource
+      .getRepository(AppointmentEntity)
+      .update(
+        { id: appointment.id, barbershopId: appointment.barbershopId },
+        { status: appointment.status },
+      );
   }
 
   async create(

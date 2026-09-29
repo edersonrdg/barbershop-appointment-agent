@@ -21,4 +21,9 @@ export interface BarbershopRepository {
    * barbershop atomically: either everything is saved or nothing changes.
    */
   saveSettings(barbershop: Barbershop): Promise<void>;
+  /**
+   * The ids of every barbershop: the only read without a tenant, used by the
+   * scheduled jobs to apply their rules barbershop by barbershop (AD-009).
+   */
+  listIds(): Promise<string[]>;
 }

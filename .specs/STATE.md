@@ -66,5 +66,13 @@
 - **Date**: 2026-09-28
 - **Status**: active
 
+### AD-009
+- **Decision**: Rotinas agendadas que valem para todas as barbearias (a primeira é o reset de faltas da US-11) listam os ids das barbearias com `BarbershopRepository.listIds()`, a única leitura sem tenant fora dos lookups de identidade do AD-004, e aplicam a regra barbearia por barbearia, com métodos de repositório que recebem o `barbershopId`. O erro de uma barbearia é contado e logado, e a rotina segue para a próxima.
+- **Reason**: RN-26 e AD-004: nenhuma gravação sem tenant. Uma rotina precisa começar de algum lugar, e limitar a exceção a listar ids mantém toda regra de negócio dentro do tenant.
+- **Trade-off**: N consultas por execução (uma por barbearia) em vez de um `UPDATE` global.
+- **Scope**: Jobs agendados (`src/infrastructure/jobs/`), US-11 em diante (lembretes da US-19, retorno da US-25).
+- **Date**: 2026-09-29
+- **Status**: active
+
 ## Handoff
 

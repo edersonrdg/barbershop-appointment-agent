@@ -31,13 +31,21 @@ import { TypeOrmClientRepository } from '../database/repositories/typeorm-client
 import { SystemClock } from '../security/system-clock';
 import { UuidIdGenerator } from '../security/uuid-id-generator';
 import { AccountModule } from './account.module';
+import { AttendanceModule } from './attendance.module';
 import { BarbersModule } from './barbers.module';
 import { ScheduleModule } from './schedule.module';
 import { SchedulingModule } from './scheduling.module';
 
-// US-10: manual booking in the panel, through the engine of US-07.
+// US-10: manual booking in the panel, through the engine of US-07. US-11 adds
+// the attendance route to the same controller.
 @Module({
-  imports: [AccountModule, BarbersModule, SchedulingModule, ScheduleModule],
+  imports: [
+    AccountModule,
+    AttendanceModule,
+    BarbersModule,
+    SchedulingModule,
+    ScheduleModule,
+  ],
   controllers: [AppointmentsController],
   providers: [
     { provide: CLOCK, useClass: SystemClock },

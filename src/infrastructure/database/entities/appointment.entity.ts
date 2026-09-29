@@ -16,13 +16,21 @@ import { BarberEntity } from './barber.entity';
 import { BarbershopEntity } from './barbershop.entity';
 import { ClientEntity } from './client.entity';
 
-// RN-07: the database refuses two confirmed appointments of the same barber
-// whose [start, end) ranges overlap, even through a direct INSERT; touching
+// RN-07: the database refuses two appointments of the same barber whose
+// [start, end) ranges overlap, even through a direct INSERT; touching
 // ranges are allowed. The btree_gist extension it needs is created only in the
 // migration. The barber FK is composite so the barber belongs to the same
 // barbershop (RN-26), and so is the client FK; a null client skips it.
+// Attended and no-show appointments keep holding the slot (RN-03, ATD-04); the
+// explicit status list leaves future statuses such as cancelled (US-18) out.
+// The partial no-show index serves the derived no-show count (RN-11, RN-13).
 @Entity({ name: 'appointments' })
 @Index('appointments_barbershop_starts_idx', ['barbershopId', 'startsAt'])
+@Index(
+  'appointments_client_no_show_idx',
+  ['barbershopId', 'clientId', 'startsAt'],
+  { where: `"status" = 'no_show'` },
+)
 @Unique('appointments_id_barbershop_unique', ['id', 'barbershopId'])
 @ForeignKey(
   () => BarberEntity,
@@ -37,11 +45,14 @@ import { ClientEntity } from './client.entity';
   { name: 'appointments_client_fk' },
 )
 @Check('appointments_ends_after_starts_check', '"ends_at" > "starts_at"')
-@Check('appointments_status_check', `"status" IN ('confirmed')`)
+@Check(
+  'appointments_status_check',
+  `"status" IN ('confirmed', 'attended', 'no_show')`,
+)
 @Check('appointments_origin_check', `"origin" IN ('bot', 'manual')`)
 @Exclusion(
   'appointments_no_overlap',
-  `USING gist ("barber_id" WITH =, tstzrange("starts_at", "ends_at", '[)') WITH &&) WHERE ("status" = 'confirmed')`,
+  `USING gist ("barber_id" WITH =, tstzrange("starts_at", "ends_at", '[)') WITH &&) WHERE ("status" IN ('confirmed', 'attended', 'no_show'))`,
 )
 export class AppointmentEntity {
   @PrimaryColumn('uuid')

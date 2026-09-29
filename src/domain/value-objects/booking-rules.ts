@@ -70,6 +70,12 @@ export class BookingRules {
   get returnReminderDays(): number {
     return this.props.returnReminderDays;
   }
+
+  // RN-12: the client stays blocked while the count reaches the current limit,
+  // so changing the limit re-evaluates every client (ATD-10).
+  blocksSelfBooking(noShowCount: number): boolean {
+    return noShowCount >= this.props.noShowLimit;
+  }
 }
 
 // Antecedência e cancelamento aceitam 0: "sem restrição" (CA-06.2).

@@ -129,4 +129,33 @@ describe('Clients schema (e2e)', () => {
       expect(await clientOf(appointment)).toBeNull();
     });
   });
+
+  describe('RN-13: no-show reset marker', () => {
+    async function resetAtOf(clientId: string): Promise<unknown> {
+      const [row] = await dataSource.query<{ no_show_reset_at: Date | null }[]>(
+        'SELECT no_show_reset_at FROM clients WHERE id = $1',
+        [clientId],
+      );
+      return row.no_show_reset_at;
+    }
+
+    it('CA-11.3: a new client has no reset (no_show_reset_at is null) (ATD-15)', async () => {
+      const client = await insertClient(barbershopA);
+
+      expect(await resetAtOf(client)).toBeNull();
+    });
+
+    it('CA-11.3: stores the reset instant (ATD-15)', async () => {
+      const client = await insertClient(barbershopA);
+
+      await dataSource.query(
+        `UPDATE clients SET no_show_reset_at = '2026-12-30T12:00:00Z' WHERE id = $1`,
+        [client],
+      );
+
+      expect(await resetAtOf(client)).toEqual(
+        new Date('2026-12-30T12:00:00.000Z'),
+      );
+    });
+  });
 });

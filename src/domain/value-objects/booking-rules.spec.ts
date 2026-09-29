@@ -95,4 +95,35 @@ describe('BookingRules', () => {
       expect(() => BookingRules.create(props)).toThrow(InvalidValueError);
     });
   });
+
+  describe('blocksSelfBooking', () => {
+    const withLimit = (noShowLimit: number) =>
+      BookingRules.create({ ...VALID, noShowLimit });
+
+    it.each([
+      [1, false],
+      [2, true],
+      [3, true],
+    ])(
+      'CA-11.2: with limit 2, %i no-shows blocks self-booking: %s (RN-12, ATD-08, ATD-09)',
+      (noShowCount, blocked) => {
+        expect(withLimit(2).blocksSelfBooking(noShowCount)).toBe(blocked);
+      },
+    );
+
+    it.each([
+      [0, false],
+      [1, true],
+    ])(
+      'CA-11.2: with limit 1, %i no-shows blocks self-booking: %s (RN-12)',
+      (noShowCount, blocked) => {
+        expect(withLimit(1).blocksSelfBooking(noShowCount)).toBe(blocked);
+      },
+    );
+
+    it('RN-12: follows the current limit when it changes (ATD-10)', () => {
+      expect(withLimit(2).blocksSelfBooking(2)).toBe(true);
+      expect(withLimit(3).blocksSelfBooking(2)).toBe(false);
+    });
+  });
 });

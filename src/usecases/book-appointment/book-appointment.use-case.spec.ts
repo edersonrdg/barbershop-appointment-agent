@@ -530,6 +530,9 @@ describe('BookAppointmentUseCase', () => {
     ): AppointmentRepository => ({
       listBusyPeriods: (): Promise<BusyPeriod[]> => Promise.resolve([]),
       create: (appointment: Appointment) => real.create(appointment),
+      findById: (barbershopId: string, appointmentId: string) =>
+        real.findById(barbershopId, appointmentId),
+      saveStatus: (appointment: Appointment) => real.saveStatus(appointment),
     });
 
     it('CA-07.4: propagates the RN-07 conflict, counts it and persists nothing', async () => {

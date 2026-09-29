@@ -3,6 +3,7 @@ import { DataSource, QueryFailedError } from 'typeorm';
 import {
   Appointment,
   AppointmentOrigin,
+  AttendanceStatus,
 } from '../../src/domain/entities/appointment';
 import { Client } from '../../src/domain/entities/client';
 import { AppointmentConflictError } from '../../src/domain/errors/appointment-conflict.error';
@@ -429,6 +430,161 @@ describe('TypeOrmAppointmentRepository (e2e)', () => {
       expect(
         await repository.listBusyPeriods(barbershopB, [foreignBarber], RANGE),
       ).toHaveLength(1);
+    });
+
+    it.each<AttendanceStatus>(['attended', 'no_show'])(
+      'RN-03: a %s appointment keeps holding the slot (ATD-04)',
+      async (status) => {
+        const barberId = await insertBarber(barbershopA);
+        const serviceId = await insertService(barbershopA);
+        const appointment = book({
+          barbershopId: barbershopA,
+          barberId,
+          serviceIds: [serviceId],
+          startsAt: '2026-10-05T13:00:00.000Z',
+        });
+        await repository.create(appointment);
+        await repository.saveStatus(
+          appointment.markAttendance(status, appointment.startsAt),
+        );
+
+        const periods = await repository.listBusyPeriods(
+          barbershopA,
+          [barberId],
+          RANGE,
+        );
+
+        expect(periods).toEqual([
+          {
+            barberId,
+            start: new Date('2026-10-05T13:00:00.000Z'),
+            end: new Date('2026-10-05T13:30:00.000Z'),
+          },
+        ]);
+      },
+    );
+  });
+
+  describe('findById', () => {
+    it('CA-11.1: returns the appointment with its services in the booked order (ATD-01)', async () => {
+      const barberId = await insertBarber(barbershopA);
+      const beard = await insertService(barbershopA);
+      const haircut = await insertService(barbershopA);
+      const clientId = await insertClient(barbershopA);
+      const appointment = book({
+        barbershopId: barbershopA,
+        barberId,
+        serviceIds: [haircut, beard],
+        startsAt: '2026-10-05T13:00:00.000Z',
+        durationMinutes: 45,
+        origin: 'manual',
+        clientId,
+      });
+      await repository.create(appointment);
+
+      const found = await repository.findById(barbershopA, appointment.id);
+
+      expect(found).not.toBeNull();
+      expect({
+        id: found?.id,
+        barbershopId: found?.barbershopId,
+        barberId: found?.barberId,
+        clientId: found?.clientId,
+        serviceIds: found?.serviceIds,
+        startsAt: found?.startsAt,
+        endsAt: found?.endsAt,
+        status: found?.status,
+        origin: found?.origin,
+        createdAt: found?.createdAt,
+      }).toEqual({
+        id: appointment.id,
+        barbershopId: barbershopA,
+        barberId,
+        clientId,
+        serviceIds: [haircut, beard],
+        startsAt: new Date('2026-10-05T13:00:00.000Z'),
+        endsAt: new Date('2026-10-05T13:45:00.000Z'),
+        status: 'confirmed',
+        origin: 'manual',
+        createdAt: NOW,
+      });
+    });
+
+    it('CA-11.1: returns null for an unknown id (ATD-18)', async () => {
+      expect(await repository.findById(barbershopA, randomUUID())).toBeNull();
+    });
+
+    it('RN-26: returns null for an appointment of another barbershop (ATD-18)', async () => {
+      const foreignBarber = await insertBarber(barbershopB);
+      const foreignService = await insertService(barbershopB);
+      const foreign = book({
+        barbershopId: barbershopB,
+        barberId: foreignBarber,
+        serviceIds: [foreignService],
+        startsAt: '2026-10-05T13:00:00.000Z',
+      });
+      await repository.create(foreign);
+
+      expect(await repository.findById(barbershopA, foreign.id)).toBeNull();
+    });
+  });
+
+  describe('saveStatus', () => {
+    async function statusOf(appointmentId: string): Promise<unknown> {
+      const [row] = await dataSource.query<{ status: string }[]>(
+        'SELECT status FROM appointments WHERE id = $1',
+        [appointmentId],
+      );
+      return row.status;
+    }
+
+    it('CA-11.1: stores the new status (ATD-01)', async () => {
+      const barberId = await insertBarber(barbershopA);
+      const serviceId = await insertService(barbershopA);
+      const appointment = book({
+        barbershopId: barbershopA,
+        barberId,
+        serviceIds: [serviceId],
+        startsAt: '2026-10-05T13:00:00.000Z',
+      });
+      await repository.create(appointment);
+
+      await repository.saveStatus(
+        appointment.markAttendance('no_show', appointment.startsAt),
+      );
+
+      expect(await statusOf(appointment.id)).toBe('no_show');
+      expect(
+        (await repository.findById(barbershopA, appointment.id))?.status,
+      ).toBe('no_show');
+    });
+
+    it('RN-26: does not touch the appointment when the tenant does not match (ATD-18)', async () => {
+      const foreignBarber = await insertBarber(barbershopB);
+      const foreignService = await insertService(barbershopB);
+      const foreign = book({
+        barbershopId: barbershopB,
+        barberId: foreignBarber,
+        serviceIds: [foreignService],
+        startsAt: '2026-10-05T13:00:00.000Z',
+      });
+      await repository.create(foreign);
+      const wrongTenant = Appointment.restore({
+        id: foreign.id,
+        barbershopId: barbershopA,
+        barberId: foreign.barberId,
+        clientId: null,
+        serviceIds: [...foreign.serviceIds],
+        startsAt: foreign.startsAt,
+        endsAt: foreign.endsAt,
+        status: 'attended',
+        origin: foreign.origin,
+        createdAt: foreign.createdAt,
+      });
+
+      await repository.saveStatus(wrongTenant);
+
+      expect(await statusOf(foreign.id)).toBe('confirmed');
     });
   });
 });

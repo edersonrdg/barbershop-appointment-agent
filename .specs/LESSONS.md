@@ -66,6 +66,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: validation.md M8 / src/domain/value-objects/barber-day-schedule.ts:90 (edge case: ends at closing) (usecases) (+1 more)
 - last seen: 2026-09-28T22:18:21Z
 
+### L-010 - A job that skips a failing tenant must log the caught error with the tenant id, and a test must assert that log.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `jobs` · harmful: 0
+- features: us-11-atendimento-e-faltas
+- evidence: ATD-27 Assumption 'Falha da rotina'; src/usecases/reset-expired-no-shows/reset-expired-no-shows.use-case.ts:35 (jobs)
+- last seen: 2026-09-29T14:47:45Z
+
+### L-011 - An availability test must use rules and times where the engine would offer the slot if the rule under test were broken, and assert the exact offered starts.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `e2e` · harmful: 0
+- features: us-11-atendimento-e-faltas
+- evidence: mutant E3 survived test/attendance.e2e-spec.ts:307 (e2e)
+- last seen: 2026-09-29T14:47:45Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
