@@ -42,6 +42,8 @@ export const envSchema = z.object({
   // Where the Evolution API posts the webhooks; it must reach this API.
   WHATSAPP_WEBHOOK_URL: z.string().url(),
   WHATSAPP_WEBHOOK_SECRET: z.string().min(32),
+  // US-14 (RN-20): the platform's privacy policy, linked in the first reply.
+  PRIVACY_POLICY_URL: z.string().url(),
   // A documentação expõe o mapa da API; fica desligada salvo opt-in explícito.
   API_DOCS_ENABLED: z
     .enum(['true', 'false'])

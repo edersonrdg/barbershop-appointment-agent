@@ -33,4 +33,13 @@ export class ClientEntity {
   // default keeps every insert that predates US-25 valid.
   @Column({ name: 'return_reminder_enabled', type: 'boolean', default: false })
   returnReminderEnabled!: boolean;
+
+  // RN-20: when the privacy notice was sent; null until the client's first
+  // WhatsApp message (US-14), including clients created in the panel.
+  @Column({
+    name: 'privacy_notice_sent_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  privacyNoticeSentAt!: Date | null;
 }

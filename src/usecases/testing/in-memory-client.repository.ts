@@ -10,6 +10,7 @@ import {
 export class InMemoryClientRepository implements ClientRepository {
   private clients: Client[] = [];
   private readonly barberLinks = new Set<string>();
+  private readonly privacyNotices = new Map<string, Date>();
   readonly searches: ClientSearch[] = [];
 
   /** Seeds an appointment of `barberId` with the client, for `search`. */
@@ -27,6 +28,10 @@ export class InMemoryClientRepository implements ClientRepository {
       throw new ClientPhoneTakenError();
     }
     this.clients.push(client);
+  }
+
+  privacyNoticeOf(client: Client): Date | null {
+    return this.privacyNotices.get(noticeKey(client)) ?? null;
   }
 
   list(barbershopId: string): Client[] {
@@ -80,4 +85,33 @@ export class InMemoryClientRepository implements ClientRepository {
         .slice(0, search.limit),
     );
   }
+
+  createIfAbsent(client: Client): Promise<boolean> {
+    const taken = this.clients.some(
+      (stored) =>
+        stored.barbershopId === client.barbershopId &&
+        stored.phone === client.phone,
+    );
+    if (!taken) this.clients.push(client);
+    return Promise.resolve(!taken);
+  }
+
+  claimPrivacyNotice(client: Client, sentAt: Date): Promise<boolean> {
+    const key = noticeKey(client);
+    if (this.privacyNotices.has(key)) return Promise.resolve(false);
+    this.privacyNotices.set(key, sentAt);
+    return Promise.resolve(true);
+  }
+
+  releasePrivacyNotice(client: Client, sentAt: Date): Promise<void> {
+    const key = noticeKey(client);
+    if (this.privacyNotices.get(key)?.getTime() === sentAt.getTime()) {
+      this.privacyNotices.delete(key);
+    }
+    return Promise.resolve();
+  }
+}
+
+function noticeKey(client: Client): string {
+  return `${client.barbershopId}:${client.id}`;
 }

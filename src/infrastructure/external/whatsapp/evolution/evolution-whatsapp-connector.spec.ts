@@ -57,6 +57,15 @@ function setup(replies: Record<string, Reply>) {
 
 const STATE_PATH = `GET /instance/connectionState/${SHOP}`;
 const CONNECT_PATH = `GET /instance/connect/${SHOP}`;
+const WEBHOOK_SET_PATH = `POST /webhook/set/${SHOP}`;
+const SEND_TEXT_PATH = `POST /message/sendText/${SHOP}`;
+const WEBHOOK = {
+  enabled: true,
+  url: 'http://api.test/webhooks/whatsapp/evolution',
+  byEvents: false,
+  events: ['CONNECTION_UPDATE', 'MESSAGES_UPSERT'],
+  headers: { authorization: `Bearer ${'s'.repeat(32)}` },
+};
 
 describe('EvolutionWhatsAppConnector', () => {
   it('CA-13.4 (C2): creates a missing instance named after the barbershop, with the webhook and without taking over the phone', async () => {
@@ -79,7 +88,7 @@ describe('EvolutionWhatsAppConnector', () => {
         enabled: true,
         url: 'http://api.test/webhooks/whatsapp/evolution',
         byEvents: false,
-        events: ['CONNECTION_UPDATE'],
+        events: ['CONNECTION_UPDATE', 'MESSAGES_UPSERT'],
         headers: { authorization: `Bearer ${'s'.repeat(32)}` },
       },
     });
@@ -91,6 +100,7 @@ describe('EvolutionWhatsAppConnector', () => {
   it('CA-13.1 (C3): reuses an existing instance and returns the base64 QR code of connect', async () => {
     const { connector, requests } = setup({
       [STATE_PATH]: { status: 200, body: { instance: { state: 'close' } } },
+      [WEBHOOK_SET_PATH]: { status: 201, body: { webhook: {} } },
       [CONNECT_PATH]: {
         status: 200,
         body: { pairingCode: null, code: '2@abc', base64: QR, count: 1 },
@@ -100,7 +110,12 @@ describe('EvolutionWhatsAppConnector', () => {
     await connector.ensureInstance(SHOP);
     const qrCode = await connector.requestQrCode(SHOP);
 
-    expect(requests.map(({ method }) => method)).toEqual(['GET', 'GET']);
+    // US-14 (C19) re-subscribes the webhook of an existing instance.
+    expect(requests.map(({ method }) => method)).toEqual([
+      'GET',
+      'POST',
+      'GET',
+    ]);
     expect(requests.some(({ url }) => url.endsWith('/instance/create'))).toBe(
       false,
     );
@@ -188,5 +203,84 @@ describe('EvolutionWhatsAppConnector', () => {
     await expect(connector.ping()).rejects.toBeInstanceOf(
       WhatsAppConnectorUnavailableError,
     );
+  });
+
+  it('CA-14.1 (C18): subscribes a new instance to the connection and the messages', async () => {
+    const { connector, requests } = setup({
+      [STATE_PATH]: { status: 404, body: { status: 404 } },
+      'POST /instance/create': { status: 201, body: { instance: {} } },
+    });
+
+    await connector.ensureInstance(SHOP);
+
+    const create = requests.find((request) => request.method === 'POST')!;
+    expect((create.body as { webhook: unknown }).webhook).toEqual(WEBHOOK);
+  });
+
+  it('CA-14.1 (C19): re-subscribes the webhook of an existing instance without creating another', async () => {
+    const { connector, requests } = setup({
+      [STATE_PATH]: { status: 200, body: { instance: { state: 'open' } } },
+      [WEBHOOK_SET_PATH]: { status: 201, body: { webhook: {} } },
+    });
+
+    await connector.ensureInstance(SHOP);
+
+    const set = requests.find((request) => request.method === 'POST')!;
+    expect(set.url).toBe(`http://evolution.test/webhook/set/${SHOP}`);
+    expect(set.headers.apikey).toBe('evolution-key');
+    expect(set.body).toEqual({ webhook: WEBHOOK });
+    expect(requests.some(({ url }) => url.endsWith('/instance/create'))).toBe(
+      false,
+    );
+  });
+
+  it('CA-14.1 (C19): fails when the webhook of an existing instance cannot be set', async () => {
+    const { connector } = setup({
+      [STATE_PATH]: { status: 200, body: { instance: { state: 'open' } } },
+      [WEBHOOK_SET_PATH]: { status: 500, body: { message: 'boom' } },
+    });
+
+    await expect(connector.ensureInstance(SHOP)).rejects.toBeInstanceOf(
+      WhatsAppConnectorUnavailableError,
+    );
+  });
+
+  it('CA-14.2 (C20): sends a text to the phone without the plus sign', async () => {
+    const { connector, requests } = setup({
+      [SEND_TEXT_PATH]: { status: 201, body: { key: { id: 'MESSAGE-1' } } },
+    });
+
+    await connector.sendText(SHOP, '+5511987654321', 'oi');
+
+    expect(requests).toHaveLength(1);
+    expect(requests[0].url).toBe(
+      `http://evolution.test/message/sendText/${SHOP}`,
+    );
+    expect(requests[0].headers.apikey).toBe('evolution-key');
+    expect(requests[0].body).toEqual({ number: '5511987654321', text: 'oi' });
+  });
+
+  describe('CA-14.2 (C20): every failed send becomes WhatsAppConnectorUnavailableError and is counted', () => {
+    const cases: Array<[string, Reply]> = [
+      ['no answer within the timeout', 'hang'],
+      ['a network error', 'network'],
+      ['an HTTP 5xx', { status: 500, body: { message: 'boom' } }],
+      [
+        'a 200 with { error: true }',
+        { status: 200, body: { error: true, message: 'Error' } },
+      ],
+    ];
+
+    it.each(cases)('%s', async (_, reply) => {
+      const { connector, registry } = setup({ [SEND_TEXT_PATH]: reply });
+
+      await expect(
+        connector.sendText(SHOP, '+5511987654321', 'oi'),
+      ).rejects.toBeInstanceOf(WhatsAppConnectorUnavailableError);
+
+      expect(await registry.metrics()).toContain(
+        'whatsapp_connector_errors_total{operation="sendText"} 1',
+      );
+    });
   });
 });

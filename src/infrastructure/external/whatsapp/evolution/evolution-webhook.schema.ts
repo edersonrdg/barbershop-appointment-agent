@@ -15,9 +15,21 @@ export const evolutionWebhookSchema = z.looseObject({
     .unknown()
     .optional()
     .meta({
-      description: 'Dados do evento; em `connection.update`, traz `state`.',
+      description:
+        'Dados do evento; em `connection.update`, traz `state`; em `messages.upsert`, a mensagem (`key`, `pushName`, `messageTimestamp`).',
       example: { state: 'close', statusReason: 401 },
     }),
 });
 
 export type EvolutionWebhook = z.infer<typeof evolutionWebhookSchema>;
+
+// US-14: only what identifies the client of a `messages.upsert`; the message
+// content is not read.
+export const evolutionMessageSchema = z.looseObject({
+  key: z.looseObject({
+    remoteJid: z.string(),
+    fromMe: z.boolean(),
+  }),
+  pushName: z.string().nullish(),
+  messageTimestamp: z.number(),
+});

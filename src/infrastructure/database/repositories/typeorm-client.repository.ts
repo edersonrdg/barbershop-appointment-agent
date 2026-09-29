@@ -76,6 +76,52 @@ export class TypeOrmClientRepository implements ClientRepository {
       }),
     );
   }
+
+  // The unique (barbershop_id, phone) constraint settles two first messages
+  // arriving at once: the second insert does nothing (RN-08).
+  async createIfAbsent(client: Client): Promise<boolean> {
+    const rows = await this.dataSource.query<{ id: string }[]>(
+      `INSERT INTO clients (id, barbershop_id, name, phone, created_at,
+                            return_reminder_enabled)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT ON CONSTRAINT clients_barbershop_phone_unique DO NOTHING
+       RETURNING id`,
+      [
+        client.id,
+        client.barbershopId,
+        client.name,
+        client.phone,
+        client.createdAt,
+        client.returnReminderEnabled,
+      ],
+    );
+    return rows.length === 1;
+  }
+
+  async claimPrivacyNotice(client: Client, sentAt: Date): Promise<boolean> {
+    const result = await this.dataSource
+      .createQueryBuilder()
+      .update(ClientEntity)
+      .set({ privacyNoticeSentAt: sentAt })
+      .where(
+        'barbershop_id = :barbershopId AND id = :id AND privacy_notice_sent_at IS NULL',
+        { barbershopId: client.barbershopId, id: client.id },
+      )
+      .execute();
+    return result.affected === 1;
+  }
+
+  async releasePrivacyNotice(client: Client, sentAt: Date): Promise<void> {
+    await this.dataSource
+      .createQueryBuilder()
+      .update(ClientEntity)
+      .set({ privacyNoticeSentAt: null })
+      .where(
+        'barbershop_id = :barbershopId AND id = :id AND privacy_notice_sent_at = :sentAt',
+        { barbershopId: client.barbershopId, id: client.id, sentAt },
+      )
+      .execute();
+  }
 }
 
 function toClient(
