@@ -22,17 +22,19 @@ function describeClient(client: Client) {
     name: client.name,
     phone: client.phone,
     createdAt: client.createdAt,
+    returnReminderEnabled: client.returnReminderEnabled,
   };
 }
 
 describe('Client', () => {
-  it('CA-10.2: creates the client with the trimmed name and the E.164 phone', () => {
+  it('CA-10.2: creates the client with the trimmed name, the E.164 phone and the return reminder off (CA-12.2)', () => {
     expect(describeClient(createClient('  João  '))).toEqual({
       id: 'client-1',
       barbershopId: 'barbershop-a',
       name: 'João',
       phone: '+5511987654321',
       createdAt: NOW,
+      returnReminderEnabled: false,
     });
   });
 
@@ -62,6 +64,7 @@ describe('Client', () => {
       name: 'João',
       phone: '+5511987654321',
       createdAt: NOW,
+      returnReminderEnabled: true,
     });
 
     expect(describeClient(client)).toEqual({
@@ -70,6 +73,7 @@ describe('Client', () => {
       name: 'João',
       phone: '+5511987654321',
       createdAt: NOW,
+      returnReminderEnabled: true,
     });
   });
 });

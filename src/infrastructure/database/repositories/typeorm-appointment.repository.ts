@@ -102,6 +102,7 @@ export class TypeOrmAppointmentRepository implements AppointmentRepository {
             name: newClient.name,
             phone: newClient.phone,
             createdAt: newClient.createdAt,
+            returnReminderEnabled: newClient.returnReminderEnabled,
           });
         }
         await manager.insert(AppointmentEntity, {

@@ -6,6 +6,7 @@ import { truncateAccountTables } from '../support/truncate-account-tables';
 
 const UNIQUE_VIOLATION = '23505';
 const FOREIGN_KEY_VIOLATION = '23503';
+const NOT_NULL_VIOLATION = '23502';
 const PHONE = '+5511987654321';
 
 describe('Clients schema (e2e)', () => {
@@ -156,6 +157,28 @@ describe('Clients schema (e2e)', () => {
       expect(await resetAtOf(client)).toEqual(
         new Date('2026-12-30T12:00:00.000Z'),
       );
+    });
+  });
+  describe('RN-21: return reminder opt-in starts disabled', () => {
+    it('CA-12.2 (C18): a client inserted without the column is stored with return_reminder_enabled false, and null is refused', async () => {
+      const client = await insertClient(barbershopA);
+
+      const [row] = await dataSource.query<
+        { return_reminder_enabled: boolean }[]
+      >('SELECT return_reminder_enabled FROM clients WHERE id = $1', [client]);
+      expect(row.return_reminder_enabled).toBe(false);
+      await expect(
+        dataSource.query(
+          `INSERT INTO clients (id, barbershop_id, name, phone, created_at, return_reminder_enabled)
+           VALUES ($1, $2, 'Maria', '+5521912345678', now(), NULL)`,
+          [randomUUID(), barbershopA],
+        ),
+      ).rejects.toMatchObject({
+        driverError: {
+          code: NOT_NULL_VIOLATION,
+          column: 'return_reminder_enabled',
+        },
+      });
     });
   });
 });
