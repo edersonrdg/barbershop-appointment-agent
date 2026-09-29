@@ -10,11 +10,19 @@ import {
   BARBERSHOP_REPOSITORY,
   BarbershopRepository,
 } from '../../usecases/ports/barbershop.repository.port';
+import {
+  CLIENT_REPOSITORY,
+  ClientRepository,
+} from '../../usecases/ports/client.repository.port';
 import { Clock, CLOCK } from '../../usecases/ports/clock.port';
 import {
   EMAIL_SENDER,
   EmailSender,
 } from '../../usecases/ports/email-sender.port';
+import {
+  ID_GENERATOR,
+  IdGenerator,
+} from '../../usecases/ports/id-generator.port';
 import {
   USER_REPOSITORY,
   UserRepository,
@@ -31,7 +39,9 @@ import {
   WHATSAPP_METRICS,
   WhatsAppMetrics,
 } from '../../usecases/ports/whatsapp-metrics.port';
+import { ReceiveWhatsAppMessageUseCase } from '../../usecases/receive-whatsapp-message/receive-whatsapp-message.use-case';
 import type { Env } from '../config/env.schema';
+import { TypeOrmClientRepository } from '../database/repositories/typeorm-client.repository';
 import { TypeOrmWhatsAppConnectionRepository } from '../database/repositories/typeorm-whatsapp-connection.repository';
 import { EvolutionWebhookController } from '../external/whatsapp/evolution/evolution-webhook.controller';
 import { EvolutionWebhookGuard } from '../external/whatsapp/evolution/evolution-webhook.guard';
@@ -40,9 +50,10 @@ import { METRICS_REGISTRY } from '../observability/metrics.registry';
 import { ObservabilityModule } from '../observability/observability.module';
 import { PrometheusWhatsAppMetrics } from '../observability/prometheus-whatsapp-metrics';
 import { SystemClock } from '../security/system-clock';
+import { UuidIdGenerator } from '../security/uuid-id-generator';
 import { AccountModule } from './account.module';
 
-// US-13: WhatsApp connection. Global so the readiness check can ping the
+// US-13: WhatsApp connection; US-14: first contact and privacy notice. Global so the readiness check can ping the
 // connector through the port (AD-011).
 @Global()
 @Module({
@@ -50,6 +61,7 @@ import { AccountModule } from './account.module';
   controllers: [WhatsAppConnectionController, EvolutionWebhookController],
   providers: [
     { provide: CLOCK, useClass: SystemClock },
+    { provide: ID_GENERATOR, useClass: UuidIdGenerator },
     EvolutionWebhookGuard,
     {
       provide: WHATSAPP_CONNECTOR,
@@ -73,6 +85,12 @@ import { AccountModule } from './account.module';
       inject: [DataSource],
       useFactory: (dataSource: DataSource) =>
         new TypeOrmWhatsAppConnectionRepository(dataSource),
+    },
+    {
+      provide: CLIENT_REPOSITORY,
+      inject: [DataSource],
+      useFactory: (dataSource: DataSource) =>
+        new TypeOrmClientRepository(dataSource),
     },
     {
       provide: WHATSAPP_METRICS,
@@ -139,6 +157,39 @@ import { AccountModule } from './account.module';
         connector: WhatsAppConnector,
         clock: Clock,
       ) => new ConnectWhatsAppUseCase(connections, connector, clock),
+    },
+    {
+      provide: ReceiveWhatsAppMessageUseCase,
+      inject: [
+        WHATSAPP_CONNECTION_REPOSITORY,
+        BARBERSHOP_REPOSITORY,
+        CLIENT_REPOSITORY,
+        WHATSAPP_CONNECTOR,
+        WHATSAPP_METRICS,
+        ID_GENERATOR,
+        CLOCK,
+        ConfigService,
+      ],
+      useFactory: (
+        connections: WhatsAppConnectionRepository,
+        barbershops: BarbershopRepository,
+        clients: ClientRepository,
+        connector: WhatsAppConnector,
+        metrics: WhatsAppMetrics,
+        ids: IdGenerator,
+        clock: Clock,
+        config: ConfigService<Env, true>,
+      ) =>
+        new ReceiveWhatsAppMessageUseCase(
+          connections,
+          barbershops,
+          clients,
+          connector,
+          metrics,
+          ids,
+          clock,
+          config.get('PRIVACY_POLICY_URL', { infer: true }),
+        ),
     },
   ],
   exports: [WHATSAPP_CONNECTOR],

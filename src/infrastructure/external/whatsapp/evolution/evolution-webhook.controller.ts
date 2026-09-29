@@ -3,6 +3,7 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
+  Inject,
   Logger,
   Post,
   UseGuards,
@@ -14,12 +15,19 @@ import { ApiErrorResponse } from '../../../../interface-adapters/controllers/api
 import { Public } from '../../../../interface-adapters/controllers/public.decorator';
 import { ZodValidationPipe } from '../../../../interface-adapters/controllers/zod-validation.pipe';
 import { ApplyWhatsAppConnectionStateUseCase } from '../../../../usecases/apply-whatsapp-connection-state/apply-whatsapp-connection-state.use-case';
+import type { Clock } from '../../../../usecases/ports/clock.port';
+import { CLOCK } from '../../../../usecases/ports/clock.port';
+import { ReceiveWhatsAppMessageUseCase } from '../../../../usecases/receive-whatsapp-message/receive-whatsapp-message.use-case';
 import {
   EvolutionWebhookGuard,
   WEBHOOK_UNAUTHORIZED_MESSAGE,
 } from './evolution-webhook.guard';
 import type { EvolutionWebhook } from './evolution-webhook.schema';
-import { evolutionWebhookSchema } from './evolution-webhook.schema';
+import {
+  evolutionMessageSchema,
+  evolutionWebhookSchema,
+} from './evolution-webhook.schema';
+import { phoneFromJid } from './whatsapp-jid';
 
 // `refused` is sent when the Evolution API gives up issuing QR codes.
 const STATE_BY_EVOLUTION = new Map<string, WhatsAppConnectorState>([
@@ -30,6 +38,10 @@ const STATE_BY_EVOLUTION = new Map<string, WhatsAppConnectorState>([
 ]);
 
 const barbershopIdSchema = z.uuid();
+
+// When the instance connects, the Evolution API re-emits recent history as
+// `messages.upsert`; only messages sent in this window count as a contact.
+const MESSAGE_MAX_AGE_MS = 5 * 60 * 1000;
 
 // LGPD: the body and headers are never logged; they carry the instance token and, from
 // US-14 on, client messages.
@@ -42,14 +54,16 @@ export class EvolutionWebhookController {
 
   constructor(
     private readonly applyState: ApplyWhatsAppConnectionStateUseCase,
+    private readonly receiveMessage: ReceiveWhatsAppMessageUseCase,
+    @Inject(CLOCK) private readonly clock: Clock,
   ) {}
 
   @Post()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
-    summary: 'Recebe os eventos da Evolution API (US-13)',
+    summary: 'Recebe os eventos da Evolution API (US-13, US-14)',
     description:
-      'Chamado só pela Evolution API, com `authorization: Bearer <WHATSAPP_WEBHOOK_SECRET>`. Aplica `connection.update` à conexão da barbearia cujo id é `instance`; uma queda (conectado → desconectado) envia e-mail aos Donos. Outros eventos, estados desconhecidos e barbearias sem conexão são aceitos e ignorados.',
+      'Chamado só pela Evolution API, com `authorization: Bearer <WHATSAPP_WEBHOOK_SECRET>`. Aplica `connection.update` à conexão da barbearia cujo id é `instance`; uma queda (conectado → desconectado) envia e-mail aos Donos. Em `messages.upsert` (US-14), a mensagem de um cliente cadastra o telefone na primeira vez, com o nome do perfil, e envia uma única vez o aviso de privacidade; são ignoradas as mensagens enviadas pelo próprio número, de grupos e listas, sem telefone brasileiro ou com mais de 5 minutos. Outros eventos, estados desconhecidos e barbearias sem conexão são aceitos e ignorados.',
   })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
@@ -63,6 +77,10 @@ export class EvolutionWebhookController {
   async receive(
     @Body(new ZodValidationPipe(evolutionWebhookSchema)) body: EvolutionWebhook,
   ): Promise<void> {
+    if (body.event === 'messages.upsert') {
+      await this.handleMessage(body);
+      return;
+    }
     if (body.event !== 'connection.update') return;
     const state = stateOf(body.data);
     const barbershopId = barbershopIdSchema.safeParse(body.instance);
@@ -79,6 +97,29 @@ export class EvolutionWebhookController {
       );
     }
   }
+
+  private async handleMessage(body: EvolutionWebhook): Promise<void> {
+    const barbershopId = barbershopIdSchema.safeParse(body.instance);
+    const message = evolutionMessageSchema.safeParse(body.data);
+    if (!barbershopId.success || !message.success) return;
+    const { key, pushName, messageTimestamp } = message.data;
+    const age = this.clock.now().getTime() - messageTimestamp * 1000;
+    if (key.fromMe || age > MESSAGE_MAX_AGE_MS) return;
+    const phone = phoneFromJid(key.remoteJid);
+    if (!phone) return;
+
+    const notice = await this.receiveMessage.execute({
+      barbershopId: barbershopId.data,
+      phone,
+      profileName: pushName ?? null,
+    });
+    if (notice.outcome === 'failed') {
+      this.logger.error(
+        { barbershopId: barbershopId.data, err: errorIdentity(notice.error) },
+        'Privacy notice could not be sent.',
+      );
+    }
+  }
 }
 
 function stateOf(data: unknown): WhatsAppConnectorState | null {
@@ -89,8 +130,8 @@ function stateOf(data: unknown): WhatsAppConnectorState | null {
     : null;
 }
 
-// LGPD: an e-mail error may carry the Owner's address, so only its name and
-// code are logged.
+// LGPD: an e-mail or connector error may carry the Owner's address or the
+// client's phone, so only its name and code are logged.
 function errorIdentity(error: unknown): { name?: string; code?: string } {
   const { name, code } = (error ?? {}) as { name?: string; code?: string };
   return { name, code };

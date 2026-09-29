@@ -13,6 +13,7 @@ const validEnv = {
   EVOLUTION_API_KEY: 'evolution-key',
   WHATSAPP_WEBHOOK_URL: 'http://localhost:3000/webhooks/whatsapp/evolution',
   WHATSAPP_WEBHOOK_SECRET: 'w'.repeat(32),
+  PRIVACY_POLICY_URL: 'https://barberbot.example/privacidade',
 };
 
 describe('validateEnv', () => {
@@ -126,5 +127,23 @@ describe('validateEnv', () => {
     it('defaults the connector timeout to 10000 ms', () => {
       expect(validateEnv(validEnv).EVOLUTION_TIMEOUT_MS).toBe(10000);
     });
+  });
+
+  it('CA-14.2 (C13): fails when PRIVACY_POLICY_URL is missing', () => {
+    expect(() =>
+      validateEnv({ ...validEnv, PRIVACY_POLICY_URL: undefined }),
+    ).toThrow(/PRIVACY_POLICY_URL/);
+  });
+
+  it('CA-14.2 (C13): fails when PRIVACY_POLICY_URL is not a url', () => {
+    expect(() =>
+      validateEnv({ ...validEnv, PRIVACY_POLICY_URL: 'politica' }),
+    ).toThrow(/PRIVACY_POLICY_URL/);
+  });
+
+  it('CA-14.2 (C13): accepts PRIVACY_POLICY_URL as a url', () => {
+    expect(validateEnv(validEnv).PRIVACY_POLICY_URL).toBe(
+      'https://barberbot.example/privacidade',
+    );
   });
 });

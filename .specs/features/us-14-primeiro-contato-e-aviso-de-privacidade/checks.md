@@ -16,59 +16,59 @@ Valores usados nas provas: relógio em `2026-09-29T15:00:00Z` (`messageTimestamp
 
 ### S1 - Cadastro no primeiro contato · ~9 arquivos · ~45 KB · ~11k
 
-**C1** - Com a barbearia com conexão gravada, um webhook `messages.upsert` com `key: { remoteJid: "5511987654321@s.whatsapp.net", fromMe: false }`, `pushName: "João Silva"` e `messageTimestamp` = agora responde `204` e deixa exatamente 1 linha em `clients` dessa barbearia, com `phone = '+5511987654321'` e `name = 'João Silva'`; `GET /clients?q=987654321` do Dono devolve esse cliente (AC 1, CA-14.1, RF-29)
+**C1** - Com a barbearia com conexão gravada, um webhook `messages.upsert` com `key: { remoteJid: "5511987654321@s.whatsapp.net", fromMe: false }`, `pushName: "João Silva"` e `messageTimestamp` = agora responde `204` e deixa exatamente 1 linha em `clients` dessa barbearia, com `phone = '+5511987654321'` e `name = 'João Silva'`; `GET /clients?q=987654321` do Dono devolve esse cliente (AC 1, CA-14.1, RF-29) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-first-contact.e2e-spec.ts -t "\(C1\)"`
 
-**C2** - A conversão de JID em telefone, testada por tabela, dá: `553188887777@s.whatsapp.net` → `+5531988887777`; `551162223333@s.whatsapp.net` → `+5511962223333`; `554177776666@s.whatsapp.net` → `+5541977776666`; `552199998888@s.whatsapp.net` → `+5521999998888`; `5511987654321@s.whatsapp.net` → `+5511987654321`; `551133334444@s.whatsapp.net` (fixo, começa por 3) → `+551133334444`; `551152223333@s.whatsapp.net` (fixo, começa por 5) → `+551152223333`; e `null` para `14155550123@s.whatsapp.net`, `5511@s.whatsapp.net` e `550187654321@s.whatsapp.net` (DDD inválido) (AC 2, AC 18, door 4)
+**C2** - A conversão de JID em telefone, testada por tabela, dá: `553188887777@s.whatsapp.net` → `+5531988887777`; `551162223333@s.whatsapp.net` → `+5511962223333`; `554177776666@s.whatsapp.net` → `+5541977776666`; `552199998888@s.whatsapp.net` → `+5521999998888`; `5511987654321@s.whatsapp.net` → `+5511987654321`; `551133334444@s.whatsapp.net` (fixo, começa por 3) → `+551133334444`; `551152223333@s.whatsapp.net` (fixo, começa por 5) → `+551152223333`; e `null` para `14155550123@s.whatsapp.net`, `5511@s.whatsapp.net` e `550187654321@s.whatsapp.net` (DDD inválido) (AC 2, AC 18, door 4) ✅
 Proof: `npx jest src/infrastructure/external/whatsapp/evolution/whatsapp-jid.spec.ts -t "\(C2\)"`
 
-**C3** - Com um cliente `+5531988887777` chamado "Carlos" já cadastrado pelo painel, um webhook de `553188887777@s.whatsapp.net` com `pushName: "Carlão"` responde `204`, a barbearia continua com 1 cliente com esse telefone e o nome continua "Carlos" (AC 2, AC 3, door 4)
+**C3** - Com um cliente `+5531988887777` chamado "Carlos" já cadastrado pelo painel, um webhook de `553188887777@s.whatsapp.net` com `pushName: "Carlão"` responde `204`, a barbearia continua com 1 cliente com esse telefone e o nome continua "Carlos" (AC 2, AC 3, door 4) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-first-contact.e2e-spec.ts -t "\(C3\)"`
 
-**C4** - O nome do cliente novo, testado por tabela no use case, dá: `pushName` ausente → "Cliente do WhatsApp"; `""` → "Cliente do WhatsApp"; `"  A  "` → "Cliente do WhatsApp"; `"5511987654321"` → "Cliente do WhatsApp"; `"  Ana  "` → "Ana"; `"Jo"` → "Jo"; 80 caracteres → os 80; 81 caracteres → os 80 primeiros (AC 4, AC 5)
+**C4** - O nome do cliente novo, testado por tabela no use case, dá: `pushName` ausente → "Cliente do WhatsApp"; `""` → "Cliente do WhatsApp"; `"  A  "` → "Cliente do WhatsApp"; `"5511987654321"` → "Cliente do WhatsApp"; `"  Ana  "` → "Ana"; `"Jo"` → "Jo"; 80 caracteres → os 80; 81 caracteres → os 80 primeiros (AC 4, AC 5) ✅
 Proof: `npx jest src/usecases/receive-whatsapp-message/receive-whatsapp-message.use-case.spec.ts -t "\(C4\)"`
 
-**C5** - Dois webhooks do mesmo número novo enviados em paralelo respondem `204` os dois, e a barbearia fica com exatamente 1 cliente com esse telefone (AC 6, door 2)
+**C5** - Dois webhooks do mesmo número novo enviados em paralelo respondem `204` os dois, e a barbearia fica com exatamente 1 cliente com esse telefone (AC 6, door 2) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-first-contact.e2e-spec.ts -t "\(C5\)"`
 
-**C6** - O mesmo número escrevendo para as barbearias A e B cria 2 clientes, um com `barbershop_id` de cada, e o fake registra 1 `sendText` para cada barbearia, cada um com o nome da própria barbearia no texto (AC 7, RN-26)
+**C6** - O mesmo número escrevendo para as barbearias A e B cria 2 clientes, um com `barbershop_id` de cada, e o fake registra 1 `sendText` para cada barbearia, cada um com o nome da própria barbearia no texto (AC 7, RN-26) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-first-contact.e2e-spec.ts -t "\(C6\)"`
 
 ### S2 - Aviso de privacidade uma única vez · ~6 arquivos · ~30 KB · ~8k
 
-**C7** - Na primeira mensagem de um número novo para "Barbearia do Zé", o fake registra exatamente 1 `sendText(barbershopId, "+5511987654321", <aviso esperado>)`, com o texto exato do cabeçalho (AC 8, CA-14.2, RF-10, RN-20)
+**C7** - Na primeira mensagem de um número novo para "Barbearia do Zé", o fake registra exatamente 1 `sendText(barbershopId, "+5511987654321", <aviso esperado>)`, com o texto exato do cabeçalho (AC 8, CA-14.2, RF-10, RN-20) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-first-contact.e2e-spec.ts -t "\(C7\)"`
 
-**C8** - Depois do aviso, `clients.privacy_notice_sent_at` do cliente é `2026-09-29T15:00:00Z`, o instante do relógio (AC 9)
+**C8** - Depois do aviso, `clients.privacy_notice_sent_at` do cliente é `2026-09-29T15:00:00Z`, o instante do relógio (AC 9) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-first-contact.e2e-spec.ts -t "\(C8\)"`
 
-**C9** - Uma segunda mensagem do mesmo cliente, depois do aviso, responde `204` e não gera outro `sendText`: o fake continua com 1 envio (AC 10, CA-14.3)
+**C9** - Uma segunda mensagem do mesmo cliente, depois do aviso, responde `204` e não gera outro `sendText`: o fake continua com 1 envio (AC 10, CA-14.3) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-first-contact.e2e-spec.ts -t "\(C9\)"`
 
-**C10** - Um cliente criado pelo painel, com `privacy_notice_sent_at` nulo, recebe 1 `sendText` com o aviso na primeira mensagem que manda (AC 11)
+**C10** - Um cliente criado pelo painel, com `privacy_notice_sent_at` nulo, recebe 1 `sendText` com o aviso na primeira mensagem que manda (AC 11) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-first-contact.e2e-spec.ts -t "\(C10\)"`
 
-**C11** - Para um cliente sem aviso, dois webhooks em paralelo geram exatamente 1 `sendText`; o mesmo corpo de webhook enviado duas vezes em sequência também gera exatamente 1 (AC 12, door 3)
+**C11** - Para um cliente sem aviso, dois webhooks em paralelo geram exatamente 1 `sendText`; o mesmo corpo de webhook enviado duas vezes em sequência também gera exatamente 1 (AC 12, door 3) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-first-contact.e2e-spec.ts -t "\(C11\)"`
 
-**C12** - Com o fake rejeitando `sendText` com `WhatsAppConnectorUnavailableError`, o webhook responde `204` e `privacy_notice_sent_at` continua nulo; com o fake voltando a funcionar, a mensagem seguinte gera 1 `sendText` e grava o instante (AC 13)
+**C12** - Com o fake rejeitando `sendText` com `WhatsAppConnectorUnavailableError`, o webhook responde `204` e `privacy_notice_sent_at` continua nulo; com o fake voltando a funcionar, a mensagem seguinte gera 1 `sendText` e grava o instante (AC 13) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-first-contact.e2e-spec.ts -t "\(C12\)"`
 
-**C13** - O schema de ambiente recusa a configuração sem `PRIVACY_POLICY_URL` e com `PRIVACY_POLICY_URL=politica`, e aceita `https://barberbot.example/privacidade` (AC 14)
+**C13** - O schema de ambiente recusa a configuração sem `PRIVACY_POLICY_URL` e com `PRIVACY_POLICY_URL=politica`, e aceita `https://barberbot.example/privacidade` (AC 14) ✅
 Proof: `npx jest src/infrastructure/config/env.schema.spec.ts -t "\(C13\)"`
 
-**C14** - `clients` tem a coluna `privacy_notice_sent_at` do tipo `timestamp with time zone`, anulável e sem `DEFAULT`, e um cliente inserido sem ela fica com `NULL` (door 3)
+**C14** - `clients` tem a coluna `privacy_notice_sent_at` do tipo `timestamp with time zone`, anulável e sem `DEFAULT`, e um cliente inserido sem ela fica com `NULL` (door 3) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-first-contact.e2e-spec.ts -t "\(C14\)"`
 
 ### S3 - O que o webhook ignora · ~3 arquivos · ~20 KB · ~5k
 
-**C15** - O controller do webhook, testado por tabela com o use case falso, não chama o use case e resolve sem erro em cada um dos 13 casos: `fromMe: true`; `remoteJid` `120363000000000000@g.us`; `status@broadcast`; `120363000000000000@newsletter`; `123456789012345@lid`; `messageTimestamp` 301 s antes de agora; `messageTimestamp` ausente; `remoteJid` `14155550123@s.whatsapp.net`; `instance` `"barbearia"` (não UUID); `data` ausente; `data.key` ausente; `remoteJid` numérico; `fromMe` ausente. Com `messageTimestamp` exatamente 300 s antes de agora, chama o use case uma vez com `{ barbershopId, phone: "+5511987654321", profileName }` e nada mais (AC 15 a AC 18, AC 20, door 5, AC 26)
+**C15** - O controller do webhook, testado por tabela com o use case falso, não chama o use case e resolve sem erro em cada um dos 13 casos: `fromMe: true`; `remoteJid` `120363000000000000@g.us`; `status@broadcast`; `120363000000000000@newsletter`; `123456789012345@lid`; `messageTimestamp` 301 s antes de agora; `messageTimestamp` ausente; `remoteJid` `14155550123@s.whatsapp.net`; `instance` `"barbearia"` (não UUID); `data` ausente; `data.key` ausente; `remoteJid` numérico; `fromMe` ausente. Com `messageTimestamp` exatamente 300 s antes de agora, chama o use case uma vez com `{ barbershopId, phone: "+5511987654321", profileName }` e nada mais (AC 15 a AC 18, AC 20, door 5, AC 26) ✅
 Proof: `npx jest src/infrastructure/external/whatsapp/evolution/evolution-webhook.controller.spec.ts -t "\(C15\)"`
 
-**C16** - No e2e, webhooks com `fromMe: true`, de grupo `@g.us` e com `messageTimestamp` 10 minutos antes de agora respondem `204` os três, sem criar cliente e sem `sendText` (AC 15, AC 16, AC 17)
+**C16** - No e2e, webhooks com `fromMe: true`, de grupo `@g.us` e com `messageTimestamp` 10 minutos antes de agora respondem `204` os três, sem criar cliente e sem `sendText` (AC 15, AC 16, AC 17) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-first-contact.e2e-spec.ts -t "\(C16\)"`
 
-**C17** - Um `messages.upsert` válido para uma barbearia sem conexão gravada responde `204`, sem criar cliente e sem `sendText` (AC 19)
+**C17** - Um `messages.upsert` válido para uma barbearia sem conexão gravada responde `204`, sem criar cliente e sem `sendText` (AC 19) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-first-contact.e2e-spec.ts -t "\(C17\)"`
 
 ### S4 - Fornecedor isolado, instâncias e operação · ~6 arquivos · ~35 KB · ~9k
@@ -82,17 +82,17 @@ Proof: `npx jest src/infrastructure/external/whatsapp/evolution/evolution-whatsa
 **C20** - `sendText("<id>", "+5511987654321", "oi")` chama `POST /message/sendText/<id>` com o header `apikey` e o corpo `{ number: "5511987654321", text: "oi" }`; rejeita com `WhatsAppConnectorUnavailableError` e soma 1 em `whatsapp_connector_errors_total{operation="sendText"}` em cada um dos 4 casos: sem resposta em `EVOLUTION_TIMEOUT_MS`, erro de rede, status 5xx e corpo `{ error: true }` com status 200 (AC 23, door 1) ✅
 Proof: `npx jest src/infrastructure/external/whatsapp/evolution/evolution-whatsapp-connector.spec.ts -t "\(C20\)"`
 
-**C21** - Durante um primeiro contato com envio bem-sucedido e outro com o `sendText` falhando, nenhuma chamada a `Logger` (`log`, `warn`, `error`, `debug`, `verbose`) recebe argumento cujo JSON contenha `987654321`, `João Silva` ou `inteligência artificial` (AC 24)
+**C21** - Durante um primeiro contato com envio bem-sucedido e outro com o `sendText` falhando, nenhuma chamada a `Logger` (`log`, `warn`, `error`, `debug`, `verbose`) recebe argumento cujo JSON contenha `987654321`, `João Silva` ou `inteligência artificial` (AC 24) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-first-contact.e2e-spec.ts -t "\(C21\)"`
 
-**C22** - Um primeiro contato com envio bem-sucedido soma 1 em `whatsapp_clients_created_total` e 1 em `whatsapp_privacy_notices_total{outcome="sent"}`; um envio que falha soma 1 em `whatsapp_privacy_notices_total{outcome="failed"}`; nenhuma linha dessas métricas em `/metrics` tem label além de `outcome` (AC 25)
+**C22** - Um primeiro contato com envio bem-sucedido soma 1 em `whatsapp_clients_created_total` e 1 em `whatsapp_privacy_notices_total{outcome="sent"}`; um envio que falha soma 1 em `whatsapp_privacy_notices_total{outcome="failed"}`; nenhuma linha dessas métricas em `/metrics` tem label além de `outcome` (AC 25) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-first-contact.e2e-spec.ts -t "\(C22\)"`
 
-**C23** - `npx eslint src` termina com código 0, com a regra `boundaries/dependencies` ativa, e nenhum arquivo fora de `src/infrastructure/` importa `external/whatsapp` (AC 26, RNF-05)
+**C23** - `npx eslint src` termina com código 0, com a regra `boundaries/dependencies` ativa, e nenhum arquivo fora de `src/infrastructure/` importa `external/whatsapp` (AC 26, RNF-05) ✅
 Proof: `npx eslint src`
 Proof: `! grep -rl "external/whatsapp" src --include=*.ts | grep -v "^src/infrastructure/"`
 
-**C24** - No documento OpenAPI, a descrição de `POST /webhooks/whatsapp/evolution` contém `messages.upsert` e `US-14` (AC 27)
+**C24** - No documento OpenAPI, a descrição de `POST /webhooks/whatsapp/evolution` contém `messages.upsert` e `US-14` (AC 27) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/api-docs.e2e-spec.ts -t "\(C24\)"`
 
 ## Coverage
@@ -135,3 +135,7 @@ Proof: `npx jest --config ./test/jest-e2e.json test/api-docs.e2e-spec.ts -t "\(C
 - Arquivos existentes tocados somam ≈ 70 KB (`wc -c`: `evolution-webhook.controller.ts` e spec, `evolution-webhook.schema.ts`, `evolution-whatsapp-connector.ts` e spec, `whatsapp-connector.port.ts`, `fake-whatsapp-connector.ts`, `client.ts`, `client.repository.port.ts`, `typeorm-client.repository.ts`, `in-memory-client.repository.ts`, `client.entity.ts`, `whatsapp.module.ts`, `prometheus-whatsapp-metrics.ts`, `whatsapp-metrics.port.ts`, `counting-whatsapp-metrics.ts`, `env.schema.ts` e spec, `.env.example`, `api-docs.e2e-spec.ts`, `whatsapp-connection.e2e-spec.ts` como modelo) ≈ 18k tokens; arquivos novos estimados em ~45 KB (conversão de JID e spec, use case e spec, migration, e2e) ≈ 11k tokens
 - S1 ≈ 11k, S2 entra em ≈ 19k, S3 em ≈ 24k, S4 fecha em ≈ 33k (com os existentes, ≈ 51k), abaixo do orçamento de 150k - um builder
 - Mechanism: one builder (dentro do orçamento, sem pergunta)
+
+- **Boundary:** C1-C24 fechados na branch `feat/us-14-first-contact-privacy-notice` (um builder)
+- **Settled mid-build:** o usuário aprovou o plano sem mudanças. O instante do aviso ficou só no registro do cliente, lido pelo `ClientRepository`, sem entrar na entidade `Client` (Impact atualizado). O resumo do webhook no Swagger passou a citar "US-13, US-14", mantendo o C34 da US-13. Os testes da US-13 que fixavam `events: ["CONNECTION_UPDATE"]` e a sequência `GET, GET` do `ensureInstance` passaram a esperar os dois eventos e o `POST /webhook/set`, como pedem os AC 21 e 22 aprovados. `PRIVACY_POLICY_URL` foi acrescentada ao `.env` local, que não é versionado
+- **Abandoned:** a reivindicação e a liberação do aviso por `dataSource.query` com `UPDATE ... RETURNING`: no Postgres, o TypeORM devolve `[linhas, contagem]` para `UPDATE`, e a reivindicação sempre dava falso. Trocadas pelo query builder com `affected`, como o `recordDrop` da US-13

@@ -19,7 +19,7 @@ Reaproveita o webhook, o guard e o port `WhatsAppConnector` da US-13 (AD-011), o
 
 | Front | What changes |
 | --- | --- |
-| domain | termo novo: aviso de privacidade - a mensagem do RN-20, enviada no máximo uma vez por cliente; vive no `Client` como o instante do envio |
+| domain | termo novo: aviso de privacidade - a mensagem do RN-20, enviada no máximo uma vez por cliente; vive no registro do cliente como o instante do envio, reivindicado e desfeito pelo `ClientRepository` (door 3). A entidade `Client` não muda, porque nenhum outro fluxo lê o instante |
 | domain | termo existente: cliente - antes só nascia no agendamento manual (US-10); agora nasce também na primeira mensagem pelo WhatsApp, com o nome do perfil. Quem usa o cliente hoje (agenda US-08, busca e perfil US-12, faltas US-11) lê o mesmo registro e não muda |
 | stored data | coluna nova em `clients`, nula para todos os clientes existentes: todos foram criados no painel e nunca receberam o aviso, então recebem na primeira mensagem que mandarem. Nada a migrar |
 | webhook existente | `POST /webhooks/whatsapp/evolution` passa a tratar `messages.upsert`; entrada, saída e status não mudam. A descrição no Swagger é atualizada |

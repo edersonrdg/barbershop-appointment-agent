@@ -153,6 +153,13 @@ describe('API docs (e2e)', () => {
     expect(show.security).toEqual([{ bearer: [] }]);
   });
 
+  it('CA-14.1 (C24): describes the messages.upsert handling of the webhook', () => {
+    const hook = document.paths['/webhooks/whatsapp/evolution'].post!;
+
+    expect(hook.description).toContain('messages.upsert');
+    expect(`${hook.summary} ${hook.description}`).toContain('US-14');
+  });
+
   it('serves the UI and the JSON document once enabled', async () => {
     const docsApp = (await createAccountTestApp([], setupApiDocs)).app;
 
