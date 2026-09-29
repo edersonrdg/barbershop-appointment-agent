@@ -40,7 +40,7 @@ flowchart TD
 | infraestrutura | serviço novo `evolution-api` no `docker-compose` (perfil `whatsapp`, imagem `evoapicloud/evolution-api:v2.3.7`), usando o Postgres do compose com um banco próprio |
 | configuração | 4 variáveis novas obrigatórias no `env.schema.ts` e no `.env.example`: `EVOLUTION_API_URL`, `EVOLUTION_API_KEY`, `WHATSAPP_WEBHOOK_URL`, `WHATSAPP_WEBHOOK_SECRET`. A aplicação deixa de subir sem elas |
 | observabilidade | `GET /health/ready` ganha o indicador `whatsapp`: com a Evolution API fora, a API inteira responde `503` no ready, como pede o CLAUDE.md para integrações críticas |
-| código existente | `test/support` e os e2e que sobem o `AppModule` passam a trocar o `WhatsAppConnector` por um fake, como já fazem com o `EMAIL_SENDER` |
+| código existente | `test/app.e2e-spec.ts` passa a trocar o `WhatsAppConnector` por um fake, porque o `/health/ready` o chama; os outros e2e sobem o adaptador real, mas nenhum deles chama o conector. O `AccountModule` passa a exportar o `EMAIL_SENDER`, reaproveitado no alerta, e o `validEnv` de `env.schema.spec.ts` ganha as 4 variáveis novas |
 
 ## Relations
 

@@ -319,6 +319,6 @@ import { UuidIdGenerator } from '../security/uuid-id-generator';
     { provide: APP_GUARD, useClass: SessionGuard },
     { provide: APP_FILTER, useClass: DomainErrorFilter },
   ],
-  exports: [BARBERSHOP_REPOSITORY, USER_REPOSITORY],
+  exports: [BARBERSHOP_REPOSITORY, USER_REPOSITORY, EMAIL_SENDER],
 })
 export class AccountModule {}
