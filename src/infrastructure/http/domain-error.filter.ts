@@ -34,6 +34,8 @@ import { ServiceNotPerformedError } from '../../domain/errors/service-not-perfor
 import { SlotInPastError } from '../../domain/errors/slot-in-past.error';
 import { InvalidWorkingHoursError } from '../../domain/errors/invalid-working-hours.error';
 import { UserNotFoundError } from '../../domain/errors/user-not-found.error';
+import { WhatsAppAlreadyConnectedError } from '../../domain/errors/whatsapp-already-connected.error';
+import { WhatsAppConnectorUnavailableError } from '../../domain/errors/whatsapp-connector-unavailable.error';
 
 const STATUS_BY_ERROR = new Map<unknown, HttpStatus>([
   [EmailAlreadyRegisteredError, HttpStatus.CONFLICT],
@@ -63,6 +65,8 @@ const STATUS_BY_ERROR = new Map<unknown, HttpStatus>([
   [AppointmentNotFoundError, HttpStatus.NOT_FOUND],
   [AppointmentNotStartedError, HttpStatus.UNPROCESSABLE_ENTITY],
   [ClientNotFoundError, HttpStatus.NOT_FOUND],
+  [WhatsAppAlreadyConnectedError, HttpStatus.CONFLICT],
+  [WhatsAppConnectorUnavailableError, HttpStatus.BAD_GATEWAY],
 ]);
 
 @Catch(DomainError)

@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 12,
+  "next_id": 13,
   "lessons": [
     {
       "id": "L-001",
@@ -208,6 +208,24 @@
       ],
       "created": "2026-09-29T14:47:45Z",
       "last_seen": "2026-09-29T14:47:45Z"
+    },
+    {
+      "id": "L-012",
+      "key": "gate_fail::before committing run every proof selector literally and confirm it selects at least one test jest exits 0 when t matches nothing so a describe named c35 instead of c35 ships an unproven check",
+      "text": "Before committing, run every proof selector literally and confirm it selects at least one test: Jest exits 0 when -t matches nothing, so a describe named 'C35:' instead of '(C35)' ships an unproven check.",
+      "signal": "gate_fail",
+      "scope": "test",
+      "status": "candidate",
+      "features": [
+        "us-13-conexao-do-whatsapp"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "test/whatsapp-connection.e2e-spec.ts:551 (C35) (test)"
+      ],
+      "created": "2026-09-29T21:55:40Z",
+      "last_seen": "2026-09-29T21:55:40Z"
     }
   ]
 }

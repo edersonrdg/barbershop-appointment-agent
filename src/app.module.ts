@@ -14,6 +14,7 @@ import { ManualBookingModule } from './infrastructure/modules/manual-booking.mod
 import { ScheduleModule } from './infrastructure/modules/schedule.module';
 import { SchedulingModule } from './infrastructure/modules/scheduling.module';
 import { ServicesModule } from './infrastructure/modules/services.module';
+import { WhatsAppModule } from './infrastructure/modules/whatsapp.module';
 import { buildLoggerOptions } from './infrastructure/observability/logger.options';
 import { ObservabilityModule } from './infrastructure/observability/observability.module';
 
@@ -41,6 +42,7 @@ import { ObservabilityModule } from './infrastructure/observability/observabilit
     BarberBlocksModule,
     ManualBookingModule,
     ClientsModule,
+    WhatsAppModule,
   ],
 })
 export class AppModule {}

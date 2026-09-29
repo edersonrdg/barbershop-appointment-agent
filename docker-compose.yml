@@ -38,6 +38,29 @@ services:
       - '1025:1025'
       - '8025:8025'
 
+  # US-13: conector de WhatsApp (API não oficial). Guarda as sessões num schema
+  # próprio do Postgres do compose; o webhook chama a API rodando no host.
+  evolution-api:
+    profiles: [whatsapp]
+    image: evoapicloud/evolution-api:v2.3.7
+    environment:
+      SERVER_URL: http://localhost:8080
+      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY:-dev-only-evolution-key}
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://${DB_USER:-barbershop}:${DB_PASSWORD:-barbershop}@postgres:5432/${DB_NAME:-barbershop}?schema=evolution_api
+      DATABASE_CONNECTION_CLIENT_NAME: evolution
+      CACHE_REDIS_ENABLED: 'false'
+      CACHE_LOCAL_ENABLED: 'true'
+    ports:
+      - '8080:8080'
+    volumes:
+      - evolution-instances:/evolution/instances
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   prometheus:
     profiles: [observability]
     image: prom/prometheus:v3.5.0
@@ -51,3 +74,4 @@ services:
 
 volumes:
   postgres-data:
+  evolution-instances:

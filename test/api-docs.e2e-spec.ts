@@ -135,6 +135,24 @@ describe('API docs (e2e)', () => {
     });
   });
 
+  it('CA-13.1 (C34): documents the WhatsApp connection routes and the webhook', () => {
+    const connect = document.paths['/whatsapp/connection'].post!;
+    const show = document.paths['/whatsapp/connection'].get!;
+    const hook = document.paths['/webhooks/whatsapp/evolution'].post!;
+
+    for (const operation of [connect, show, hook]) {
+      expect(operation.summary).toContain('US-13');
+    }
+    expect(Object.keys(connect.responses).sort()).toEqual(
+      ['200', '401', '403', '409', '502'].sort(),
+    );
+    expect(Object.keys(show.responses).sort()).toEqual(['200', '401', '403']);
+    expect(Object.keys(hook.responses).sort()).toEqual(['204', '400', '401']);
+    expect(hook.security).toBeUndefined();
+    expect(connect.security).toEqual([{ bearer: [] }]);
+    expect(show.security).toEqual([{ bearer: [] }]);
+  });
+
   it('serves the UI and the JSON document once enabled', async () => {
     const docsApp = (await createAccountTestApp([], setupApiDocs)).app;
 

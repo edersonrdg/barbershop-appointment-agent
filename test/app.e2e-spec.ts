@@ -3,14 +3,22 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
+import { WHATSAPP_CONNECTOR } from './../src/usecases/ports/whatsapp-connector.port';
+import { FakeWhatsAppConnector } from './../src/usecases/testing/fake-whatsapp-connector';
 
 describe('Observability (e2e)', () => {
   let app: INestApplication<App>;
+  // The readiness check pings the WhatsApp connector; no e2e talks to a real
+  // Evolution API.
+  const connector = new FakeWhatsAppConnector();
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(WHATSAPP_CONNECTOR)
+      .useValue(connector)
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
@@ -34,6 +42,37 @@ describe('Observability (e2e)', () => {
       .expect(({ body }) =>
         expect(body).toMatchObject({ info: { database: { status: 'up' } } }),
       );
+  });
+
+  it('RNF-07 (C32): GET /health/ready reports the WhatsApp connector up', () => {
+    connector.reset();
+
+    return request(app.getHttpServer())
+      .get('/health/ready')
+      .expect(200)
+      .expect(({ body }) =>
+        expect(body).toMatchObject({
+          details: {
+            database: { status: 'up' },
+            whatsapp: { status: 'up' },
+          },
+        }),
+      );
+  });
+
+  it('RNF-07 (C32): GET /health/ready answers 503 when the WhatsApp connector is down', async () => {
+    connector.reset();
+    connector.failing.add('ping');
+
+    await request(app.getHttpServer())
+      .get('/health/ready')
+      .expect(503)
+      .expect(({ body }) =>
+        expect(body).toMatchObject({
+          details: { whatsapp: { status: 'down' } },
+        }),
+      );
+    connector.reset();
   });
 
   it('GET /metrics exposes Prometheus metrics', () => {

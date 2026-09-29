@@ -1,14 +1,18 @@
-import { Controller, Get, HttpStatus } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Inject } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   HealthCheck,
   HealthCheckResult,
   HealthCheckService,
+  HealthIndicatorResult,
+  HealthIndicatorService,
   TypeOrmHealthIndicator,
 } from '@nestjs/terminus';
 import { z } from 'zod';
 import { ApiZodResponse } from '../../interface-adapters/controllers/api-docs/api-zod-response.decorator';
 import { Public } from '../../interface-adapters/controllers/public.decorator';
+import { WHATSAPP_CONNECTOR } from '../../usecases/ports/whatsapp-connector.port';
+import type { WhatsAppConnector } from '../../usecases/ports/whatsapp-connector.port';
 
 const indicatorsSchema = z.record(
   z.string(),
@@ -29,6 +33,8 @@ export class HealthController {
   constructor(
     private readonly health: HealthCheckService,
     private readonly database: TypeOrmHealthIndicator,
+    private readonly indicators: HealthIndicatorService,
+    @Inject(WHATSAPP_CONNECTOR) private readonly whatsapp: WhatsAppConnector,
   ) {}
 
   @Get('live')
@@ -46,7 +52,8 @@ export class HealthController {
   @Get('ready')
   @HealthCheck()
   @ApiOperation({
-    summary: 'Readiness: dependências críticas (hoje, o banco) respondem',
+    summary:
+      'Readiness: dependências críticas (o banco e o conector de WhatsApp) respondem',
   })
   @ApiZodResponse({
     status: HttpStatus.OK,
@@ -61,6 +68,18 @@ export class HealthController {
   ready(): Promise<HealthCheckResult> {
     return this.health.check([
       () => this.database.pingCheck('database', { timeout: 1500 }),
+      () => this.whatsappCheck(),
     ]);
+  }
+
+  // RNF-07: the WhatsApp connector is a critical integration (US-13).
+  private async whatsappCheck(): Promise<HealthIndicatorResult> {
+    const indicator = this.indicators.check('whatsapp');
+    try {
+      await this.whatsapp.ping();
+      return indicator.up();
+    } catch {
+      return indicator.down();
+    }
   }
 }

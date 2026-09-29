@@ -82,5 +82,13 @@
 - **Date**: 2026-09-29
 - **Status**: active
 
+### AD-011
+- **Decision**: O WhatsApp passa só pelo port `WhatsAppConnector` (`src/usecases/ports/whatsapp-connector.port.ts`), que devolve tipos neutros; o único adaptador é o da Evolution API, em `src/infrastructure/external/whatsapp/evolution/`, junto com o controller do webhook. Cada barbearia tem uma instância na Evolution com `instanceName = barbershopId`, e o webhook (`POST /webhooks/whatsapp/evolution`, `@Public()`, autenticado por `authorization: Bearer <WHATSAPP_WEBHOOK_SECRET>`) resolve o tenant pelo campo `instance` do payload. As histórias seguintes (envio e recebimento de mensagens, US-14 em diante) estendem esse port e esse webhook, sem criar outro.
+- **Reason**: RNF-05 (trocar o fornecedor pela API oficial na fase 2 mexendo só no adaptador) e CA-13.5. O webhook chega antes de existir sessão, então precisa achar o tenant a partir do que a Evolution manda; o nome da instância é esse identificador.
+- **Trade-off**: Nova exceção ao AD-004: além dos lookups de identidade, o webhook do conector também tira o tenant de fora da sessão, confiando no segredo compartilhado. Um segredo vazado permite forjar mudanças de estado de qualquer barbearia.
+- **Scope**: Integração com o WhatsApp, US-13 em diante (US-14 a US-19, US-24, US-25).
+- **Date**: 2026-09-29
+- **Status**: active
+
 ## Handoff
 
