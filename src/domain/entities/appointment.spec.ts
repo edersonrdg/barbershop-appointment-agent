@@ -7,6 +7,7 @@ function describeAppointment(appointment: Appointment) {
     id: appointment.id,
     barbershopId: appointment.barbershopId,
     barberId: appointment.barberId,
+    clientId: appointment.clientId,
     serviceIds: [...appointment.serviceIds],
     startsAt: appointment.startsAt.toISOString(),
     endsAt: appointment.endsAt.toISOString(),
@@ -24,6 +25,7 @@ describe('Appointment', () => {
         id: 'appointment-1',
         barbershopId: 'barbershop-a',
         barberId: 'barber-1',
+        clientId: null,
         serviceIds: ['haircut', 'beard'],
         startsAt: new Date('2026-10-05T14:00:00.000Z'),
         durationMinutes: 45,
@@ -35,6 +37,7 @@ describe('Appointment', () => {
         id: 'appointment-1',
         barbershopId: 'barbershop-a',
         barberId: 'barber-1',
+        clientId: null,
         serviceIds: ['haircut', 'beard'],
         startsAt: '2026-10-05T14:00:00.000Z',
         endsAt: '2026-10-05T14:45:00.000Z',
@@ -45,11 +48,31 @@ describe('Appointment', () => {
     },
   );
 
+  it.each([
+    ['the client id', 'c1'],
+    ['no client', null],
+  ])('CA-10.2: a booking keeps %s (AGM-05)', (_label, clientId) => {
+    const appointment = Appointment.book({
+      id: 'appointment-1',
+      barbershopId: 'barbershop-a',
+      barberId: 'barber-1',
+      clientId,
+      serviceIds: ['haircut'],
+      startsAt: new Date('2026-10-05T14:00:00.000Z'),
+      durationMinutes: 30,
+      origin: 'manual',
+      now: NOW,
+    });
+
+    expect(appointment.clientId).toBe(clientId);
+  });
+
   it('CA-07.5: restore keeps every stored value', () => {
     const appointment = Appointment.restore({
       id: 'appointment-1',
       barbershopId: 'barbershop-a',
       barberId: 'barber-1',
+      clientId: 'client-1',
       serviceIds: ['beard', 'haircut'],
       startsAt: new Date('2026-10-05T14:00:00.000Z'),
       endsAt: new Date('2026-10-05T14:45:00.000Z'),
@@ -62,6 +85,7 @@ describe('Appointment', () => {
       id: 'appointment-1',
       barbershopId: 'barbershop-a',
       barberId: 'barber-1',
+      clientId: 'client-1',
       serviceIds: ['beard', 'haircut'],
       startsAt: '2026-10-05T14:00:00.000Z',
       endsAt: '2026-10-05T14:45:00.000Z',

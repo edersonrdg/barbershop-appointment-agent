@@ -1,4 +1,6 @@
 import { ArgumentsHost, Logger } from '@nestjs/common';
+import { AppointmentConflictError } from '../../domain/errors/appointment-conflict.error';
+import { BarberUnavailableError } from '../../domain/errors/barber-unavailable.error';
 import { BarberBlockNotFoundError } from '../../domain/errors/barber-block-not-found.error';
 import { BarberNameAlreadyExistsError } from '../../domain/errors/barber-name-already-exists.error';
 import { BarberNotFoundError } from '../../domain/errors/barber-not-found.error';
@@ -13,8 +15,12 @@ import { InvalidOpeningHoursError } from '../../domain/errors/invalid-opening-ho
 import { InvalidPasswordResetTokenError } from '../../domain/errors/invalid-password-reset-token.error';
 import { InvalidServiceAddOnError } from '../../domain/errors/invalid-service-add-on.error';
 import { InvalidValueError } from '../../domain/errors/invalid-value.error';
+import { OutsideOpeningHoursError } from '../../domain/errors/outside-opening-hours.error';
+import { OutsideWorkingHoursError } from '../../domain/errors/outside-working-hours.error';
 import { ServiceNameAlreadyExistsError } from '../../domain/errors/service-name-already-exists.error';
 import { ServiceNotFoundError } from '../../domain/errors/service-not-found.error';
+import { ServiceNotPerformedError } from '../../domain/errors/service-not-performed.error';
+import { SlotInPastError } from '../../domain/errors/slot-in-past.error';
 import { DomainErrorFilter } from './domain-error.filter';
 
 interface CapturedResponse {
@@ -159,6 +165,51 @@ describe('DomainErrorFilter', () => {
       body: { message: 'Bloqueio não encontrado.' },
     });
   });
+
+  it.each([
+    [
+      'AppointmentConflictError (RN-03)',
+      new AppointmentConflictError('RN-03'),
+      409,
+      'O barbeiro já tem um agendamento nesse horário.',
+    ],
+    [
+      'AppointmentConflictError (RN-07)',
+      new AppointmentConflictError('RN-07'),
+      409,
+      'O barbeiro já tem um agendamento nesse horário.',
+    ],
+    [
+      'OutsideOpeningHoursError',
+      new OutsideOpeningHoursError(),
+      422,
+      'O horário está fora do funcionamento da barbearia.',
+    ],
+    [
+      'OutsideWorkingHoursError',
+      new OutsideWorkingHoursError(),
+      422,
+      'O horário está fora da jornada do barbeiro.',
+    ],
+    [
+      'BarberUnavailableError',
+      new BarberUnavailableError(),
+      422,
+      'O barbeiro está indisponível nesse horário.',
+    ],
+    ['SlotInPastError', new SlotInPastError(), 422, 'O horário já passou.'],
+    [
+      'ServiceNotPerformedError',
+      new ServiceNotPerformedError(),
+      400,
+      'O barbeiro não realiza todos os serviços escolhidos.',
+    ],
+  ])(
+    'CA-10.4: maps %s to its status with the spec message',
+    (_name, error, statusCode, message) => {
+      expect(handle(error)).toEqual({ statusCode, body: { message } });
+    },
+  );
 
   it('maps an unmapped domain error to 500 without leaking its message', () => {
     expect(handle(new InvalidValueError('telefone +5511912345678'))).toEqual({

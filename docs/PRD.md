@@ -1000,6 +1000,7 @@ flowchart LR
 - [ ] **Fornecedor da API não oficial do WhatsApp** (ex.: Evolution API, Z-API). Bloqueia a US-13.
 - [ ] **Gateway de pagamento** (ex.: Asaas, Stripe, Iugu). Bloqueia a US-20.
 - [ ] **Texto e URL da política de privacidade.** Bloqueia a US-14.
+- [ ] **Forçar horário no painel (exceção do RN-05).** O RN-05 permite que o Dono force no painel, com aviso, um agendamento fora do funcionamento, da jornada ou sobre folga e bloqueio, mas nenhuma história implementa o forçar. A US-10 recusa toda violação, inclusive para o Dono. Falta decidir se o forçar entra e em qual história.
 - [ ] **Critérios sugeridos nas histórias**, a confirmar:
   - lista de conversas aguardando humano (CA-16.6);
   - alerta de "não confirmado" 2h antes (CA-19.5);

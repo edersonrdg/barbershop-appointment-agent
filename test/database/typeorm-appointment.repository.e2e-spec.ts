@@ -4,7 +4,10 @@ import {
   Appointment,
   AppointmentOrigin,
 } from '../../src/domain/entities/appointment';
+import { Client } from '../../src/domain/entities/client';
 import { AppointmentConflictError } from '../../src/domain/errors/appointment-conflict.error';
+import { ClientPhoneTakenError } from '../../src/domain/errors/client-phone-taken.error';
+import { PhoneNumber } from '../../src/domain/value-objects/phone-number';
 import { validateEnv } from '../../src/infrastructure/config/env.schema';
 import { TypeOrmAppointmentRepository } from '../../src/infrastructure/database/repositories/typeorm-appointment.repository';
 import { buildTypeOrmOptions } from '../../src/infrastructure/database/typeorm.options';
@@ -59,17 +62,39 @@ describe('TypeOrmAppointmentRepository (e2e)', () => {
     startsAt: string;
     durationMinutes?: number;
     origin?: AppointmentOrigin;
+    clientId?: string | null;
   }): Appointment {
     return Appointment.book({
       id: randomUUID(),
       barbershopId: input.barbershopId,
       barberId: input.barberId,
+      clientId: input.clientId ?? null,
       serviceIds: input.serviceIds,
       startsAt: new Date(input.startsAt),
       durationMinutes: input.durationMinutes ?? 30,
       origin: input.origin ?? 'bot',
       now: NOW,
     });
+  }
+
+  function newClient(barbershopId: string, name = 'João'): Client {
+    return Client.create({
+      id: randomUUID(),
+      barbershopId,
+      name,
+      phone: PhoneNumber.create('11987654321'),
+      now: NOW,
+    });
+  }
+
+  async function insertClient(barbershopId: string): Promise<string> {
+    const id = randomUUID();
+    await dataSource.query(
+      `INSERT INTO clients (id, barbershop_id, name, phone, created_at)
+       VALUES ($1, $2, 'Maria', '+5511987654321', now())`,
+      [id, barbershopId],
+    );
+    return id;
   }
 
   async function count(table: string): Promise<number> {
@@ -115,6 +140,123 @@ describe('TypeOrmAppointmentRepository (e2e)', () => {
         'SELECT id, client_id FROM appointments',
       );
       expect(rows).toEqual([{ id: appointment.id, client_id: null }]);
+    });
+
+    it('CA-10.2: persists the new client and links the appointment to it in one transaction', async () => {
+      const barberId = await insertBarber(barbershopA);
+      const haircut = await insertService(barbershopA);
+      const client = newClient(barbershopA);
+      const appointment = book({
+        barbershopId: barbershopA,
+        barberId,
+        serviceIds: [haircut],
+        startsAt: '2026-10-05T13:00:00.000Z',
+        origin: 'manual',
+        clientId: client.id,
+      });
+
+      await repository.create(appointment, client);
+
+      const clients = await dataSource.query<Record<string, unknown>[]>(
+        'SELECT id, barbershop_id, name, phone, created_at FROM clients',
+      );
+      expect(clients).toEqual([
+        {
+          id: client.id,
+          barbershop_id: barbershopA,
+          name: 'João',
+          phone: '+5511987654321',
+          created_at: NOW,
+        },
+      ]);
+      const rows = await dataSource.query<Record<string, unknown>[]>(
+        'SELECT id, client_id FROM appointments',
+      );
+      expect(rows).toEqual([{ id: appointment.id, client_id: client.id }]);
+      expect(await count('appointment_services')).toBe(1);
+    });
+
+    it('CA-10.2: links an existing client without storing another one', async () => {
+      const barberId = await insertBarber(barbershopA);
+      const haircut = await insertService(barbershopA);
+      const clientId = await insertClient(barbershopA);
+      const appointment = book({
+        barbershopId: barbershopA,
+        barberId,
+        serviceIds: [haircut],
+        startsAt: '2026-10-05T13:00:00.000Z',
+        origin: 'manual',
+        clientId,
+      });
+
+      await repository.create(appointment);
+
+      const rows = await dataSource.query<Record<string, unknown>[]>(
+        'SELECT id, client_id FROM appointments',
+      );
+      expect(rows).toEqual([{ id: appointment.id, client_id: clientId }]);
+      const clients = await dataSource.query<Record<string, unknown>[]>(
+        'SELECT id, name FROM clients',
+      );
+      expect(clients).toEqual([{ id: clientId, name: 'Maria' }]);
+    });
+
+    it('CA-10.2: an overlap refused by the database (RN-07) leaves the new client unsaved', async () => {
+      const barberId = await insertBarber(barbershopA);
+      const serviceId = await insertService(barbershopA);
+      await repository.create(
+        book({
+          barbershopId: barbershopA,
+          barberId,
+          serviceIds: [serviceId],
+          startsAt: '2026-10-05T13:00:00.000Z',
+        }),
+      );
+      const client = newClient(barbershopA);
+      const overlapping = book({
+        barbershopId: barbershopA,
+        barberId,
+        serviceIds: [serviceId],
+        startsAt: '2026-10-05T13:15:00.000Z',
+        origin: 'manual',
+        clientId: client.id,
+      });
+
+      const create = repository.create(overlapping, client);
+
+      await expect(create).rejects.toBeInstanceOf(AppointmentConflictError);
+      await expect(create).rejects.toMatchObject({ rule: 'RN-07' });
+      expect(await count('clients')).toBe(0);
+      expect(await count('appointments')).toBe(1);
+    });
+
+    it('CA-10.2: a phone already stored in the barbershop throws ClientPhoneTakenError (RN-08) and saves no appointment', async () => {
+      const barberId = await insertBarber(barbershopA);
+      const serviceId = await insertService(barbershopA);
+      const storedId = await insertClient(barbershopA);
+      const client = newClient(barbershopA, 'Joao Silva');
+      const appointment = book({
+        barbershopId: barbershopA,
+        barberId,
+        serviceIds: [serviceId],
+        startsAt: '2026-10-05T13:00:00.000Z',
+        origin: 'manual',
+        clientId: client.id,
+      });
+
+      const create = repository.create(appointment, client);
+
+      await expect(create).rejects.toBeInstanceOf(ClientPhoneTakenError);
+      await expect(create).rejects.toMatchObject({
+        code: 'CLIENT_PHONE_TAKEN',
+        rule: 'RN-08',
+      });
+      expect(await count('appointments')).toBe(0);
+      expect(await count('appointment_services')).toBe(0);
+      const clients = await dataSource.query<Record<string, unknown>[]>(
+        'SELECT id, name FROM clients',
+      );
+      expect(clients).toEqual([{ id: storedId, name: 'Maria' }]);
     });
 
     it('CA-07.5: persists the appointment and its services in the requested order', async () => {

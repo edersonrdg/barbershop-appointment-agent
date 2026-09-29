@@ -74,4 +74,15 @@ export class InMemoryScheduleQuery implements ScheduleQuery {
         .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime()),
     );
   }
+
+  findById(
+    barbershopId: string,
+    appointmentId: string,
+  ): Promise<ScheduleEntry | null> {
+    const found = this.stored.find(
+      ({ barbershopId: tenant, entry }) =>
+        tenant === barbershopId && entry.id === appointmentId,
+    );
+    return Promise.resolve(found?.entry ?? null);
+  }
 }

@@ -2,6 +2,7 @@ import {
   Appointment,
   AppointmentOrigin,
 } from '../../domain/entities/appointment';
+import { Client } from '../../domain/entities/client';
 import { AppointmentConflictError } from '../../domain/errors/appointment-conflict.error';
 import { BarberNotFoundError } from '../../domain/errors/barber-not-found.error';
 import { BarberUnavailableError } from '../../domain/errors/barber-unavailable.error';
@@ -13,6 +14,7 @@ import { OutsideWorkingHoursError } from '../../domain/errors/outside-working-ho
 import { ServiceNotFoundError } from '../../domain/errors/service-not-found.error';
 import { ServiceNotPerformedError } from '../../domain/errors/service-not-performed.error';
 import { SlotInPastError } from '../../domain/errors/slot-in-past.error';
+import { PhoneNumber } from '../../domain/value-objects/phone-number';
 import { ListAvailableSlotsUseCase } from '../list-available-slots/list-available-slots.use-case';
 import {
   AppointmentRepository,
@@ -21,6 +23,7 @@ import {
 import { day, seedBarber, workingHoursInput } from '../testing/barber-fixtures';
 import { CountingAppointmentMetrics } from '../testing/counting-appointment-metrics';
 import { InMemoryAppointmentRepository } from '../testing/in-memory-appointment.repository';
+import { InMemoryClientRepository } from '../testing/in-memory-client.repository';
 import {
   at,
   MONDAY,
@@ -573,5 +576,84 @@ describe('BookAppointmentUseCase', () => {
         expect(metrics.bookings).toEqual([]);
       },
     );
+  });
+  describe('CA-10.2: the client of the appointment (AGM-05, AGM-06)', () => {
+    const joao = Client.create({
+      id: 'client-joao',
+      barbershopId: 'barbershop-a',
+      name: 'João',
+      phone: PhoneNumber.create('11987654321'),
+      now: SUNDAY_NOON,
+    });
+
+    async function setupWithClients(now = SUNDAY_NOON) {
+      const clients = new InMemoryClientRepository();
+      const appointments = new InMemoryAppointmentRepository(clients);
+      const env = await setup(now, () => appointments);
+      return { ...env, clients, appointments };
+    }
+
+    it('CA-10.2: a new client is stored with the appointment, which carries its id', async () => {
+      const { useCase, clients, appointments } = await setupWithClients();
+
+      const appointment = await useCase.execute(
+        input({ client: { client: joao, isNew: true } }),
+      );
+
+      expect(appointment.clientId).toBe('client-joao');
+      const [saved] = await appointments.list('barbershop-a');
+      expect(saved.clientId).toBe('client-joao');
+      expect(
+        clients.list('barbershop-a').map((client) => ({
+          id: client.id,
+          name: client.name,
+          phone: client.phone,
+        })),
+      ).toEqual([{ id: 'client-joao', name: 'João', phone: '+5511987654321' }]);
+    });
+
+    it('CA-10.2: an existing client is linked without storing another one', async () => {
+      const { useCase, clients, appointments } = await setupWithClients();
+      clients.add(joao);
+
+      const appointment = await useCase.execute(
+        input({ client: { client: joao, isNew: false } }),
+      );
+
+      expect(appointment.clientId).toBe('client-joao');
+      const [saved] = await appointments.list('barbershop-a');
+      expect(saved.clientId).toBe('client-joao');
+      expect(clients.list('barbershop-a')).toEqual([joao]);
+    });
+
+    it('AGD-20: without a client the appointment is stored with a null client', async () => {
+      const { useCase, appointments } = await setupWithClients();
+
+      const appointment = await useCase.execute(input());
+
+      expect(appointment.clientId).toBeNull();
+      const [saved] = await appointments.list('barbershop-a');
+      expect(saved.clientId).toBeNull();
+    });
+
+    it('CA-10.3: a manual booking 30 minutes ahead is stored under a 60-minute minimum advance', async () => {
+      const { useCase, clients, appointments } = await setupWithClients(
+        at('10:00'),
+      );
+
+      const appointment = await useCase.execute(
+        input({
+          origin: 'manual',
+          startsAt: at('10:30'),
+          client: { client: joao, isNew: true },
+        }),
+      );
+
+      expect(appointment.startsAt).toEqual(at('10:30'));
+      expect(appointment.origin).toBe('manual');
+      const saved = await appointments.list('barbershop-a');
+      expect(saved.map((stored) => stored.startsAt)).toEqual([at('10:30')]);
+      expect(clients.list('barbershop-a')).toHaveLength(1);
+    });
   });
 });

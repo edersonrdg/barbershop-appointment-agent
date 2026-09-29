@@ -9,10 +9,16 @@
 Corroborated across multiple features. Safe to apply as guidance.
 
 ### L-007 - When the spec says only 'invalid value error', write the exact user-facing pt-BR message into the spec Assumptions before implementing, so tests are anchored to the spec and not to the author's choice.
-- signal: `spec_precision_gap` · recurrence: 2 feature(s) · scope: `spec` · harmful: 0
+- signal: `spec_precision_gap` · recurrence: 2 feature(s) · scope: `spec` · harmful: 1
 - features: us-07-motor-de-disponibilidade, us-09-bloqueios-e-folgas
 - evidence: AVL-35 + edge case seconds-in-start (booking-context.ts:25-26, book-appointment.use-case.ts:69) (spec) (+1 more)
-- last seen: 2026-09-28T21:07:24Z
+- last seen: 2026-09-28T22:18:21Z
+
+### L-008 - Every user-facing validation message a schema defines needs a test that asserts that exact message.
+- signal: `spec_precision_gap` · recurrence: 2 feature(s) · scope: `schema` · harmful: 0
+- features: us-09-bloqueios-e-folgas, us-10-agendamento-manual
+- evidence: src/interface-adapters/controllers/schemas/barber-block.schema.ts:13 (confirmConflicts message untested) (schema) (+1 more)
+- last seen: 2026-09-28T22:18:21Z
 
 ## Candidates (under observation - do NOT load as guidance yet)
 
@@ -54,11 +60,11 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: AVL-17 booking half, no evidence in book-appointment.use-case.spec.ts (usecases)
 - last seen: 2026-09-28T15:24:51Z
 
-### L-008 - Every user-facing validation message a schema defines needs a test that asserts that exact message.
-- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `schema` · harmful: 0
-- features: us-09-bloqueios-e-folgas
-- evidence: src/interface-adapters/controllers/schemas/barber-block.schema.ts:13 (confirmConflicts message untested) (schema)
-- last seen: 2026-09-28T21:07:24Z
+### L-009 - Booking-rule tests must include an interval that ends exactly on each inclusive limit (closing time, end of the working day, start of the next appointment), not only intervals that cross it.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `usecases` · harmful: 0
+- features: us-10-agendamento-manual
+- evidence: validation.md M8 / src/domain/value-objects/barber-day-schedule.ts:90 (edge case: ends at closing) (usecases) (+1 more)
+- last seen: 2026-09-28T22:18:21Z
 
 ## Quarantined (failed when applied - ignore)
 

@@ -486,4 +486,80 @@ describe('TypeOrmScheduleQuery (e2e)', () => {
       ).toHaveLength(1);
     });
   });
+
+  describe('findById', () => {
+    it('CA-10.1: returns barber, client, services in booked order, times, status and origin of the appointment', async () => {
+      const ana = await insertBarber(barbershopA, 'Ana');
+      const haircut = await insertService(barbershopA, 'Corte');
+      const beard = await insertService(barbershopA, 'Barba');
+      const joao = await insertClient(barbershopA, 'João', '+5511987654321');
+      const id = await insertAppointment({
+        barberId: ana,
+        startsAt: '2026-10-05T13:00:00Z',
+        endsAt: '2026-10-05T13:45:00Z',
+        serviceIds: [beard, haircut],
+        clientId: joao,
+        origin: 'manual',
+      });
+      await insertAppointment({
+        barberId: ana,
+        startsAt: '2026-10-05T14:00:00Z',
+        endsAt: '2026-10-05T14:30:00Z',
+        serviceIds: [haircut],
+        origin: 'bot',
+      });
+
+      const entry = await query.findById(barbershopA, id);
+
+      expect(entry).toEqual({
+        id,
+        barber: { id: ana, name: 'Ana' },
+        client: { id: joao, name: 'João', phone: '+5511987654321' },
+        services: [
+          { id: beard, name: 'Barba' },
+          { id: haircut, name: 'Corte' },
+        ],
+        startsAt: new Date('2026-10-05T13:00:00.000Z'),
+        endsAt: new Date('2026-10-05T13:45:00.000Z'),
+        status: 'confirmed',
+        origin: 'manual',
+      });
+    });
+
+    it('CA-10.1: returns a null client for an appointment without client', async () => {
+      const ana = await insertBarber(barbershopA, 'Ana');
+      const haircut = await insertService(barbershopA, 'Corte');
+      const id = await insertAppointment({
+        barberId: ana,
+        startsAt: '2026-10-05T13:00:00Z',
+        endsAt: '2026-10-05T13:30:00Z',
+        serviceIds: [haircut],
+        origin: 'bot',
+      });
+
+      const entry = await query.findById(barbershopA, id);
+
+      expect(entry?.id).toBe(id);
+      expect(entry?.client).toBeNull();
+      expect(entry?.origin).toBe('bot');
+    });
+
+    it('RN-26: returns null for an appointment of another barbershop', async () => {
+      const foreignBarber = await insertBarber(barbershopB, 'Ana');
+      const id = await insertAppointment({
+        barbershopId: barbershopB,
+        barberId: foreignBarber,
+        startsAt: '2026-10-05T13:00:00Z',
+        endsAt: '2026-10-05T13:30:00Z',
+        serviceIds: [await insertService(barbershopB, 'Corte')],
+      });
+
+      expect(await query.findById(barbershopA, id)).toBeNull();
+      expect((await query.findById(barbershopB, id))?.id).toBe(id);
+    });
+
+    it('CA-10.1: returns null for an unknown appointment id', async () => {
+      expect(await query.findById(barbershopA, randomUUID())).toBeNull();
+    });
+  });
 });

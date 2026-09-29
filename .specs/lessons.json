@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 9,
+  "next_id": 10,
   "lessons": [
     {
       "id": "L-001",
@@ -126,13 +126,13 @@
         "us-09-bloqueios-e-folgas"
       ],
       "recurrence": 2,
-      "harmful": 0,
+      "harmful": 1,
       "evidence": [
         "AVL-35 + edge case seconds-in-start (booking-context.ts:25-26, book-appointment.use-case.ts:69) (spec)",
         "src/interface-adapters/controllers/schemas/block-id.params.schema.ts:4 (BLQ-28 DELETE 400 message not in spec) (spec)"
       ],
       "created": "2026-09-28T15:24:51Z",
-      "last_seen": "2026-09-28T21:07:24Z"
+      "last_seen": "2026-09-28T22:18:21Z"
     },
     {
       "id": "L-008",
@@ -140,17 +140,38 @@
       "text": "Every user-facing validation message a schema defines needs a test that asserts that exact message.",
       "signal": "spec_precision_gap",
       "scope": "schema",
+      "status": "confirmed",
+      "features": [
+        "us-09-bloqueios-e-folgas",
+        "us-10-agendamento-manual"
+      ],
+      "recurrence": 2,
+      "harmful": 0,
+      "evidence": [
+        "src/interface-adapters/controllers/schemas/barber-block.schema.ts:13 (confirmConflicts message untested) (schema)",
+        "src/interface-adapters/controllers/schemas/create-appointment.schema.ts:11 (client-missing message untested) (schema)"
+      ],
+      "created": "2026-09-28T21:07:24Z",
+      "last_seen": "2026-09-28T22:18:21Z"
+    },
+    {
+      "id": "L-009",
+      "key": "surviving_mutant::booking rule tests must include an interval that ends exactly on each inclusive limit closing time end of the working day start of the next appointment not only intervals that cross it",
+      "text": "Booking-rule tests must include an interval that ends exactly on each inclusive limit (closing time, end of the working day, start of the next appointment), not only intervals that cross it.",
+      "signal": "surviving_mutant",
+      "scope": "usecases",
       "status": "candidate",
       "features": [
-        "us-09-bloqueios-e-folgas"
+        "us-10-agendamento-manual"
       ],
       "recurrence": 1,
       "harmful": 0,
       "evidence": [
-        "src/interface-adapters/controllers/schemas/barber-block.schema.ts:13 (confirmConflicts message untested) (schema)"
+        "validation.md M8 / src/domain/value-objects/barber-day-schedule.ts:90 (edge case: ends at closing) (usecases)",
+        "validation.md M13 / src/domain/value-objects/barber-day-schedule.ts:72 (edge case: ends when the next starts) (usecases)"
       ],
-      "created": "2026-09-28T21:07:24Z",
-      "last_seen": "2026-09-28T21:07:24Z"
+      "created": "2026-09-28T22:18:20Z",
+      "last_seen": "2026-09-28T22:18:21Z"
     }
   ]
 }
