@@ -283,16 +283,16 @@ T12
 
 **Done when**:
 
-- [ ] Um teste por ATD listado, citando o `CA-11.x`/RN no nome (CA-11.1, CA-11.2, CA-11.4)
-- [ ] CA-11.2: limite 2, 1 falta + nova falta → `noShowCount: 2`, `selfBookingBlocked: true`; limite trocado para 3 → `false`
-- [ ] CA-11.4: `no_show → attended` com 2 faltas e limite 2 → `noShowCount: 1`, `selfBookingBlocked: false`
-- [ ] Caminhos de erro (404, 403, 422) não alteram status nem contador
-- [ ] Gate check passes: `npm test`
+- [x] Um teste por ATD listado, citando o `CA-11.x`/RN no nome (CA-11.1, CA-11.2, CA-11.4)
+- [x] CA-11.2: limite 2, 1 falta + nova falta → `noShowCount: 2`, `selfBookingBlocked: true`; limite trocado para 3 → `false`
+- [x] CA-11.4: `no_show → attended` com 2 faltas e limite 2 → `noShowCount: 1`, `selfBookingBlocked: false`
+- [x] Caminhos de erro (404, 403, 422) não alteram status nem contador
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
 
-**Status**: ⏳ Pending
+**Status**: ✅ Done
 
 **Commit**: `feat(US-11): mark appointments as attended or no-show`
 
