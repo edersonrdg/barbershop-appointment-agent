@@ -1,4 +1,9 @@
-import { Appointment } from './appointment';
+import { AppointmentNotStartedError } from '../errors/appointment-not-started.error';
+import {
+  Appointment,
+  AppointmentStatus,
+  AttendanceStatus,
+} from './appointment';
 
 const NOW = new Date('2026-10-05T12:00:00.000Z');
 
@@ -92,6 +97,76 @@ describe('Appointment', () => {
       status: 'confirmed',
       origin: 'manual',
       createdAt: NOW,
+    });
+  });
+
+  describe('markAttendance', () => {
+    const STARTS_AT = new Date('2026-10-05T14:00:00.000Z');
+
+    function stored(status: AppointmentStatus): Appointment {
+      return Appointment.restore({
+        id: 'appointment-1',
+        barbershopId: 'barbershop-a',
+        barberId: 'barber-1',
+        clientId: 'client-1',
+        serviceIds: ['haircut', 'beard'],
+        startsAt: STARTS_AT,
+        endsAt: new Date('2026-10-05T14:45:00.000Z'),
+        status,
+        origin: 'manual',
+        createdAt: NOW,
+      });
+    }
+
+    it.each<[AppointmentStatus, AttendanceStatus]>([
+      ['confirmed', 'attended'],
+      ['confirmed', 'no_show'],
+      ['no_show', 'attended'],
+      ['attended', 'no_show'],
+    ])(
+      'CA-11.1/CA-11.4: %s becomes %s once the appointment has started (ATD-01, ATD-13, ATD-14)',
+      (from, to) => {
+        const original = stored(from);
+
+        const marked = original.markAttendance(
+          to,
+          new Date('2026-10-05T14:05:00.000Z'),
+        );
+
+        expect(describeAppointment(marked)).toEqual({
+          ...describeAppointment(original),
+          status: to,
+        });
+        expect(original.status).toBe(from);
+      },
+    );
+
+    it.each<AttendanceStatus>(['attended', 'no_show'])(
+      'CA-11.1: marking %s again keeps the same status (ATD-05)',
+      (status) => {
+        const marked = stored(status).markAttendance(
+          status,
+          new Date('2026-10-05T15:00:00.000Z'),
+        );
+
+        expect(marked.status).toBe(status);
+      },
+    );
+
+    it('CA-11.1: accepts marking exactly at the start (ATD-01)', () => {
+      const marked = stored('confirmed').markAttendance('attended', STARTS_AT);
+
+      expect(marked.status).toBe('attended');
+    });
+
+    it('CA-11.1: rejects marking before the start (ATD-02)', () => {
+      const original = stored('confirmed');
+      const act = () =>
+        original.markAttendance('no_show', new Date(STARTS_AT.getTime() - 1));
+
+      expect(act).toThrow(AppointmentNotStartedError);
+      expect(act).toThrow('O agendamento ainda não começou.');
+      expect(original.status).toBe('confirmed');
     });
   });
 });

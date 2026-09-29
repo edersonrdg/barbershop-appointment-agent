@@ -1,9 +1,12 @@
+import { AppointmentNotStartedError } from '../errors/appointment-not-started.error';
+
 const MS_PER_MINUTE = 60 * 1000;
 
 export type AppointmentOrigin = 'bot' | 'manual';
 
-// RN-01: only confirmed appointments exist until US-11 and US-18.
-export type AppointmentStatus = 'confirmed';
+export type AppointmentStatus = 'confirmed' | 'attended' | 'no_show';
+
+export type AttendanceStatus = Exclude<AppointmentStatus, 'confirmed'>;
 
 export interface AppointmentProps {
   id: string;
@@ -58,6 +61,18 @@ export class Appointment {
 
   static restore(props: AppointmentProps): Appointment {
     return new Appointment({ ...props, serviceIds: [...props.serviceIds] });
+  }
+
+  // RF-27: attendance is recorded once the appointment has started, and a
+  // wrong mark can be corrected between attended and no_show (CA-11.4).
+  markAttendance(status: AttendanceStatus, now: Date): Appointment {
+    if (now < this.props.startsAt) {
+      throw new AppointmentNotStartedError();
+    }
+    if (status === this.props.status) {
+      return this;
+    }
+    return Appointment.restore({ ...this.props, status });
   }
 
   get id(): string {

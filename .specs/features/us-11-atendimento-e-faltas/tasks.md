@@ -115,14 +115,14 @@ T12
 
 **Done when**:
 
-- [ ] `confirmed → attended`, `confirmed → no_show`, `no_show → attended`, `attended → no_show` com `now >= startsAt`; o mesmo status devolve o mesmo status
-- [ ] `now == startsAt` aceita; `now = startsAt − 1 ms` lança `AppointmentNotStartedError` com a mensagem exata
-- [ ] Gate check passes: `npm test`
+- [x] `confirmed → attended`, `confirmed → no_show`, `no_show → attended`, `attended → no_show` com `now >= startsAt`; o mesmo status devolve o mesmo status
+- [x] `now == startsAt` aceita; `now = startsAt − 1 ms` lança `AppointmentNotStartedError` com a mensagem exata
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
 
-**Status**: ⏳ Pending
+**Status**: ✅ Done
 
 **Commit**: `feat(US-11): add attendance transition to appointments`
 

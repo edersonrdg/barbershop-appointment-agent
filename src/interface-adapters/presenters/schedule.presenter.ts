@@ -35,7 +35,10 @@ export const scheduleAppointmentSchema = z.object({
     .meta({ description: 'Na ordem em que foram agendados.' }),
   startsAt: instant('Início em UTC.', '2026-09-28T13:00:00.000Z'),
   endsAt: instant('Fim em UTC.', '2026-09-28T13:45:00.000Z'),
-  status: z.enum(['confirmed']).meta({ example: 'confirmed' }),
+  status: z.enum(['confirmed', 'attended', 'no_show']).meta({
+    description: 'confirmed, attended (atendido) ou no_show (falta), RF-27.',
+    example: 'confirmed',
+  }),
   origin: z.enum(['bot', 'manual']).meta({
     description: 'bot (WhatsApp) ou manual (painel), RF-28.',
     example: 'manual',

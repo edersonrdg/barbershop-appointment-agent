@@ -170,11 +170,11 @@ A agenda mostra e grava agendamentos, mas não registra o que aconteceu com eles
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| ATD-01 | P1 Marcar — grava status, 200 | - | Pending |
-| ATD-02 | P1 Marcar — antes do início 422 | - | Pending |
+| ATD-01 | P1 Marcar — grava status, 200 | T1 | Implementing |
+| ATD-02 | P1 Marcar — antes do início 422 | T1 | Implementing |
 | ATD-03 | P1 Marcar — agenda mostra status | - | Pending |
 | ATD-04 | P1 Marcar — continua ocupando o horário | - | Pending |
-| ATD-05 | P1 Marcar — mesmo status não muda contador | - | Pending |
+| ATD-05 | P1 Marcar — mesmo status não muda contador | T1 | Implementing |
 | ATD-06 | P1 Marcar — sem cliente | - | Pending |
 | ATD-07 | P1 Contador — falta soma 1 | - | Pending |
 | ATD-08 | P1 Contador — bloqueado se ≥ limite | - | Pending |
@@ -182,8 +182,8 @@ A agenda mostra e grava agendamentos, mas não registra o que aconteceu com eles
 | ATD-10 | P1 Contador — segue o limite vigente | - | Pending |
 | ATD-11 | P1 Contador — manual para bloqueado | - | Pending |
 | ATD-12 | P1 Contador — só a barbearia | - | Pending |
-| ATD-13 | P1 Correção — falta → atendido tira 1 | - | Pending |
-| ATD-14 | P1 Correção — atendido → falta soma 1 | - | Pending |
+| ATD-13 | P1 Correção — falta → atendido tira 1 | T1 | Implementing |
+| ATD-14 | P1 Correção — atendido → falta soma 1 | T1 | Implementing |
 | ATD-15 | P1 Correção — antes do reset não conta | - | Pending |
 | ATD-16 | P1 Correção — concorrência | - | Pending |
 | ATD-17 | P1 Validação — 400 e mensagens | - | Pending |
