@@ -10,10 +10,10 @@ A agenda mostra e grava agendamentos, mas não registra o que aconteceu com eles
 
 ## Goals
 
-- [ ] Dono e Barbeiro marcam um agendamento que já começou como atendido ou falta, e corrigem a marcação.
-- [ ] O contador de faltas do cliente reflete as marcações, e o cliente fica bloqueado para autoagendamento ao atingir o limite configurado.
-- [ ] Uma rotina diária zera o contador de quem está há 90 dias ou mais sem nova falta.
-- [ ] O Barbeiro só marca os próprios agendamentos; nada cruza barbearias (RN-26).
+- [x] Dono e Barbeiro marcam um agendamento que já começou como atendido ou falta, e corrigem a marcação.
+- [x] O contador de faltas do cliente reflete as marcações, e o cliente fica bloqueado para autoagendamento ao atingir o limite configurado.
+- [x] Uma rotina diária zera o contador de quem está há 90 dias ou mais sem nova falta.
+- [x] O Barbeiro só marca os próprios agendamentos; nada cruza barbearias (RN-26).
 
 ## Out of Scope
 
@@ -170,42 +170,42 @@ A agenda mostra e grava agendamentos, mas não registra o que aconteceu com eles
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| ATD-01 | P1 Marcar — grava status, 200 | T1, T4, T7, T11 | Implementing |
-| ATD-02 | P1 Marcar — antes do início 422 | T1, T7, T10, T11 | Implementing |
-| ATD-03 | P1 Marcar — agenda mostra status | T11 | Implementing |
-| ATD-04 | P1 Marcar — continua ocupando o horário | T3, T4, T11 | Implementing |
-| ATD-05 | P1 Marcar — mesmo status não muda contador | T1, T7, T11 | Implementing |
-| ATD-06 | P1 Marcar — sem cliente | T7, T11 | Implementing |
-| ATD-07 | P1 Contador — falta soma 1 | T5, T7, T11 | Implementing |
-| ATD-08 | P1 Contador — bloqueado se ≥ limite | T2, T7, T11 | Implementing |
-| ATD-09 | P1 Contador — 1 falta + limite 2 bloqueia | T2, T7, T11 | Implementing |
-| ATD-10 | P1 Contador — segue o limite vigente | T2, T7, T11 | Implementing |
-| ATD-11 | P1 Contador — manual para bloqueado | T11 | Implementing |
-| ATD-12 | P1 Contador — só a barbearia | T5, T7, T11 | Implementing |
-| ATD-13 | P1 Correção — falta → atendido tira 1 | T1, T5, T7 | Implementing |
-| ATD-14 | P1 Correção — atendido → falta soma 1 | T1, T5, T7 | Implementing |
-| ATD-15 | P1 Correção — antes do reset não conta | T3, T5, T7 | Implementing |
-| ATD-16 | P1 Correção — concorrência | T7, T11 | Implementing |
-| ATD-17 | P1 Validação — 400 e mensagens | T9, T11 | Implementing |
-| ATD-18 | P1 Validação — 404 | T4, T7, T10, T11 | Implementing |
-| ATD-19 | P1 Perfil — Barbeiro nos próprios | T7, T11 | Implementing |
-| ATD-20 | P1 Perfil — Barbeiro em outro 403 | T7, T11 | Implementing |
-| ATD-21 | P1 Perfil — 401 | T11 | Implementing |
-| ATD-22 | P1 Swagger | T11 | Implementing |
-| ATD-23 | P1 Reset — 90 dias zera | T2, T5, T8, T12 | Implementing |
-| ATD-24 | P1 Reset — menos de 90 dias mantém | T2, T5, T8 | Implementing |
-| ATD-25 | P1 Reset — idempotente | T5, T8 | Implementing |
-| ATD-26 | P1 Reset — diária às 03:00 | T12 | Implementing |
-| ATD-27 | P1 Reset — por barbearia, isola falhas | T6, T8, T12 | Implementing |
+| ATD-01 | P1 Marcar — grava status, 200 | T1, T4, T7, T11 | Verified |
+| ATD-02 | P1 Marcar — antes do início 422 | T1, T7, T10, T11 | Verified |
+| ATD-03 | P1 Marcar — agenda mostra status | T11 | Verified |
+| ATD-04 | P1 Marcar — continua ocupando o horário | T3, T4, T11 | Verified |
+| ATD-05 | P1 Marcar — mesmo status não muda contador | T1, T7, T11 | Verified |
+| ATD-06 | P1 Marcar — sem cliente | T7, T11 | Verified |
+| ATD-07 | P1 Contador — falta soma 1 | T5, T7, T11 | Verified |
+| ATD-08 | P1 Contador — bloqueado se ≥ limite | T2, T7, T11 | Verified |
+| ATD-09 | P1 Contador — 1 falta + limite 2 bloqueia | T2, T7, T11 | Verified |
+| ATD-10 | P1 Contador — segue o limite vigente | T2, T7, T11 | Verified |
+| ATD-11 | P1 Contador — manual para bloqueado | T11 | Verified |
+| ATD-12 | P1 Contador — só a barbearia | T5, T7, T11 | Verified |
+| ATD-13 | P1 Correção — falta → atendido tira 1 | T1, T5, T7 | Verified |
+| ATD-14 | P1 Correção — atendido → falta soma 1 | T1, T5, T7 | Verified |
+| ATD-15 | P1 Correção — antes do reset não conta | T3, T5, T7 | Verified |
+| ATD-16 | P1 Correção — concorrência | T7, T11 | Verified |
+| ATD-17 | P1 Validação — 400 e mensagens | T9, T11 | Verified |
+| ATD-18 | P1 Validação — 404 | T4, T7, T10, T11 | Verified |
+| ATD-19 | P1 Perfil — Barbeiro nos próprios | T7, T11 | Verified |
+| ATD-20 | P1 Perfil — Barbeiro em outro 403 | T7, T11 | Verified |
+| ATD-21 | P1 Perfil — 401 | T11 | Verified |
+| ATD-22 | P1 Swagger | T11 | Verified |
+| ATD-23 | P1 Reset — 90 dias zera | T2, T5, T8, T12 | Verified |
+| ATD-24 | P1 Reset — menos de 90 dias mantém | T2, T5, T8 | Verified |
+| ATD-25 | P1 Reset — idempotente | T5, T8 | Verified |
+| ATD-26 | P1 Reset — diária às 03:00 | T12 | Verified |
+| ATD-27 | P1 Reset — por barbearia, isola falhas | T6, T8, T12 | Verified |
 
 **ID format:** `ATD-NN` (Atendimento, épico E3). Cada teste cita o `CA-11.x` (ou o `RN`) no nome, conforme o CLAUDE.md.
 
-**Coverage:** 27 total, 0 mapped to tasks, 27 unmapped ⚠️
+**Coverage:** 27 total, 27 mapped to tasks, 0 unmapped, 27 verified ✅ (Verifier, `validation.md`)
 
 ---
 
 ## Success Criteria
 
-- [ ] Os CA-11.1 a CA-11.4 têm testes automatizados que citam o CA no nome e passam.
-- [ ] `npm run lint`, `npm run build`, `npm test` e `npm run test:e2e` passam.
-- [ ] A rota aparece em `/docs` com resumo, payload, respostas e perfis.
+- [x] Os CA-11.1 a CA-11.4 têm testes automatizados que citam o CA no nome e passam.
+- [x] `npm run lint`, `npm run build`, `npm test` e `npm run test:e2e` passam.
+- [x] A rota aparece em `/docs` com resumo, payload, respostas e perfis.
