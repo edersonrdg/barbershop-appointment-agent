@@ -38,4 +38,10 @@ export class InMemoryBarbershopRepository implements BarbershopRepository {
     }
     return Promise.resolve();
   }
+
+  listIds(): Promise<string[]> {
+    return Promise.resolve(
+      this.store.barbershops.map((barbershop) => barbershop.id),
+    );
+  }
 }

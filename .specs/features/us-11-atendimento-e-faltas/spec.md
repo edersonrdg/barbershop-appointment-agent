@@ -196,7 +196,7 @@ A agenda mostra e grava agendamentos, mas não registra o que aconteceu com eles
 | ATD-24 | P1 Reset — menos de 90 dias mantém | T2, T5 | Implementing |
 | ATD-25 | P1 Reset — idempotente | T5 | Implementing |
 | ATD-26 | P1 Reset — diária às 03:00 | - | Pending |
-| ATD-27 | P1 Reset — por barbearia, isola falhas | - | Pending |
+| ATD-27 | P1 Reset — por barbearia, isola falhas | T6 | Implementing |
 
 **ID format:** `ATD-NN` (Atendimento, épico E3). Cada teste cita o `CA-11.x` (ou o `RN`) no nome, conforme o CLAUDE.md.
 

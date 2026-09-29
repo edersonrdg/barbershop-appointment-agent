@@ -256,13 +256,13 @@ T12
 
 **Done when**:
 
-- [ ] e2e: com duas barbearias, devolve os dois ids
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] e2e: com duas barbearias, devolve os dois ids
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
 
-**Status**: ⏳ Pending
+**Status**: ✅ Done
 
 **Commit**: `feat(US-11): list barbershop ids for scheduled jobs`
 

@@ -209,6 +209,25 @@ describe('TypeOrmBarbershopRepository (e2e)', () => {
     ]);
   });
 
+  it('RN-26: listIds returns the id of every barbershop for the daily no-show reset (ATD-27)', async () => {
+    const first = buildBarbershop('Primeira');
+    const second = buildBarbershop('Segunda');
+    await repository.createWithOwner(
+      first,
+      buildOwner(first.id, 'primeira@barbearia.com'),
+      BookingRules.defaults(),
+    );
+    await repository.createWithOwner(
+      second,
+      buildOwner(second.id, 'segunda@barbearia.com'),
+      BookingRules.defaults(),
+    );
+
+    const ids = await repository.listIds();
+
+    expect([...ids].sort()).toEqual([first.id, second.id].sort());
+  });
+
   it('CA-01.1: findById returns null for an unknown barbershop', async () => {
     expect(await repository.findById(randomUUID())).toBeNull();
   });
