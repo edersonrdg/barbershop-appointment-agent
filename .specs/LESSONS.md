@@ -4,7 +4,7 @@
 > Canonical state lives in `.specs/lessons.json`. Edit lessons only via the script.
 > promote_threshold=2 distinct features · window_days=45 · quarantine_threshold=2
 
-## Confirmed (load these at Specify/Design)
+## Confirmed (load these at Plan/Checks)
 
 Corroborated across multiple features. Safe to apply as guidance.
 
@@ -77,6 +77,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - features: us-11-atendimento-e-faltas
 - evidence: mutant E3 survived test/attendance.e2e-spec.ts:307 (e2e)
 - last seen: 2026-09-29T14:47:45Z
+
+### L-012 - Before committing, run every proof selector literally and confirm it selects at least one test: Jest exits 0 when -t matches nothing, so a describe named 'C35:' instead of '(C35)' ships an unproven check.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `test` · harmful: 0
+- features: us-13-conexao-do-whatsapp
+- evidence: test/whatsapp-connection.e2e-spec.ts:551 (C35) (test)
+- last seen: 2026-09-29T21:55:40Z
 
 ## Quarantined (failed when applied - ignore)
 
