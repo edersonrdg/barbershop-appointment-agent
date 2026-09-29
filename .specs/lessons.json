@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 13,
+  "next_id": 14,
   "lessons": [
     {
       "id": "L-001",
@@ -226,6 +226,24 @@
       ],
       "created": "2026-09-29T21:55:40Z",
       "last_seen": "2026-09-29T21:55:40Z"
+    },
+    {
+      "id": "L-013",
+      "key": "gate_fail::for a conditional update on postgres use the typeorm query builder and check result affected datasource query returns rows count for update returning so rows length is always 2",
+      "text": "For a conditional UPDATE on Postgres, use the TypeORM query builder and check result.affected; dataSource.query returns [rows, count] for UPDATE ... RETURNING, so rows.length is always 2.",
+      "signal": "gate_fail",
+      "scope": "repository",
+      "status": "candidate",
+      "features": [
+        "us-14-primeiro-contato-e-aviso-de-privacidade"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "src/infrastructure/database/repositories/typeorm-client.repository.ts:100 (repository)"
+      ],
+      "created": "2026-09-29T22:38:12Z",
+      "last_seen": "2026-09-29T22:38:12Z"
     }
   ]
 }

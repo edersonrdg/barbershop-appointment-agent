@@ -84,6 +84,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: test/whatsapp-connection.e2e-spec.ts:551 (C35) (test)
 - last seen: 2026-09-29T21:55:40Z
 
+### L-013 - For a conditional UPDATE on Postgres, use the TypeORM query builder and check result.affected; dataSource.query returns [rows, count] for UPDATE ... RETURNING, so rows.length is always 2.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `repository` · harmful: 0
+- features: us-14-primeiro-contato-e-aviso-de-privacidade
+- evidence: src/infrastructure/database/repositories/typeorm-client.repository.ts:100 (repository)
+- last seen: 2026-09-29T22:38:12Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
