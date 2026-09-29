@@ -370,13 +370,13 @@ T12
 
 **Done when**:
 
-- [ ] Teste do filtro: cada erro novo com o status e a mensagem exata
-- [ ] Gate check passes: `npm test`
+- [x] Teste do filtro: cada erro novo com o status e a mensagem exata
+- [x] Gate check passes: `npm test`
 
 **Tests**: unit
 **Gate**: quick
 
-**Status**: ⏳ Pending
+**Status**: ✅ Done
 
 **Commit**: `feat(US-11): map attendance errors to http status`
 

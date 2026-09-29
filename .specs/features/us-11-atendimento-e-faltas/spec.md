@@ -171,7 +171,7 @@ A agenda mostra e grava agendamentos, mas não registra o que aconteceu com eles
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
 | ATD-01 | P1 Marcar — grava status, 200 | T1, T4, T7 | Implementing |
-| ATD-02 | P1 Marcar — antes do início 422 | T1, T7 | Implementing |
+| ATD-02 | P1 Marcar — antes do início 422 | T1, T7, T10 | Implementing |
 | ATD-03 | P1 Marcar — agenda mostra status | - | Pending |
 | ATD-04 | P1 Marcar — continua ocupando o horário | T3, T4 | Implementing |
 | ATD-05 | P1 Marcar — mesmo status não muda contador | T1, T7 | Implementing |
@@ -187,7 +187,7 @@ A agenda mostra e grava agendamentos, mas não registra o que aconteceu com eles
 | ATD-15 | P1 Correção — antes do reset não conta | T3, T5, T7 | Implementing |
 | ATD-16 | P1 Correção — concorrência | T7 | Implementing |
 | ATD-17 | P1 Validação — 400 e mensagens | T9 | Implementing |
-| ATD-18 | P1 Validação — 404 | T4, T7 | Implementing |
+| ATD-18 | P1 Validação — 404 | T4, T7, T10 | Implementing |
 | ATD-19 | P1 Perfil — Barbeiro nos próprios | T7 | Implementing |
 | ATD-20 | P1 Perfil — Barbeiro em outro 403 | T7 | Implementing |
 | ATD-21 | P1 Perfil — 401 | - | Pending |

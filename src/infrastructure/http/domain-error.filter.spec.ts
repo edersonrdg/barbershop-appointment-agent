@@ -1,5 +1,7 @@
 import { ArgumentsHost, Logger } from '@nestjs/common';
 import { AppointmentConflictError } from '../../domain/errors/appointment-conflict.error';
+import { AppointmentNotFoundError } from '../../domain/errors/appointment-not-found.error';
+import { AppointmentNotStartedError } from '../../domain/errors/appointment-not-started.error';
 import { BarberUnavailableError } from '../../domain/errors/barber-unavailable.error';
 import { BarberBlockNotFoundError } from '../../domain/errors/barber-block-not-found.error';
 import { BarberNameAlreadyExistsError } from '../../domain/errors/barber-name-already-exists.error';
@@ -156,6 +158,20 @@ describe('DomainErrorFilter', () => {
     expect(handle(new ServiceNotFoundError())).toEqual({
       statusCode: 404,
       body: { message: 'Serviço não encontrado.' },
+    });
+  });
+
+  it('RN-26: maps AppointmentNotFoundError to 404 with the spec message (ATD-18)', () => {
+    expect(handle(new AppointmentNotFoundError())).toEqual({
+      statusCode: 404,
+      body: { message: 'Agendamento não encontrado.' },
+    });
+  });
+
+  it('CA-11.1: maps AppointmentNotStartedError to 422 with the spec message (ATD-02)', () => {
+    expect(handle(new AppointmentNotStartedError())).toEqual({
+      statusCode: 422,
+      body: { message: 'O agendamento ainda não começou.' },
     });
   });
 
