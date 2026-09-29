@@ -8,8 +8,10 @@ import { DataSource } from 'typeorm';
 import { AppModule } from '../src/app.module';
 import { CLOCK } from '../src/usecases/ports/clock.port';
 import { EMAIL_SENDER } from '../src/usecases/ports/email-sender.port';
+import { MESSAGE_INTERPRETER } from '../src/usecases/ports/message-interpreter.port';
 import { WHATSAPP_CONNECTOR } from '../src/usecases/ports/whatsapp-connector.port';
 import { FakeEmailSender } from '../src/usecases/testing/fake-email-sender';
+import { FakeMessageInterpreter } from '../src/usecases/testing/fake-message-interpreter';
 import { FakeWhatsAppConnector } from '../src/usecases/testing/fake-whatsapp-connector';
 import { FixedClock } from '../src/usecases/testing/fixed-clock';
 import { signupOwner } from './support/account-flows';
@@ -104,8 +106,10 @@ describe('WhatsApp first contact (e2e)', () => {
         data: {
           key: { remoteJid, fromMe, id: randomUUID() },
           pushName,
-          message: { conversation: 'Oi, tudo bem?' },
-          messageType: 'conversation',
+          // From US-15 on a text is also answered; these checks are about the
+          // contact and the notice, so the client sends a photo.
+          message: { imageMessage: { mimetype: 'image/jpeg' } },
+          messageType: 'imageMessage',
           messageTimestamp,
           instanceId: randomUUID(),
           source: 'android',
@@ -135,6 +139,8 @@ describe('WhatsApp first contact (e2e)', () => {
       .useValue(new FixedClock(NOW))
       .overrideProvider(WHATSAPP_CONNECTOR)
       .useValue(connector)
+      .overrideProvider(MESSAGE_INTERPRETER)
+      .useValue(new FakeMessageInterpreter())
       .compile();
     app = moduleFixture.createNestApplication<INestApplication<App>>();
     await app.init();

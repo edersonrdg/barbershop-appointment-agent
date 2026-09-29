@@ -3,7 +3,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
+import { MESSAGE_INTERPRETER } from './../src/usecases/ports/message-interpreter.port';
 import { WHATSAPP_CONNECTOR } from './../src/usecases/ports/whatsapp-connector.port';
+import { FakeMessageInterpreter } from './../src/usecases/testing/fake-message-interpreter';
 import { FakeWhatsAppConnector } from './../src/usecases/testing/fake-whatsapp-connector';
 
 describe('Observability (e2e)', () => {
@@ -11,6 +13,8 @@ describe('Observability (e2e)', () => {
   // The readiness check pings the WhatsApp connector; no e2e talks to a real
   // Evolution API.
   const connector = new FakeWhatsAppConnector();
+  // Nor does any e2e call the real Gemini API.
+  const interpreter = new FakeMessageInterpreter();
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -18,6 +22,8 @@ describe('Observability (e2e)', () => {
     })
       .overrideProvider(WHATSAPP_CONNECTOR)
       .useValue(connector)
+      .overrideProvider(MESSAGE_INTERPRETER)
+      .useValue(interpreter)
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -73,6 +79,34 @@ describe('Observability (e2e)', () => {
         }),
       );
     connector.reset();
+  });
+
+  it('US-15 (C27): GET /health/ready reports Gemini up', () => {
+    connector.reset();
+    interpreter.reset();
+
+    return request(app.getHttpServer())
+      .get('/health/ready')
+      .expect(200)
+      .expect(({ body }) =>
+        expect(body).toMatchObject({ details: { gemini: { status: 'up' } } }),
+      );
+  });
+
+  it('US-15 (C27): GET /health/ready answers 503 when Gemini is down', async () => {
+    connector.reset();
+    interpreter.reset();
+    interpreter.pingFailing = true;
+
+    await request(app.getHttpServer())
+      .get('/health/ready')
+      .expect(503)
+      .expect(({ body }) =>
+        expect(body).toMatchObject({
+          details: { gemini: { status: 'down' } },
+        }),
+      );
+    interpreter.reset();
   });
 
   it('GET /metrics exposes Prometheus metrics', () => {

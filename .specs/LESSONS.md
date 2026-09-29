@@ -90,6 +90,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: src/infrastructure/database/repositories/typeorm-client.repository.ts:100 (repository)
 - last seen: 2026-09-29T22:38:12Z
 
+### L-014 - When a check claims which part of an input is kept (first N, last N), build the test input from distinguishable characters so the assertion checks content, not only length.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `tests` · harmful: 0
+- features: us-15-duvidas-sobre-a-barbearia
+- evidence: C20 - answer-client-question.use-case.spec.ts:260-262 (tests)
+- last seen: 2026-09-29T23:11:38Z
+
+### L-015 - When a bound limits model output echoed back to a user, apply it to every field whose text can reach the reply, not only the field the criterion names.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `llm` · harmful: 0
+- features: us-15-duvidas-sobre-a-barbearia
+- evidence: AC 20 - client-question-reply.ts:79-81; message-interpretation.schema.ts services max(80) (llm)
+- last seen: 2026-09-29T23:11:38Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

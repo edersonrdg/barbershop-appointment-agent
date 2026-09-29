@@ -14,6 +14,7 @@ import type { WhatsAppConnectorState } from '../../../../domain/entities/whatsap
 import { ApiErrorResponse } from '../../../../interface-adapters/controllers/api-docs/api-error-response.decorator';
 import { Public } from '../../../../interface-adapters/controllers/public.decorator';
 import { ZodValidationPipe } from '../../../../interface-adapters/controllers/zod-validation.pipe';
+import { AnswerClientQuestionUseCase } from '../../../../usecases/answer-client-question/answer-client-question.use-case';
 import { ApplyWhatsAppConnectionStateUseCase } from '../../../../usecases/apply-whatsapp-connection-state/apply-whatsapp-connection-state.use-case';
 import type { Clock } from '../../../../usecases/ports/clock.port';
 import { CLOCK } from '../../../../usecases/ports/clock.port';
@@ -55,15 +56,16 @@ export class EvolutionWebhookController {
   constructor(
     private readonly applyState: ApplyWhatsAppConnectionStateUseCase,
     private readonly receiveMessage: ReceiveWhatsAppMessageUseCase,
+    private readonly answerQuestion: AnswerClientQuestionUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
   ) {}
 
   @Post()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
-    summary: 'Recebe os eventos da Evolution API (US-13, US-14)',
+    summary: 'Recebe os eventos da Evolution API (US-13, US-14, US-15)',
     description:
-      'Chamado só pela Evolution API, com `authorization: Bearer <WHATSAPP_WEBHOOK_SECRET>`. Aplica `connection.update` à conexão da barbearia cujo id é `instance`; uma queda (conectado → desconectado) envia e-mail aos Donos. Em `messages.upsert` (US-14), a mensagem de um cliente cadastra o telefone na primeira vez, com o nome do perfil, e envia uma única vez o aviso de privacidade; são ignoradas as mensagens enviadas pelo próprio número, de grupos e listas, sem telefone brasileiro ou com mais de 5 minutos. Outros eventos, estados desconhecidos e barbearias sem conexão são aceitos e ignorados.',
+      'Chamado só pela Evolution API, com `authorization: Bearer <WHATSAPP_WEBHOOK_SECRET>`. Aplica `connection.update` à conexão da barbearia cujo id é `instance`; uma queda (conectado → desconectado) envia e-mail aos Donos. Em `messages.upsert` (US-14), a mensagem de um cliente cadastra o telefone na primeira vez, com o nome do perfil, e envia uma única vez o aviso de privacidade; são ignoradas as mensagens enviadas pelo próprio número, de grupos e listas, sem telefone brasileiro ou com mais de 5 minutos. Depois do aviso, uma mensagem de texto (US-15) recebe a resposta às dúvidas sobre serviços, preços, durações, endereço e horário de funcionamento, montada só com os dados cadastrados; assuntos fora da barbearia são recusados, e cada mensagem (`key.id`) é respondida uma única vez. Outros eventos, estados desconhecidos e barbearias sem conexão são aceitos e ignorados.',
   })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
@@ -103,6 +105,9 @@ export class EvolutionWebhookController {
     const message = evolutionMessageSchema.safeParse(body.data);
     if (!barbershopId.success || !message.success) return;
     const { key, pushName, messageTimestamp } = message.data;
+    const text =
+      message.data.message?.conversation ??
+      message.data.message?.extendedTextMessage?.text;
     const age = this.clock.now().getTime() - messageTimestamp * 1000;
     if (key.fromMe || age > MESSAGE_MAX_AGE_MS) return;
     const phone = phoneFromJid(key.remoteJid);
@@ -117,6 +122,20 @@ export class EvolutionWebhookController {
       this.logger.error(
         { barbershopId: barbershopId.data, err: errorIdentity(notice.error) },
         'Privacy notice could not be sent.',
+      );
+    }
+    if (!key.id || !text) return;
+
+    const reply = await this.answerQuestion.execute({
+      barbershopId: barbershopId.data,
+      phone,
+      messageId: key.id,
+      text,
+    });
+    if (reply.outcome === 'failed') {
+      this.logger.error(
+        { barbershopId: barbershopId.data, err: errorIdentity(reply.error) },
+        'Reply could not be sent.',
       );
     }
   }

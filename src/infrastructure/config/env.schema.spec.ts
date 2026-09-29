@@ -14,6 +14,8 @@ const validEnv = {
   WHATSAPP_WEBHOOK_URL: 'http://localhost:3000/webhooks/whatsapp/evolution',
   WHATSAPP_WEBHOOK_SECRET: 'w'.repeat(32),
   PRIVACY_POLICY_URL: 'https://barberbot.example/privacidade',
+  GEMINI_API_KEY: 'gemini-key',
+  GEMINI_MODEL: 'gemini-2.5-flash',
 };
 
 describe('validateEnv', () => {
@@ -145,5 +147,52 @@ describe('validateEnv', () => {
     expect(validateEnv(validEnv).PRIVACY_POLICY_URL).toBe(
       'https://barberbot.example/privacidade',
     );
+  });
+
+  describe('US-15 (C23): Gemini variables', () => {
+    it.each([
+      [
+        'without GEMINI_API_KEY',
+        { GEMINI_API_KEY: undefined },
+        /GEMINI_API_KEY/,
+      ],
+      [
+        'with an empty GEMINI_API_KEY',
+        { GEMINI_API_KEY: '' },
+        /GEMINI_API_KEY/,
+      ],
+      ['without GEMINI_MODEL', { GEMINI_MODEL: undefined }, /GEMINI_MODEL/],
+      [
+        'with a -latest model in production',
+        { NODE_ENV: 'production', GEMINI_MODEL: 'gemini-flash-latest' },
+        /GEMINI_MODEL/,
+      ],
+    ])('fails %s', (_case, override, message) => {
+      expect(() => validateEnv({ ...validEnv, ...override })).toThrow(message);
+    });
+
+    it('accepts a pinned model in production', () => {
+      expect(
+        validateEnv({
+          ...validEnv,
+          NODE_ENV: 'production',
+          GEMINI_MODEL: 'gemini-2.5-flash',
+        }).GEMINI_MODEL,
+      ).toBe('gemini-2.5-flash');
+    });
+
+    it('accepts a -latest model in development', () => {
+      expect(
+        validateEnv({
+          ...validEnv,
+          NODE_ENV: 'development',
+          GEMINI_MODEL: 'gemini-flash-latest',
+        }).GEMINI_MODEL,
+      ).toBe('gemini-flash-latest');
+    });
+
+    it('defaults the Gemini timeout to 8000 ms', () => {
+      expect(validateEnv(validEnv).GEMINI_TIMEOUT_MS).toBe(8000);
+    });
   });
 });
