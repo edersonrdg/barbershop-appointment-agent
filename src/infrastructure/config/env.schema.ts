@@ -49,6 +49,13 @@ export const envSchema = z
     WHATSAPP_WEBHOOK_SECRET: z.string().min(32),
     // US-14 (RN-20): the platform's privacy policy, linked in the first reply.
     PRIVACY_POLICY_URL: z.string().url(),
+    // US-16 (RN-23): hours without messages before a paused conversation goes
+    // back to the bot; 12 is a suggestion still to be validated.
+    WHATSAPP_HANDOFF_RESUME_HOURS: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(12),
     // Gemini (US-15): reached only by the adapter in infrastructure/external/gemini.
     GEMINI_API_KEY: z.string().min(1),
     GEMINI_MODEL: z.string().min(1),

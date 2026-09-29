@@ -1,5 +1,7 @@
 import { Counter, Registry } from 'prom-client';
+import type { HandoffReason } from '../../domain/value-objects/handoff-reason';
 import {
+  BotResumeTrigger,
   ClientReplyKind,
   PrivacyNoticeOutcome,
   WhatsAppMetrics,
@@ -10,6 +12,8 @@ export class PrometheusWhatsAppMetrics implements WhatsAppMetrics {
   private readonly clientsCreatedTotal: Counter;
   private readonly privacyNoticesTotal: Counter<'outcome'>;
   private readonly repliesTotal: Counter<'kind'>;
+  private readonly handoffsTotal: Counter<'reason'>;
+  private readonly botResumesTotal: Counter<'trigger'>;
 
   constructor(registry: Registry) {
     this.disconnectionsTotal = new Counter({
@@ -34,6 +38,18 @@ export class PrometheusWhatsAppMetrics implements WhatsAppMetrics {
       labelNames: ['kind'],
       registers: [registry],
     });
+    this.handoffsTotal = new Counter({
+      name: 'whatsapp_handoffs_total',
+      help: 'Total de conversas transferidas para atendimento humano, por motivo',
+      labelNames: ['reason'],
+      registers: [registry],
+    });
+    this.botResumesTotal = new Counter({
+      name: 'whatsapp_bot_resumes_total',
+      help: 'Total de conversas devolvidas ao bot depois de uma transferência, por gatilho',
+      labelNames: ['trigger'],
+      registers: [registry],
+    });
   }
 
   disconnected(): void {
@@ -50,5 +66,13 @@ export class PrometheusWhatsAppMetrics implements WhatsAppMetrics {
 
   reply(kind: ClientReplyKind): void {
     this.repliesTotal.inc({ kind });
+  }
+
+  handoff(reason: HandoffReason): void {
+    this.handoffsTotal.inc({ reason });
+  }
+
+  botResumed(trigger: BotResumeTrigger): void {
+    this.botResumesTotal.inc({ trigger });
   }
 }

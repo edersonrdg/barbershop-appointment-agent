@@ -10,6 +10,7 @@ const NO_TOPIC: MessageInterpretation = {
   services: [],
   unknownServices: [],
   offTopic: false,
+  humanRequested: false,
 };
 
 export class FakeMessageInterpreter implements MessageInterpreter {

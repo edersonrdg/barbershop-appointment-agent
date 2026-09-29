@@ -38,6 +38,7 @@ function interpretation(
     services: [],
     unknownServices: [],
     offTopic: false,
+    humanRequested: false,
     ...partial,
   };
 }

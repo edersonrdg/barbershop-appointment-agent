@@ -90,5 +90,13 @@
 - **Date**: 2026-09-29
 - **Status**: active
 
+### AD-012
+- **Decision**: O estado do bot com cada cliente fica em `whatsapp_conversations` (PK `(barbershop_id, client_id)`), lido e gravado pelo port `ConversationRepository`. Uma pausa para atendimento humano tem `paused_at` e `pause_reason` num conjunto fechado (`HANDOFF_REASONS`, CHECK no banco) e vale enquanto `GREATEST(paused_at, last_activity_at)` for mais novo que `WHATSAPP_HANDOFF_RESUME_HOURS`; nenhum job a desfaz, a próxima mensagem ou a lista calculam na leitura. Pausar é um `UPDATE ... WHERE paused_at IS NULL`, então só uma transferência concorrente envia o aviso.
+- **Reason**: US-16 (RN-22, RN-23). A US-17 e a US-18 vão transferir por cliente bloqueado e por cancelamento fora do prazo, e reaproveitam a mesma pausa, o mesmo silêncio do bot e a mesma lista do painel.
+- **Trade-off**: Cada novo motivo exige migration para ampliar o CHECK e um valor novo em `HANDOFF_REASONS`. Uma pausa vencida continua gravada até a próxima mensagem do cliente.
+- **Scope**: Conversas do WhatsApp, US-16 em diante (US-17, US-18).
+- **Date**: 2026-09-29
+- **Status**: active
+
 ## Handoff
 

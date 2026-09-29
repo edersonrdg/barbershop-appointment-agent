@@ -21,107 +21,107 @@ Textos esperados, com `{barbearia}` = "Barbearia do Zé":
 
 ### S1 - Pedido explícito de atendente · ~10 arquivos · ~70 KB · ~18k
 
-**C1** - Com a interpretação `{ humanRequested: true }`, um webhook de texto "quero falar com alguém" responde `204`, o fake do conector registra exatamente 1 `sendText` para `+5511987654321` com o texto de transferência, e a linha de `whatsapp_conversations` do cliente tem `pause_reason = 'requested'` e `paused_at = 2026-09-29T15:00:00Z` (AC 1, CA-16.1, RF-11, RF-13)
+**C1** - Com a interpretação `{ humanRequested: true }`, um webhook de texto "quero falar com alguém" responde `204`, o fake do conector registra exatamente 1 `sendText` para `+5511987654321` com o texto de transferência, e a linha de `whatsapp_conversations` do cliente tem `pause_reason = 'requested'` e `paused_at = 2026-09-29T15:00:00Z` (AC 1, CA-16.1, RF-11, RF-13) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C1\)"`
 
-**C2** - Por tabela no use case, `humanRequested: true` junto com `{ topics: ['services', 'address'], services: ['Corte'] }` e junto com `{ offTopic: true }` dá, nos dois casos, exatamente 1 `sendText` com só o texto de transferência (sem `R$`, sem "Endereço", sem a recusa) e a conversa pausada com `requested` (AC 2)
+**C2** - Por tabela no use case, `humanRequested: true` junto com `{ topics: ['services', 'address'], services: ['Corte'] }` e junto com `{ offTopic: true }` dá, nos dois casos, exatamente 1 `sendText` com só o texto de transferência (sem `R$`, sem "Endereço", sem a recusa) e a conversa pausada com `requested` (AC 2) ✅
 Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "\(C2\)"`
 
-**C3** - Com o fake do conector falhando no `sendText` e a interpretação `{ humanRequested: true }`, o webhook responde `204`, a conversa fica com `paused_at` preenchido, o controller loga o erro com `barbershopId` e o nome do erro, e a serialização do que foi logado não contém o telefone nem o texto da mensagem (AC 3)
+**C3** - Com o fake do conector falhando no `sendText` e a interpretação `{ humanRequested: true }`, o webhook responde `204`, a conversa fica com `paused_at` preenchido, o controller loga o erro com `barbershopId` e o nome do erro, e a serialização do que foi logado não contém o telefone nem o texto da mensagem (AC 3) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C3\)"`
 Proof: `npx jest src/infrastructure/external/whatsapp/evolution/evolution-webhook.controller.spec.ts -t "\(C3\)"`
 
-**C4** - O schema da interpretação exige `humanRequested` booleano: o adaptador do Gemini rejeita com `MessageInterpreterUnavailableError` um JSON sem `humanRequested` e um com `humanRequested: "sim"`, resolve com `humanRequested: true` repassado; o `responseJsonSchema` enviado tem `humanRequested` em `properties` e em `required`; e o `systemInstruction` contém "humanRequested" (door 1)
+**C4** - O schema da interpretação exige `humanRequested` booleano: o adaptador do Gemini rejeita com `MessageInterpreterUnavailableError` um JSON sem `humanRequested` e um com `humanRequested: "sim"`, resolve com `humanRequested: true` repassado; o `responseJsonSchema` enviado tem `humanRequested` em `properties` e em `required`; e o `systemInstruction` contém "humanRequested" (door 1) ✅
 Proof: `npx jest src/infrastructure/external/gemini/gemini-message-interpreter.spec.ts -t "\(C4\)"`
 
 ### S2 - Duas falhas seguidas de entendimento · ~4 arquivos · ~40 KB · ~10k
 
-**C5** - Duas mensagens seguidas do mesmo cliente com a interpretação sem tópico: a primeira recebe exatamente o texto sem tópico e deixa `consecutive_failures = 1` sem pausa; a segunda recebe exatamente o texto de transferência (e não o sem tópico) e deixa a conversa pausada com `pause_reason = 'not_understood'` (AC 4, AC 5, CA-16.2, RF-12)
+**C5** - Duas mensagens seguidas do mesmo cliente com a interpretação sem tópico: a primeira recebe exatamente o texto sem tópico e deixa `consecutive_failures = 1` sem pausa; a segunda recebe exatamente o texto de transferência (e não o sem tópico) e deixa a conversa pausada com `pause_reason = 'not_understood'` (AC 4, AC 5, CA-16.2, RF-12) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C5\)"`
 
-**C6** - Por tabela no use case, partindo de 1 falha, a mensagem seguinte com: tópico `address` → 0 falhas; `offTopic: true` → 0 falhas; e, depois disso, uma sem tópico → 1 falha e nenhuma pausa (AC 6)
+**C6** - Por tabela no use case, partindo de 1 falha, a mensagem seguinte com: tópico `address` → 0 falhas; `offTopic: true` → 0 falhas; e, depois disso, uma sem tópico → 1 falha e nenhuma pausa (AC 6) ✅
 Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "\(C6\)"`
 
-**C7** - Partindo de 1 falha, o intérprete rejeitando deixa a contagem em 1 e envia o texto de indisponível; a próxima sem tópico transfere com `not_understood` (AC 7)
+**C7** - Partindo de 1 falha, o intérprete rejeitando deixa a contagem em 1 e envia o texto de indisponível; a próxima sem tópico transfere com `not_understood` (AC 7) ✅
 Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "\(C7\)"`
 
-**C8** - Com a conversa já com `consecutive_failures = 1` no banco, dois webhooks do mesmo cliente com `key.id` diferentes e interpretação sem tópico, enviados em paralelo, deixam no fake do conector exatamente 1 `sendText` com o texto de transferência e a conversa pausada uma vez com `not_understood` (AC 8, door 2)
+**C8** - Com a conversa já com `consecutive_failures = 1` no banco, dois webhooks do mesmo cliente com `key.id` diferentes e interpretação sem tópico, enviados em paralelo, deixam no fake do conector exatamente 1 `sendText` com o texto de transferência e a conversa pausada uma vez com `not_understood` (AC 8, door 2) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C8\)"`
 
 ### S3 - Conversa pausada · ~5 arquivos · ~45 KB · ~11k
 
-**C9** - Com a conversa pausada há 1h, um webhook de texto do cliente responde `204` e deixa o fake do intérprete com 0 chamadas e o fake do conector com 0 `sendText` (AC 9, CA-16.3)
+**C9** - Com a conversa pausada há 1h, um webhook de texto do cliente responde `204` e deixa o fake do intérprete com 0 chamadas e o fake do conector com 0 `sendText` (AC 9, CA-16.3) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C9\)"`
 
-**C10** - Por tabela, com a conversa pausada há 1h, cada uma destas mensagens deixa `last_activity_at = 2026-09-29T15:00:00Z` e nenhum `sendText`: texto do cliente; áudio do cliente (`audioMessage`, sem texto); mensagem `fromMe: true` com `remoteJid` do cliente e texto "oi, aqui é o Zé" (AC 10)
+**C10** - Por tabela, com a conversa pausada há 1h, cada uma destas mensagens deixa `last_activity_at = 2026-09-29T15:00:00Z` e nenhum `sendText`: texto do cliente; áudio do cliente (`audioMessage`, sem texto); mensagem `fromMe: true` com `remoteJid` do cliente e texto "oi, aqui é o Zé" (AC 10) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C10\)"`
 
-**C11** - Uma mensagem `fromMe: true` para um telefone sem cliente na barbearia não cria linha em `clients` nem em `whatsapp_conversations` e não gera `sendText`; e uma `fromMe: true` para o cliente com conversa ativa (0 falhas, sem pausa, `last_activity_at` 1h atrás) deixa `last_activity_at` e `paused_at` inalterados (AC 11)
+**C11** - Uma mensagem `fromMe: true` para um telefone sem cliente na barbearia não cria linha em `clients` nem em `whatsapp_conversations` e não gera `sendText`; e uma `fromMe: true` para o cliente com conversa ativa (0 falhas, sem pausa, `last_activity_at` 1h atrás) deixa `last_activity_at` e `paused_at` inalterados (AC 11) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C11\)"`
 
-**C12** - Com o mesmo telefone cliente nas barbearias A e B e só a conversa de A pausada há 1h, um texto para B com a interpretação `{ topics: ['address'] }` recebe resposta de B, e um texto para A não recebe nada (AC 12, RN-26)
+**C12** - Com o mesmo telefone cliente nas barbearias A e B e só a conversa de A pausada há 1h, um texto para B com a interpretação `{ topics: ['address'] }` recebe resposta de B, e um texto para A não recebe nada (AC 12, RN-26) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C12\)"`
 
 ### S4 - Reativação pelo Dono · ~8 arquivos · ~50 KB · ~13k
 
-**C13** - Com a conversa pausada há 1h e 2 falhas, `POST /whatsapp/conversations/:clientId/resume` como Dono de A responde `204` sem corpo; a linha fica com `paused_at` e `pause_reason` nulos e `consecutive_failures = 0`; e um texto seguinte com `{ topics: ['address'] }` recebe resposta (AC 13, CA-16.4, RF-15)
+**C13** - Com a conversa pausada há 1h e 2 falhas, `POST /whatsapp/conversations/:clientId/resume` como Dono de A responde `204` sem corpo; a linha fica com `paused_at` e `pause_reason` nulos e `consecutive_failures = 0`; e um texto seguinte com `{ topics: ['address'] }` recebe resposta (AC 13, CA-16.4, RF-15) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C13\)"`
 
-**C14** - A reativação responde `204` para um cliente de A com conversa ativa (a linha fica igual) e para um cliente de A sem conversa (nenhuma linha é criada) (AC 14)
+**C14** - A reativação responde `204` para um cliente de A com conversa ativa (a linha fica igual) e para um cliente de A sem conversa (nenhuma linha é criada) (AC 14) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C14\)"`
 
-**C15** - A reativação responde `404` com `{ message: 'Cliente não encontrado.' }` para um uuid aleatório e para o id de um cliente da barbearia B, e a conversa pausada de B continua pausada (AC 15, RN-26)
+**C15** - A reativação responde `404` com `{ message: 'Cliente não encontrado.' }` para um uuid aleatório e para o id de um cliente da barbearia B, e a conversa pausada de B continua pausada (AC 15, RN-26) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C15\)"`
 
-**C16** - A reativação com `clientId = 'abc'` responde `400` (AC 16)
+**C16** - A reativação com `clientId = 'abc'` responde `400` (AC 16) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C16\)"`
 
-**C17** - Por tabela sobre as duas rotas novas, um Barbeiro de A recebe `403` com `{ message: 'Acesso negado.' }` e uma chamada sem token recebe `401`; depois disso a conversa pausada continua pausada (AC 17, AC 24, AD-007)
+**C17** - Por tabela sobre as duas rotas novas, um Barbeiro de A recebe `403` com `{ message: 'Acesso negado.' }` e uma chamada sem token recebe `401`; depois disso a conversa pausada continua pausada (AC 17, AC 24, AD-007) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C17\)"`
 
 ### S5 - Reativação automática · ~4 arquivos · ~30 KB · ~8k
 
-**C18** - Por tabela, com a conversa pausada (motivo `requested`, 2 falhas) e a mais recente entre `paused_at` e `last_activity_at` a 11h59 de agora, um texto com `{ topics: ['address'] }` não gera `sendText` e a conversa segue pausada; a exatamente 12h00 e a 12h01, gera 1 `sendText` com a resposta de endereço, e a linha fica com `paused_at` nulo e `consecutive_failures = 0`. Um caso com `paused_at` 13h atrás e `last_activity_at` 11h atrás também não responde (AC 18, AC 19, CA-16.5, door 3)
+**C18** - Por tabela, com a conversa pausada (motivo `requested`, 2 falhas) e a mais recente entre `paused_at` e `last_activity_at` a 11h59 de agora, um texto com `{ topics: ['address'] }` não gera `sendText` e a conversa segue pausada; a exatamente 12h00 e a 12h01, gera 1 `sendText` com a resposta de endereço, e a linha fica com `paused_at` nulo e `consecutive_failures = 0`. Um caso com `paused_at` 13h atrás e `last_activity_at` 11h atrás também não responde (AC 18, AC 19, CA-16.5, door 3) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C18\)"`
 
-**C19** - O schema de ambiente dá `WHATSAPP_HANDOFF_RESUME_HOURS = 12` quando ausente, aceita `24` e recusa `0`, `-1`, `1.5` e `abc` (AC 20)
+**C19** - O schema de ambiente dá `WHATSAPP_HANDOFF_RESUME_HOURS = 12` quando ausente, aceita `24` e recusa `0`, `-1`, `1.5` e `abc` (AC 20) ✅
 Proof: `npx jest src/infrastructure/config/env.schema.spec.ts -t "\(C19\)"`
 
-**C20** - O use case usa o prazo configurado: com `resumeAfterHours = 2`, uma conversa pausada há 2h01 é reativada e respondida, e uma pausada há 1h59 não (AC 18)
+**C20** - O use case usa o prazo configurado: com `resumeAfterHours = 2`, uma conversa pausada há 2h01 é reativada e respondida, e uma pausada há 1h59 não (AC 18) ✅
 Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "\(C20\)"`
 
 ### S6 - Conversas aguardando humano · ~7 arquivos · ~45 KB · ~11k
 
-**C21** - Com conversas de A pausadas há 3h (`not_understood`, cliente "Ana") e há 1h (`requested`, cliente "João Silva", `last_activity_at` há 30 min), `GET /whatsapp/conversations/waiting-human` como Dono de A responde `200` com exatamente `{ conversations: [ { clientId, clientName: 'Ana', phone, reason: 'not_understood', pausedAt: '2026-09-29T12:00:00.000Z', lastActivityAt: '2026-09-29T12:00:00.000Z' }, { ..., clientName: 'João Silva', reason: 'requested', pausedAt: '2026-09-29T14:00:00.000Z', lastActivityAt: '2026-09-29T14:30:00.000Z' } ] }`, nessa ordem (AC 21, CA-16.6)
+**C21** - Com conversas de A pausadas há 3h (`not_understood`, cliente "Ana") e há 1h (`requested`, cliente "João Silva", `last_activity_at` há 30 min), `GET /whatsapp/conversations/waiting-human` como Dono de A responde `200` com exatamente `{ conversations: [ { clientId, clientName: 'Ana', phone, reason: 'not_understood', pausedAt: '2026-09-29T12:00:00.000Z', lastActivityAt: '2026-09-29T12:00:00.000Z' }, { ..., clientName: 'João Silva', reason: 'requested', pausedAt: '2026-09-29T14:00:00.000Z', lastActivityAt: '2026-09-29T14:30:00.000Z' } ] }`, nessa ordem (AC 21, CA-16.6) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C21\)"`
 
-**C22** - A lista do Dono de A omite, por tabela: conversa ativa com falhas; conversa reativada pelo Dono; conversa com pausa vencida há 12h01; conversa pausada da barbearia B (AC 22, RN-26)
+**C22** - A lista do Dono de A omite, por tabela: conversa ativa com falhas; conversa reativada pelo Dono; conversa com pausa vencida há 12h01; conversa pausada da barbearia B (AC 22, RN-26) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C22\)"`
 
-**C23** - Sem conversa pausada, a lista responde `200` com `{ conversations: [] }` (AC 23)
+**C23** - Sem conversa pausada, a lista responde `200` com `{ conversations: [] }` (AC 23) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C23\)"`
 
 ### S7 - Observável, documentado e o schema · ~6 arquivos · ~40 KB · ~10k
 
-**C24** - No e2e, uma transferência por pedido aumenta `whatsapp_handoffs_total{reason="requested"}` em 1, uma por duas falhas aumenta `whatsapp_handoffs_total{reason="not_understood"}` em 1, e cada uma aumenta `whatsapp_replies_total{kind="handoff"}` em 1; o texto de `/metrics` para essas duas métricas não traz label além de `reason` e `kind` (AC 25)
+**C24** - No e2e, uma transferência por pedido aumenta `whatsapp_handoffs_total{reason="requested"}` em 1, uma por duas falhas aumenta `whatsapp_handoffs_total{reason="not_understood"}` em 1, e cada uma aumenta `whatsapp_replies_total{kind="handoff"}` em 1; o texto de `/metrics` para essas duas métricas não traz label além de `reason` e `kind` (AC 25) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C24\)"`
 
-**C25** - No e2e, a reativação pelo Dono de uma conversa pausada aumenta `whatsapp_bot_resumes_total{trigger="owner"}` em 1 e a reativação por prazo vencido (C18) aumenta `whatsapp_bot_resumes_total{trigger="timeout"}` em 1; a reativação de conversa ativa (C14) não muda nenhuma das duas (AC 26)
+**C25** - No e2e, a reativação pelo Dono de uma conversa pausada aumenta `whatsapp_bot_resumes_total{trigger="owner"}` em 1 e a reativação por prazo vencido (C18) aumenta `whatsapp_bot_resumes_total{trigger="timeout"}` em 1; a reativação de conversa ativa (C14) não muda nenhuma das duas (AC 26) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C25\)"`
 
-**C26** - Na transferência, o use case loga um objeto com `barbershopId` e `reason`, e a serialização do que foi logado não contém o telefone nem o texto do cliente (AC 27)
-Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "\(C26\)"`
+**C26** - Na transferência, o use case devolve o motivo no resultado e o controller do webhook loga um objeto com `barbershopId` e `reason`, e a serialização do que foi logado não contém o telefone nem o texto do cliente (AC 27; renegociado com o usuário: `usecases/` não importa o `Logger`) ✅
+Proof: `npx jest src/infrastructure/external/whatsapp/evolution/evolution-webhook.controller.spec.ts -t "\(C26\)"`
 
-**C27** - No documento OpenAPI, `GET /whatsapp/conversations/waiting-human` e `POST /whatsapp/conversations/{clientId}/resume` têm `summary` contendo `US-16`, `x-roles` = `['owner']`, resposta de sucesso (`200` com schema, `204`) e as respostas `401` e `403`; o `POST` tem `404` com o exemplo "Cliente não encontrado."; e a descrição de `POST /webhooks/whatsapp/evolution` contém `US-16` (AC 28)
+**C27** - No documento OpenAPI, `GET /whatsapp/conversations/waiting-human` e `POST /whatsapp/conversations/{clientId}/resume` têm `summary` contendo `US-16`, `x-roles` = `['owner']`, resposta de sucesso (`200` com schema, `204`) e as respostas `401` e `403`; o `POST` tem `404` com o exemplo "Cliente não encontrado."; e a descrição de `POST /webhooks/whatsapp/evolution` contém `US-16` (AC 28) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/api-docs.e2e-spec.ts -t "\(C27\)"`
 
-**C28** - A tabela `whatsapp_conversations` tem chave primária exatamente em `(barbershop_id, client_id)`, e o banco recusa: `pause_reason = 'bored'`; `paused_at` preenchido com `pause_reason` nulo; `pause_reason` preenchido com `paused_at` nulo; `consecutive_failures = -1`; `last_activity_at` nulo; e uma segunda linha para o mesmo `(barbershop_id, client_id)`; apagar o cliente apaga a conversa (door 2, Relations)
+**C28** - A tabela `whatsapp_conversations` tem chave primária exatamente em `(barbershop_id, client_id)`, e o banco recusa: `pause_reason = 'bored'`; `paused_at` preenchido com `pause_reason` nulo; `pause_reason` preenchido com `paused_at` nulo; `consecutive_failures = -1`; `last_activity_at` nulo; e uma segunda linha para o mesmo `(barbershop_id, client_id)`; apagar o cliente apaga a conversa (door 2, Relations) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/database/whatsapp-conversations-schema.e2e-spec.ts -t "\(C28\)"`
 
-**C29** - Uma mensagem de texto de um cliente sem conversa cria a linha com `consecutive_failures = 0`, `paused_at` nulo e `last_activity_at = 2026-09-29T15:00:00Z`; uma redelivery do mesmo `key.id` depois de uma transferência não gera outro `sendText` nem muda a linha (door 2, idempotência herdada da door 3 da US-15)
+**C29** - Uma mensagem de texto de um cliente sem conversa cria a linha com `consecutive_failures = 0`, `paused_at` nulo e `last_activity_at = 2026-09-29T15:00:00Z`; uma redelivery do mesmo `key.id` depois de uma transferência não gera outro `sendText` nem muda a linha (door 2, idempotência herdada da door 3 da US-15) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-handoff.e2e-spec.ts -t "\(C29\)"`
 
-**C30** - Os e2e existentes da US-14 e da US-15 continuam passando sem mudança em asserções (Impact)
+**C30** - Os e2e existentes da US-14 e da US-15 continuam passando sem mudança em asserções (Impact) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-questions.e2e-spec.ts test/whatsapp-first-contact.e2e-spec.ts`
 
 ## Coverage
@@ -162,3 +162,7 @@ Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-questions.e2e-spec.
 ## Handoff
 
 - S1 = 18k, S2 entra a 28k, S3 a 39k, S4 a 52k, S5 a 60k, S6 a 71k, S7 a 81k (arquivos tocados e vizinhos lidos, ~320 KB / 4), abaixo do budget de 150k - one builder
+
+- **Boundary:** C1-C30 closed by the `feat(US-16)` commit after `3ff9d5f`
+- **Settled mid-build:** C26 renegociado com o usuário: `usecases/` não pode importar o `Logger` (boundaries), então o use case devolve o motivo da transferência no resultado e o controller do webhook loga; a prova passou para `evolution-webhook.controller.spec.ts`. Os ids C2, C6, C7 e C20 também existem no spec do use case da US-15; o seletor `-t` roda os dois, e os da US-16 ficam no `describe('US-16 hand-off')`. Nenhuma asserção da US-14 ou da US-15 mudou: as fixtures de interpretação ganharam `humanRequested: false` e o setup do spec do use case ganhou o cliente e a conversa, que o use case agora exige
+- **Abandoned:** ler `UPDATE ... RETURNING` como lista de linhas - o driver Postgres do TypeORM devolve `[linhas, contagem]` para `UPDATE`, e a pausa nunca vencia (C1, C5, C8 vermelhos); o repositório desempacota o par

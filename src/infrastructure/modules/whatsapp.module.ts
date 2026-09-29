@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import type { Registry } from 'prom-client';
 import { DataSource } from 'typeorm';
 import { WhatsAppConnectionController } from '../../interface-adapters/controllers/whatsapp-connection.controller';
+import { WhatsAppConversationsController } from '../../interface-adapters/controllers/whatsapp-conversations.controller';
 import { AnswerClientQuestionUseCase } from '../../usecases/answer-client-question/answer-client-question.use-case';
 import { ApplyWhatsAppConnectionStateUseCase } from '../../usecases/apply-whatsapp-connection-state/apply-whatsapp-connection-state.use-case';
 import { ConnectWhatsAppUseCase } from '../../usecases/connect-whatsapp/connect-whatsapp.use-case';
@@ -16,6 +17,10 @@ import {
   ClientRepository,
 } from '../../usecases/ports/client.repository.port';
 import { Clock, CLOCK } from '../../usecases/ports/clock.port';
+import {
+  CONVERSATION_REPOSITORY,
+  ConversationRepository,
+} from '../../usecases/ports/conversation.repository.port';
 import {
   EMAIL_SENDER,
   EmailSender,
@@ -52,10 +57,14 @@ import {
   WHATSAPP_METRICS,
   WhatsAppMetrics,
 } from '../../usecases/ports/whatsapp-metrics.port';
+import { ListWaitingConversationsUseCase } from '../../usecases/list-waiting-conversations/list-waiting-conversations.use-case';
 import { ReceiveWhatsAppMessageUseCase } from '../../usecases/receive-whatsapp-message/receive-whatsapp-message.use-case';
+import { RecordConversationActivityUseCase } from '../../usecases/record-conversation-activity/record-conversation-activity.use-case';
+import { ResumeConversationUseCase } from '../../usecases/resume-conversation/resume-conversation.use-case';
 import type { Env } from '../config/env.schema';
 import { TypeOrmInboundMessageRepository } from '../database/repositories/typeorm-inbound-message.repository';
 import { TypeOrmClientRepository } from '../database/repositories/typeorm-client.repository';
+import { TypeOrmConversationRepository } from '../database/repositories/typeorm-conversation.repository';
 import { TypeOrmWhatsAppConnectionRepository } from '../database/repositories/typeorm-whatsapp-connection.repository';
 import { EvolutionWebhookController } from '../external/whatsapp/evolution/evolution-webhook.controller';
 import { EvolutionWebhookGuard } from '../external/whatsapp/evolution/evolution-webhook.guard';
@@ -70,12 +79,16 @@ import { GeminiModule } from './gemini.module';
 import { ServicesModule } from './services.module';
 
 // US-13: WhatsApp connection; US-14: first contact and privacy notice; US-15:
-// answers to the client's questions. Global so the readiness check can ping the
+// answers to the client's questions; US-16: hand-off to a human. Global so the readiness check can ping the
 // connector through the port (AD-011).
 @Global()
 @Module({
   imports: [AccountModule, ObservabilityModule, ServicesModule, GeminiModule],
-  controllers: [WhatsAppConnectionController, EvolutionWebhookController],
+  controllers: [
+    WhatsAppConnectionController,
+    WhatsAppConversationsController,
+    EvolutionWebhookController,
+  ],
   providers: [
     { provide: CLOCK, useClass: SystemClock },
     { provide: ID_GENERATOR, useClass: UuidIdGenerator },
@@ -114,6 +127,12 @@ import { ServicesModule } from './services.module';
       inject: [DataSource],
       useFactory: (dataSource: DataSource) =>
         new TypeOrmInboundMessageRepository(dataSource),
+    },
+    {
+      provide: CONVERSATION_REPOSITORY,
+      inject: [DataSource],
+      useFactory: (dataSource: DataSource) =>
+        new TypeOrmConversationRepository(dataSource),
     },
     {
       provide: WHATSAPP_METRICS,
@@ -225,6 +244,9 @@ import { ServicesModule } from './services.module';
         WHATSAPP_CONNECTOR,
         WHATSAPP_METRICS,
         CLOCK,
+        CLIENT_REPOSITORY,
+        CONVERSATION_REPOSITORY,
+        ConfigService,
       ],
       useFactory: (
         connections: WhatsAppConnectionRepository,
@@ -235,6 +257,9 @@ import { ServicesModule } from './services.module';
         connector: WhatsAppConnector,
         metrics: WhatsAppMetrics,
         clock: Clock,
+        clients: ClientRepository,
+        conversations: ConversationRepository,
+        config: ConfigService<Env, true>,
       ) =>
         new AnswerClientQuestionUseCase(
           connections,
@@ -245,7 +270,54 @@ import { ServicesModule } from './services.module';
           connector,
           metrics,
           clock,
+          clients,
+          conversations,
+          config.get('WHATSAPP_HANDOFF_RESUME_HOURS', { infer: true }),
         ),
+    },
+    {
+      provide: RecordConversationActivityUseCase,
+      inject: [
+        CLIENT_REPOSITORY,
+        CONVERSATION_REPOSITORY,
+        CLOCK,
+        ConfigService,
+      ],
+      useFactory: (
+        clients: ClientRepository,
+        conversations: ConversationRepository,
+        clock: Clock,
+        config: ConfigService<Env, true>,
+      ) =>
+        new RecordConversationActivityUseCase(
+          clients,
+          conversations,
+          clock,
+          config.get('WHATSAPP_HANDOFF_RESUME_HOURS', { infer: true }),
+        ),
+    },
+    {
+      provide: ListWaitingConversationsUseCase,
+      inject: [CONVERSATION_REPOSITORY, CLOCK, ConfigService],
+      useFactory: (
+        conversations: ConversationRepository,
+        clock: Clock,
+        config: ConfigService<Env, true>,
+      ) =>
+        new ListWaitingConversationsUseCase(
+          conversations,
+          clock,
+          config.get('WHATSAPP_HANDOFF_RESUME_HOURS', { infer: true }),
+        ),
+    },
+    {
+      provide: ResumeConversationUseCase,
+      inject: [CLIENT_REPOSITORY, CONVERSATION_REPOSITORY, WHATSAPP_METRICS],
+      useFactory: (
+        clients: ClientRepository,
+        conversations: ConversationRepository,
+        metrics: WhatsAppMetrics,
+      ) => new ResumeConversationUseCase(clients, conversations, metrics),
     },
   ],
   exports: [WHATSAPP_CONNECTOR],

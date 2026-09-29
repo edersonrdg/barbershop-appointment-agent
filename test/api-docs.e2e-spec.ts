@@ -168,6 +168,45 @@ describe('API docs (e2e)', () => {
     expect(hook.description).toContain('US-15');
   });
 
+  it.each([
+    ['get', '/whatsapp/conversations/waiting-human', '200', ['401', '403']],
+    [
+      'post',
+      '/whatsapp/conversations/{clientId}/resume',
+      '204',
+      ['400', '401', '403', '404'],
+    ],
+  ] as const)(
+    'US-16 (C27): documents %s %s for the Owner only',
+    (method, path, success, errors) => {
+      const operation = document.paths[path][method]!;
+
+      expect(operation.summary).toContain('US-16');
+      expect(operation).toMatchObject({ 'x-roles': ['owner'] });
+      expect(operation.security).toEqual([{ bearer: [] }]);
+      for (const status of [success, ...errors]) {
+        expect(
+          (operation.responses[status] as ResponseObject).description,
+        ).toEqual(expect.any(String));
+      }
+      if (success === '200') {
+        expect(jsonSchemaOf(operation, 200)).toBeDefined();
+      }
+      if (path.endsWith('/resume')) {
+        expect(JSON.stringify(operation.responses['404'])).toContain(
+          'Cliente não encontrado.',
+        );
+      }
+    },
+  );
+
+  it('US-16 (C27): describes the hand-off on the webhook', () => {
+    const hook = document.paths['/webhooks/whatsapp/evolution'].post!;
+
+    expect(hook.summary).toContain('US-16');
+    expect(hook.description).toContain('US-16');
+  });
+
   it('serves the UI and the JSON document once enabled', async () => {
     const docsApp = (await createAccountTestApp([], setupApiDocs)).app;
 

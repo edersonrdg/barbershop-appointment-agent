@@ -12,7 +12,7 @@ Com a entrega, o cliente que pede um atendente, ou que o bot não entende duas v
 
 Reaproveita o webhook, o controller e o `AnswerClientQuestionUseCase` da US-15 (reivindicação da mensagem, intérprete, envio e métricas), o `MessageInterpreter` e o adaptador Gemini (só ganham um campo, door 1), o `ClientRepository.findByPhone` para achar o cliente e o `ClientNotFoundError` da US-12 para o 404.
 
-1. `POST /webhooks/whatsapp/evolution` com `messages.upsert` -> `EvolutionWebhookController` (exists) - mensagem do cliente: cadastro e aviso da US-14 sem mudança; mensagem da equipe (`key.fromMe`) deixa de ser só ignorada e passa a registrar atividade na conversa pausada daquele telefone
+1. `POST /webhooks/whatsapp/evolution` com `messages.upsert` -> `EvolutionWebhookController` (exists) - mensagem do cliente: cadastro e aviso da US-14 sem mudança; mensagem da equipe (`key.fromMe`) deixa de ser só ignorada e, como a mensagem do cliente sem texto, passa a `RecordConversationActivityUseCase` (new, no door - placement), que só registra atividade na conversa pausada daquele telefone
 2. `AnswerClientQuestionUseCase` (exists) - depois da reivindicação da US-15, lê a conversa (door 2): pausada e dentro do prazo, registra a atividade e não chama o intérprete nem responde; pausada e fora do prazo, reativa (door 3) e segue
 3. `GeminiMessageInterpreter` (exists) - devolve a interpretação com `humanRequested` (door 1)
 4. mesmo use case - `humanRequested` pausa com motivo `requested`; resposta sem tópico conta uma falha e, na segunda seguida, pausa com motivo `not_understood`; outra resposta zera a contagem. A pausa é gravada antes do aviso de transferência
@@ -29,7 +29,7 @@ Reaproveita o webhook, o controller e o `AnswerClientQuestionUseCase` da US-15 (
 | stored data | tabela nova, vazia; nada a migrar. Uma conversa nasce na primeira mensagem de texto que chega depois do deploy. `clients` não muda |
 | webhook existente | `POST /webhooks/whatsapp/evolution`: entrada, saída e status não mudam; a mensagem `fromMe` passa a ser lida (sem cadastrar cliente nem responder). A descrição no Swagger é atualizada |
 | configuração | nova `WHATSAPP_HANDOFF_RESUME_HOURS`, padrão 12 (RN-23, "sugestão, a validar"), no `env.schema.ts` e no `.env.example` |
-| testes existentes | no e2e da US-15, duas mensagens seguidas sem tópico do mesmo cliente passam a transferir; os testes que dependem disso trocam de cliente ou de interpretação |
+| testes existentes | nenhum teste da US-14 ou da US-15 manda duas mensagens sem tópico do mesmo cliente; as fixtures de interpretação ganharam `humanRequested: false`, o setup do spec do use case da US-15 ganhou cliente e conversa, e o spec do controller ganhou o use case de atividade |
 
 ## Relations
 

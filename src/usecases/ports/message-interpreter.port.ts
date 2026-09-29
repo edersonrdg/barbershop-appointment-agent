@@ -11,6 +11,8 @@ export interface MessageInterpretation {
   /** Services the client asked about that are not in the catalog, as written. */
   unknownServices: string[];
   offTopic: boolean;
+  /** US-16: the client asked to talk to a person (RF-11). */
+  humanRequested: boolean;
 }
 
 export interface MessageInterpreterInput {
