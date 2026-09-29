@@ -200,14 +200,14 @@ T12
 
 **Done when**:
 
-- [ ] e2e do repositório: `findById` devolve o agendamento com serviços; id de outra barbearia → `null`; `saveStatus` grava o status e não toca outra barbearia
-- [ ] `listBusyPeriods` devolve agendamentos `attended` e `no_show`
-- [ ] Gate check passes: `npm test && npm run test:e2e`
+- [x] e2e do repositório: `findById` devolve o agendamento com serviços; id de outra barbearia → `null`; `saveStatus` grava o status e não toca outra barbearia
+- [x] `listBusyPeriods` devolve agendamentos `attended` e `no_show`
+- [x] Gate check passes: `npm test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
 
-**Status**: ⏳ Pending
+**Status**: ✅ Done
 
 **Commit**: `feat(US-11): read and save appointment status`
 

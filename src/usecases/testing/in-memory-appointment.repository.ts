@@ -1,4 +1,8 @@
-import { Appointment } from '../../domain/entities/appointment';
+import {
+  Appointment,
+  AppointmentProps,
+  AppointmentStatus,
+} from '../../domain/entities/appointment';
 import { UtcPeriod } from '../../domain/entities/barbershop';
 import { Client } from '../../domain/entities/client';
 import { AppointmentConflictError } from '../../domain/errors/appointment-conflict.error';
@@ -9,8 +13,14 @@ import {
 } from '../ports/appointment.repository.port';
 import { InMemoryClientRepository } from './in-memory-client.repository';
 
-// Stores snapshots and refuses overlapping confirmed appointments of the same
-// barber, like the database exclusion constraint does. The new client is
+const SLOT_HOLDING_STATUSES: readonly AppointmentStatus[] = [
+  'confirmed',
+  'attended',
+  'no_show',
+];
+
+// Stores snapshots and refuses overlapping appointments of the same barber
+// that hold the slot (RN-03), like the database exclusion constraint does. The new client is
 // stored only when the appointment is, as in the database transaction.
 export class InMemoryAppointmentRepository implements AppointmentRepository {
   private appointments: Appointment[] = [];
@@ -64,7 +74,7 @@ export class InMemoryAppointmentRepository implements AppointmentRepository {
     }
     const overlapping = this.appointments.some(
       (stored) =>
-        stored.status === 'confirmed' &&
+        SLOT_HOLDING_STATUSES.includes(stored.status) &&
         stored.barbershopId === appointment.barbershopId &&
         stored.barberId === appointment.barberId &&
         stored.startsAt < appointment.endsAt &&
@@ -94,6 +104,31 @@ export class InMemoryAppointmentRepository implements AppointmentRepository {
     );
   }
 
+  findById(
+    barbershopId: string,
+    appointmentId: string,
+  ): Promise<Appointment | null> {
+    const stored = this.appointments.find(
+      (appointment) =>
+        appointment.id === appointmentId &&
+        appointment.barbershopId === barbershopId,
+    );
+    return Promise.resolve(stored ? snapshot(stored) : null);
+  }
+
+  saveStatus(appointment: Appointment): Promise<void> {
+    this.appointments = this.appointments.map((stored) =>
+      stored.id === appointment.id &&
+      stored.barbershopId === appointment.barbershopId
+        ? Appointment.restore({
+            ...toProps(stored),
+            status: appointment.status,
+          })
+        : stored,
+    );
+    return Promise.resolve();
+  }
+
   listBusyPeriods(
     barbershopId: string,
     barberIds: readonly string[],
@@ -104,7 +139,7 @@ export class InMemoryAppointmentRepository implements AppointmentRepository {
         .filter(
           (appointment) =>
             appointment.barbershopId === barbershopId &&
-            appointment.status === 'confirmed' &&
+            SLOT_HOLDING_STATUSES.includes(appointment.status) &&
             barberIds.includes(appointment.barberId) &&
             appointment.startsAt < range.end &&
             range.start < appointment.endsAt,
@@ -119,7 +154,11 @@ export class InMemoryAppointmentRepository implements AppointmentRepository {
 }
 
 function snapshot(appointment: Appointment): Appointment {
-  return Appointment.restore({
+  return Appointment.restore(toProps(appointment));
+}
+
+function toProps(appointment: Appointment): AppointmentProps {
+  return {
     id: appointment.id,
     barbershopId: appointment.barbershopId,
     barberId: appointment.barberId,
@@ -130,5 +169,5 @@ function snapshot(appointment: Appointment): Appointment {
     status: appointment.status,
     origin: appointment.origin,
     createdAt: appointment.createdAt,
-  });
+  };
 }
