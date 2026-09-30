@@ -13,6 +13,10 @@ import {
   ReceiveWhatsAppMessageInput,
   ReceiveWhatsAppMessageUseCase,
 } from '../../../../usecases/receive-whatsapp-message/receive-whatsapp-message.use-case';
+import {
+  RecordConversationActivityInput,
+  RecordConversationActivityUseCase,
+} from '../../../../usecases/record-conversation-activity/record-conversation-activity.use-case';
 import { FixedClock } from '../../../../usecases/testing/fixed-clock';
 import { EvolutionWebhookController } from './evolution-webhook.controller';
 import type { EvolutionWebhook } from './evolution-webhook.schema';
@@ -38,12 +42,14 @@ function controllerReturning(result: ApplyWhatsAppConnectionStateResult) {
   } as unknown as ApplyWhatsAppConnectionStateUseCase;
   const { receiveMessage } = receivingMessages();
   const { answerQuestion } = answering();
+  const { recordActivity } = recordingActivity();
   return {
     controller: new EvolutionWebhookController(
       useCase,
       receiveMessage,
       answerQuestion,
       new FixedClock(NOW),
+      recordActivity,
     ),
     calls,
   };
@@ -71,21 +77,35 @@ function answering(result: ClientReplyResult = { outcome: 'none' }) {
   return { answerQuestion, calls };
 }
 
+function recordingActivity() {
+  const calls: RecordConversationActivityInput[] = [];
+  const recordActivity = {
+    execute: (input: RecordConversationActivityInput) => {
+      calls.push(input);
+      return Promise.resolve();
+    },
+  } as unknown as RecordConversationActivityUseCase;
+  return { recordActivity, calls };
+}
+
 function messageController(reply?: ClientReplyResult) {
   const applyState = {
     execute: () => Promise.reject(new Error('not a connection update')),
   } as unknown as ApplyWhatsAppConnectionStateUseCase;
   const { receiveMessage, calls } = receivingMessages();
   const { answerQuestion, calls: answers } = answering(reply);
+  const { recordActivity, calls: activities } = recordingActivity();
   return {
     controller: new EvolutionWebhookController(
       applyState,
       receiveMessage,
       answerQuestion,
       new FixedClock(NOW),
+      recordActivity,
     ),
     calls,
     answers,
+    activities,
   };
 }
 
@@ -310,5 +330,67 @@ describe('EvolutionWebhookController', () => {
     const logged = loggedArguments(spies);
     expect(logged).not.toContain('5511987654321');
     expect(logged).not.toContain('quanto custa');
+  });
+
+  it('AC 3 (C3): logs a failed hand-off notice with only the barbershop id and the error identity', async () => {
+    const { controller } = messageController({
+      outcome: 'failed',
+      error: new SmtpError(
+        'send to +5511987654321 failed: quero falar com alguém',
+      ),
+      handoff: 'requested',
+    });
+
+    await controller.receive(
+      message({ message: { conversation: 'quero falar com alguém' } }),
+    );
+
+    const error = spies[1];
+    expect(error).toHaveBeenCalledTimes(1);
+    const [[context]] = error.mock.calls as unknown[][];
+    expect(context).toEqual({
+      barbershopId: SHOP,
+      err: { name: 'SmtpError', code: 'EENVELOPE' },
+    });
+    const logged = loggedArguments(spies);
+    expect(logged).not.toContain('5511987654321');
+    expect(logged).not.toContain('quero falar');
+  });
+
+  it.each(['requested', 'not_understood'] as const)(
+    'AC 27 (C26): logs a %s hand-off with only the barbershop id and the reason',
+    async (reason) => {
+      const { controller } = messageController({
+        outcome: 'sent',
+        kind: 'handoff',
+        handoff: reason,
+      });
+
+      await controller.receive(
+        message({ message: { conversation: 'quero falar com alguém' } }),
+      );
+
+      const log = spies[0];
+      expect(log).toHaveBeenCalledTimes(1);
+      const [[context]] = log.mock.calls as unknown[][];
+      expect(context).toEqual({ barbershopId: SHOP, reason });
+      const logged = loggedArguments(spies);
+      expect(logged).not.toContain('5511987654321');
+      expect(logged).not.toContain('quero falar');
+    },
+  );
+
+  it('AC 10: records the activity of a team message and of a message without text', async () => {
+    const { controller, calls, answers, activities } = messageController();
+
+    await controller.receive(message({}, { fromMe: true }));
+    await controller.receive(message({ message: { audioMessage: {} } }));
+
+    expect(activities).toEqual([
+      { barbershopId: SHOP, phone: '+5511987654321' },
+      { barbershopId: SHOP, phone: '+5511987654321' },
+    ]);
+    expect(calls).toHaveLength(1);
+    expect(answers).toEqual([]);
   });
 });

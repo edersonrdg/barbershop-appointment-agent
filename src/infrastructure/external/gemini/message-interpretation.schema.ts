@@ -19,4 +19,8 @@ export const messageInterpretationSchema = z.object({
   offTopic: z.boolean().meta({
     description: 'true quando a mensagem não tem relação com a barbearia.',
   }),
+  humanRequested: z.boolean().meta({
+    description:
+      'true quando o cliente pede para falar com uma pessoa, atendente ou alguém da equipe.',
+  }),
 });

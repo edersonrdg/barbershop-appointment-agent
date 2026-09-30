@@ -1,4 +1,6 @@
+import type { HandoffReason } from '../../domain/value-objects/handoff-reason';
 import {
+  BotResumeTrigger,
   ClientReplyKind,
   PrivacyNoticeOutcome,
   WhatsAppMetrics,
@@ -9,6 +11,8 @@ export class CountingWhatsAppMetrics implements WhatsAppMetrics {
   clientsCreated = 0;
   readonly privacyNotices: PrivacyNoticeOutcome[] = [];
   readonly replies: ClientReplyKind[] = [];
+  readonly handoffs: HandoffReason[] = [];
+  readonly resumes: BotResumeTrigger[] = [];
 
   disconnected(): void {
     this.disconnections += 1;
@@ -24,5 +28,13 @@ export class CountingWhatsAppMetrics implements WhatsAppMetrics {
 
   reply(kind: ClientReplyKind): void {
     this.replies.push(kind);
+  }
+
+  handoff(reason: HandoffReason): void {
+    this.handoffs.push(reason);
+  }
+
+  botResumed(trigger: BotResumeTrigger): void {
+    this.resumes.push(trigger);
   }
 }

@@ -19,6 +19,7 @@ import { ApplyWhatsAppConnectionStateUseCase } from '../../../../usecases/apply-
 import type { Clock } from '../../../../usecases/ports/clock.port';
 import { CLOCK } from '../../../../usecases/ports/clock.port';
 import { ReceiveWhatsAppMessageUseCase } from '../../../../usecases/receive-whatsapp-message/receive-whatsapp-message.use-case';
+import { RecordConversationActivityUseCase } from '../../../../usecases/record-conversation-activity/record-conversation-activity.use-case';
 import {
   EvolutionWebhookGuard,
   WEBHOOK_UNAUTHORIZED_MESSAGE,
@@ -58,14 +59,15 @@ export class EvolutionWebhookController {
     private readonly receiveMessage: ReceiveWhatsAppMessageUseCase,
     private readonly answerQuestion: AnswerClientQuestionUseCase,
     @Inject(CLOCK) private readonly clock: Clock,
+    private readonly recordActivity: RecordConversationActivityUseCase,
   ) {}
 
   @Post()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
-    summary: 'Recebe os eventos da Evolution API (US-13, US-14, US-15)',
+    summary: 'Recebe os eventos da Evolution API (US-13, US-14, US-15, US-16)',
     description:
-      'Chamado só pela Evolution API, com `authorization: Bearer <WHATSAPP_WEBHOOK_SECRET>`. Aplica `connection.update` à conexão da barbearia cujo id é `instance`; uma queda (conectado → desconectado) envia e-mail aos Donos. Em `messages.upsert` (US-14), a mensagem de um cliente cadastra o telefone na primeira vez, com o nome do perfil, e envia uma única vez o aviso de privacidade; são ignoradas as mensagens enviadas pelo próprio número, de grupos e listas, sem telefone brasileiro ou com mais de 5 minutos. Depois do aviso, uma mensagem de texto (US-15) recebe a resposta às dúvidas sobre serviços, preços, durações, endereço e horário de funcionamento, montada só com os dados cadastrados; assuntos fora da barbearia são recusados, e cada mensagem (`key.id`) é respondida uma única vez. Outros eventos, estados desconhecidos e barbearias sem conexão são aceitos e ignorados.',
+      'Chamado só pela Evolution API, com `authorization: Bearer <WHATSAPP_WEBHOOK_SECRET>`. Aplica `connection.update` à conexão da barbearia cujo id é `instance`; uma queda (conectado → desconectado) envia e-mail aos Donos. Em `messages.upsert` (US-14), a mensagem de um cliente cadastra o telefone na primeira vez, com o nome do perfil, e envia uma única vez o aviso de privacidade; são ignoradas as mensagens enviadas pelo próprio número, de grupos e listas, sem telefone brasileiro ou com mais de 5 minutos. Depois do aviso, uma mensagem de texto (US-15) recebe a resposta às dúvidas sobre serviços, preços, durações, endereço e horário de funcionamento, montada só com os dados cadastrados; assuntos fora da barbearia são recusados, e cada mensagem (`key.id`) é respondida uma única vez. Quando o cliente pede um atendente ou o bot não o entende duas vezes seguidas (US-16), o cliente recebe "Vou chamar alguém da equipe para te ajudar." e o bot fica calado naquela conversa até o Dono reativá-lo ou até `WHATSAPP_HANDOFF_RESUME_HOURS` horas (padrão 12) sem mensagens; enquanto isso, as mensagens do cliente e as respostas da equipe pelo app (enviadas pelo próprio número) só contam como atividade da conversa. Outros eventos, estados desconhecidos e barbearias sem conexão são aceitos e ignorados.',
   })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
@@ -109,9 +111,18 @@ export class EvolutionWebhookController {
       message.data.message?.conversation ??
       message.data.message?.extendedTextMessage?.text;
     const age = this.clock.now().getTime() - messageTimestamp * 1000;
-    if (key.fromMe || age > MESSAGE_MAX_AGE_MS) return;
+    if (age > MESSAGE_MAX_AGE_MS) return;
     const phone = phoneFromJid(key.remoteJid);
     if (!phone) return;
+    // US-16: a reply of the team through the app keeps a paused conversation
+    // with the team (RN-23); it is never answered nor registers a client.
+    if (key.fromMe) {
+      await this.recordActivity.execute({
+        barbershopId: barbershopId.data,
+        phone,
+      });
+      return;
+    }
 
     const notice = await this.receiveMessage.execute({
       barbershopId: barbershopId.data,
@@ -124,7 +135,13 @@ export class EvolutionWebhookController {
         'Privacy notice could not be sent.',
       );
     }
-    if (!key.id || !text) return;
+    if (!key.id || !text) {
+      await this.recordActivity.execute({
+        barbershopId: barbershopId.data,
+        phone,
+      });
+      return;
+    }
 
     const reply = await this.answerQuestion.execute({
       barbershopId: barbershopId.data,
@@ -132,6 +149,12 @@ export class EvolutionWebhookController {
       messageId: key.id,
       text,
     });
+    if (reply.outcome !== 'none' && reply.handoff) {
+      this.logger.log(
+        { barbershopId: barbershopId.data, reason: reply.handoff },
+        'Conversation handed to a human.',
+      );
+    }
     if (reply.outcome === 'failed') {
       this.logger.error(
         { barbershopId: barbershopId.data, err: errorIdentity(reply.error) },

@@ -195,4 +195,20 @@ describe('validateEnv', () => {
       expect(validateEnv(validEnv).GEMINI_TIMEOUT_MS).toBe(8000);
     });
   });
+
+  describe('US-16 (C19): WHATSAPP_HANDOFF_RESUME_HOURS', () => {
+    it('defaults to 12 hours and accepts 24', () => {
+      expect(validateEnv(validEnv).WHATSAPP_HANDOFF_RESUME_HOURS).toBe(12);
+      expect(
+        validateEnv({ ...validEnv, WHATSAPP_HANDOFF_RESUME_HOURS: '24' })
+          .WHATSAPP_HANDOFF_RESUME_HOURS,
+      ).toBe(24);
+    });
+
+    it.each(['0', '-1', '1.5', 'abc'])('fails with %s', (value) => {
+      expect(() =>
+        validateEnv({ ...validEnv, WHATSAPP_HANDOFF_RESUME_HOURS: value }),
+      ).toThrow(/WHATSAPP_HANDOFF_RESUME_HOURS/);
+    });
+  });
 });

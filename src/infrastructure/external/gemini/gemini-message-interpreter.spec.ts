@@ -22,6 +22,7 @@ const VALID = {
   services: ['Corte', 'Barba'],
   unknownServices: [],
   offTopic: false,
+  humanRequested: false,
 };
 
 class FakeModels implements GeminiModels {
@@ -235,4 +236,41 @@ describe('GeminiMessageInterpreter', () => {
       expect(serialized).not.toContain('Barbearia do Zé');
     },
   );
+
+  describe('US-16 (C4): humanRequested', () => {
+    it.each([
+      ['missing', { ...VALID, humanRequested: undefined }],
+      ['not a boolean', { ...VALID, humanRequested: 'sim' }],
+    ])(
+      'rejects an interpretation with humanRequested %s',
+      async (_case, output) => {
+        const { interpreter, models } = setup();
+        models.result = withText(JSON.stringify(output));
+
+        await expect(interpreter.interpret(INPUT)).rejects.toBeInstanceOf(
+          MessageInterpreterUnavailableError,
+        );
+      },
+    );
+
+    it('passes humanRequested through and asks the model for it', async () => {
+      const { interpreter, models } = setup();
+      models.result = withText(
+        JSON.stringify({ ...VALID, humanRequested: true }),
+      );
+
+      const result = await interpreter.interpret(INPUT);
+
+      expect(result.humanRequested).toBe(true);
+      const schema = models.calls[0].config?.responseJsonSchema as {
+        properties: Record<string, unknown>;
+        required: string[];
+      };
+      expect(schema.properties).toHaveProperty('humanRequested');
+      expect(schema.required).toContain('humanRequested');
+      expect(models.calls[0].config?.systemInstruction).toEqual(
+        expect.stringContaining('humanRequested'),
+      );
+    });
+  });
 });
