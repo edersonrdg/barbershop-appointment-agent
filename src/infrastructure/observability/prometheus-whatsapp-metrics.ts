@@ -1,9 +1,11 @@
 import { Counter, Registry } from 'prom-client';
+import type { ReminderKind } from '../../domain/value-objects/appointment-reminder';
 import type { HandoffReason } from '../../domain/value-objects/handoff-reason';
 import {
   BotResumeTrigger,
   ClientReplyKind,
   PrivacyNoticeOutcome,
+  ReminderOutcome,
   WhatsAppMetrics,
 } from '../../usecases/ports/whatsapp-metrics.port';
 
@@ -14,6 +16,8 @@ export class PrometheusWhatsAppMetrics implements WhatsAppMetrics {
   private readonly repliesTotal: Counter<'kind'>;
   private readonly handoffsTotal: Counter<'reason'>;
   private readonly botResumesTotal: Counter<'trigger'>;
+  private readonly remindersTotal: Counter<'kind' | 'outcome'>;
+  private readonly presenceConfirmationsTotal: Counter;
 
   constructor(registry: Registry) {
     this.disconnectionsTotal = new Counter({
@@ -50,6 +54,17 @@ export class PrometheusWhatsAppMetrics implements WhatsAppMetrics {
       labelNames: ['trigger'],
       registers: [registry],
     });
+    this.remindersTotal = new Counter({
+      name: 'whatsapp_reminders_total',
+      help: 'Total de lembretes de agendamento enviados pelo WhatsApp, por tipo e desfecho',
+      labelNames: ['kind', 'outcome'],
+      registers: [registry],
+    });
+    this.presenceConfirmationsTotal = new Counter({
+      name: 'whatsapp_presence_confirmations_total',
+      help: 'Total de agendamentos confirmados pelo cliente em resposta ao lembrete',
+      registers: [registry],
+    });
   }
 
   disconnected(): void {
@@ -74,5 +89,13 @@ export class PrometheusWhatsAppMetrics implements WhatsAppMetrics {
 
   botResumed(trigger: BotResumeTrigger): void {
     this.botResumesTotal.inc({ trigger });
+  }
+
+  reminder(kind: ReminderKind, outcome: ReminderOutcome): void {
+    this.remindersTotal.inc({ kind, outcome });
+  }
+
+  presenceConfirmed(): void {
+    this.presenceConfirmationsTotal.inc();
   }
 }

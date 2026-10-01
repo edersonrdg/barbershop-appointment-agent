@@ -8,6 +8,7 @@ import { BarbershopTimezone } from '../../domain/value-objects/barbershop-timezo
 import { PhoneNumber } from '../../domain/value-objects/phone-number';
 import { BookAppointmentUseCase } from '../book-appointment/book-appointment.use-case';
 import { BookViaWhatsAppUseCase } from '../book-via-whatsapp/book-via-whatsapp.use-case';
+import { ConfirmPresenceViaWhatsAppUseCase } from '../confirm-presence-via-whatsapp/confirm-presence-via-whatsapp.use-case';
 import { ListAvailableSlotsUseCase } from '../list-available-slots/list-available-slots.use-case';
 import { AppointmentBackedScheduleQuery } from './appointment-backed-schedule.query';
 import {
@@ -191,6 +192,10 @@ export async function setupWhatsAppBooking({
     appointments,
     appointmentMetrics,
   );
+  const presence = new ConfirmPresenceViaWhatsAppUseCase(
+    schedule,
+    appointments,
+  );
 
   const busy = (barberId: string, start: Date, end: Date): void =>
     appointments.seed({ barbershopId: barbershop.id, barberId, start, end });
@@ -277,6 +282,7 @@ export async function setupWhatsAppBooking({
     appointmentMetrics,
     listSlots,
     booking,
+    presence,
     busy,
     block,
     noShows,

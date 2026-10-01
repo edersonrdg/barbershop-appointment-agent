@@ -451,4 +451,50 @@ describe('Appointments schema (e2e)', () => {
       expect(await count('appointments')).toBe(2);
     });
   });
+
+  describe('US-19: reminder and confirmation columns', () => {
+    it('door 1 (C33): adds nullable timestamptz columns without default, null on insert', async () => {
+      const columns = await dataSource.query<
+        {
+          column_name: string;
+          data_type: string;
+          is_nullable: string;
+          column_default: string | null;
+        }[]
+      >(
+        `SELECT column_name, data_type, is_nullable, column_default
+         FROM information_schema.columns
+         WHERE table_name = 'appointments'
+           AND column_name IN ('reminder_24h_sent_at', 'reminder_1h_sent_at', 'client_confirmed_at')
+         ORDER BY column_name`,
+      );
+      expect(columns).toEqual(
+        [
+          'client_confirmed_at',
+          'reminder_1h_sent_at',
+          'reminder_24h_sent_at',
+        ].map((column_name) => ({
+          column_name,
+          data_type: 'timestamp with time zone',
+          is_nullable: 'YES',
+          column_default: null,
+        })),
+      );
+
+      const id = await insertAppointment({
+        startsAt: '2026-10-05T13:00:00Z',
+        endsAt: '2026-10-05T13:30:00Z',
+      });
+      const [row] = await dataSource.query<Record<string, Date | null>[]>(
+        `SELECT reminder_24h_sent_at, reminder_1h_sent_at, client_confirmed_at
+         FROM appointments WHERE id = $1`,
+        [id],
+      );
+      expect(row).toEqual({
+        reminder_24h_sent_at: null,
+        reminder_1h_sent_at: null,
+        client_confirmed_at: null,
+      });
+    });
+  });
 });

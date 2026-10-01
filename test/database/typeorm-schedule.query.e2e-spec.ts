@@ -263,6 +263,8 @@ describe('TypeOrmScheduleQuery (e2e)', () => {
           endsAt: new Date('2026-10-05T13:45:00.000Z'),
           status: 'confirmed',
           origin: 'manual',
+          reminder24hSentAt: null,
+          clientConfirmedAt: null,
         },
       ]);
     });
@@ -440,6 +442,8 @@ describe('TypeOrmScheduleQuery (e2e)', () => {
           endsAt: new Date('2026-10-05T13:45:00.000Z'),
           status: 'confirmed',
           origin: 'manual',
+          reminder24hSentAt: null,
+          clientConfirmedAt: null,
         },
         {
           id: withoutClient,
@@ -450,6 +454,8 @@ describe('TypeOrmScheduleQuery (e2e)', () => {
           endsAt: new Date('2026-10-05T14:30:00.000Z'),
           status: 'confirmed',
           origin: 'bot',
+          reminder24hSentAt: null,
+          clientConfirmedAt: null,
         },
       ]);
     });
@@ -523,6 +529,8 @@ describe('TypeOrmScheduleQuery (e2e)', () => {
         endsAt: new Date('2026-10-05T13:45:00.000Z'),
         status: 'confirmed',
         origin: 'manual',
+        reminder24hSentAt: null,
+        clientConfirmedAt: null,
       });
     });
 
@@ -560,6 +568,113 @@ describe('TypeOrmScheduleQuery (e2e)', () => {
 
     it('CA-10.1: returns null for an unknown appointment id', async () => {
       expect(await query.findById(barbershopA, randomUUID())).toBeNull();
+    });
+  });
+
+  describe('US-19 reminders', () => {
+    const AFTER = new Date('2026-10-05T12:00:00.000Z');
+    const UNTIL = new Date('2026-10-06T12:00:00.000Z');
+    const CREATED = new Date('2026-10-01T12:00:00.000Z');
+
+    async function scenario() {
+      const ana = await insertBarber(barbershopA, 'Ana');
+      const haircut = await insertService(barbershopA, 'Corte');
+      const joao = await insertClient(barbershopA, 'João', '+5511987654321');
+      const appointment = async (
+        startsAt: string,
+        { clientId = joao, barbershopId = barbershopA } = {},
+      ) => {
+        const barberId =
+          barbershopId === barbershopA
+            ? ana
+            : await insertBarber(barbershopId, 'Bia');
+        const serviceId =
+          barbershopId === barbershopA
+            ? haircut
+            : await insertService(barbershopId, 'Corte');
+        const end = new Date(new Date(startsAt).getTime() + 30 * 60 * 1000);
+        const id = await insertAppointment({
+          barbershopId,
+          barberId,
+          startsAt,
+          endsAt: end.toISOString(),
+          serviceIds: [serviceId],
+          clientId,
+        });
+        await dataSource.query(
+          'UPDATE appointments SET created_at = $2 WHERE id = $1',
+          [id, CREATED],
+        );
+        return id;
+      };
+      return { ana, haircut, joao, appointment };
+    }
+
+    it('door 1, RN-26 (C34): lists only the confirmed appointments with a client and without that reminder, in the range, with createdAt', async () => {
+      const { appointment } = await scenario();
+      const due = await appointment('2026-10-05T15:00:00.000Z');
+      const atUntil = await appointment('2026-10-06T12:00:00.000Z');
+      await appointment('2026-10-05T12:00:00.000Z');
+      await appointment('2026-10-06T13:00:00.000Z');
+      await appointment('2026-10-05T16:00:00.000Z', { clientId: null });
+      const cancelled = await appointment('2026-10-05T17:00:00.000Z');
+      await dataSource.query(
+        `UPDATE appointments SET status = 'cancelled' WHERE id = $1`,
+        [cancelled],
+      );
+      const reminded = await appointment('2026-10-05T18:00:00.000Z');
+      await dataSource.query(
+        'UPDATE appointments SET reminder_24h_sent_at = $2 WHERE id = $1',
+        [reminded, CREATED],
+      );
+      await appointment('2026-10-05T19:00:00.000Z', {
+        barbershopId: barbershopB,
+        clientId: await insertClient(barbershopB, 'Bia', '+5511911112222'),
+      });
+
+      const pending24h = await query.listPendingReminders(
+        barbershopA,
+        '24h',
+        AFTER,
+        UNTIL,
+      );
+
+      expect(pending24h.map((entry) => entry.id)).toEqual([due, atUntil]);
+      expect(pending24h[0]).toMatchObject({
+        createdAt: CREATED,
+        reminder24hSentAt: null,
+        clientConfirmedAt: null,
+      });
+
+      const pending1h = await query.listPendingReminders(
+        barbershopA,
+        '1h',
+        AFTER,
+        UNTIL,
+      );
+
+      expect(pending1h.map((entry) => entry.id)).toEqual([
+        due,
+        reminded,
+        atUntil,
+      ]);
+    });
+
+    it('door 1 (C34): the entries of a client carry the 24h reminder and the confirmation instants', async () => {
+      const { appointment, joao } = await scenario();
+      const id = await appointment('2026-10-05T15:00:00.000Z');
+      await dataSource.query(
+        'UPDATE appointments SET reminder_24h_sent_at = $2, client_confirmed_at = $3 WHERE id = $1',
+        [id, CREATED, AFTER],
+      );
+
+      const [entry] = await query.listForClient(barbershopA, joao, null);
+
+      expect(entry).toMatchObject({
+        id,
+        reminder24hSentAt: CREATED,
+        clientConfirmedAt: AFTER,
+      });
     });
   });
 });

@@ -284,6 +284,43 @@ describe('API docs (e2e)', () => {
     });
   });
 
+  describe('US-19', () => {
+    type Item = {
+      properties: Record<string, Record<string, unknown> | undefined>;
+    };
+
+    it('AC 24, door 4 (C32): documents unconfirmed on the schedule and clientConfirmedAt on the appointment format', () => {
+      const schedule = jsonSchemaOf(
+        document.paths['/appointments'].get!,
+        200,
+      ) as { properties: { appointments: { items: Item } } };
+      const profile = jsonSchemaOf(
+        document.paths['/clients/{id}'].get!,
+        200,
+      ) as { properties: { upcomingAppointments: { items: Item } } };
+      const item = schedule.properties.appointments.items.properties;
+      const profileItem =
+        profile.properties.upcomingAppointments.items.properties;
+
+      expect(item.unconfirmed).toMatchObject({
+        type: 'boolean',
+        description: expect.stringContaining('CA-19.5') as string,
+      });
+      for (const confirmedAt of [
+        item.clientConfirmedAt,
+        profileItem.clientConfirmedAt,
+      ]) {
+        expect(confirmedAt).toMatchObject({
+          type: 'string',
+          format: 'date-time',
+          nullable: true,
+          description: expect.stringContaining('CA-19.2') as string,
+        });
+      }
+      expect(profileItem.unconfirmed).toBeUndefined();
+    });
+  });
+
   it('serves the UI and the JSON document once enabled', async () => {
     const docsApp = (await createAccountTestApp([], setupApiDocs)).app;
 

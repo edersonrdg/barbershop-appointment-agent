@@ -30,6 +30,7 @@ function interpretation(
     time: null,
     cancelRequested: false,
     rescheduleRequested: false,
+    confirmRequested: false,
     choice: null,
     ...partial,
   };

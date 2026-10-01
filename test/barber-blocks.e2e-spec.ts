@@ -17,6 +17,7 @@ import { FakeEmailSender } from '../src/usecases/testing/fake-email-sender';
 import { FixedClock } from '../src/usecases/testing/fixed-clock';
 import { createBarber, signupOwner } from './support/account-flows';
 import { truncateAccountTables } from './support/truncate-account-tables';
+import { stopScheduledJobs } from './support/stop-scheduled-jobs';
 
 const FORBIDDEN = { message: 'Acesso negado.' };
 const UNAUTHORIZED = { message: 'Sessão inválida ou expirada.' };
@@ -247,6 +248,7 @@ describe('Barber blocks (e2e)', () => {
       .compile();
     app = moduleFixture.createNestApplication<INestApplication<App>>();
     await app.init();
+    stopScheduledJobs(app);
     dataSource = app.get(DataSource);
     appWebUrl = app.get(ConfigService).getOrThrow<string>('APP_WEB_URL');
   });
@@ -528,6 +530,7 @@ describe('Barber blocks (e2e)', () => {
       endsAt: '2026-10-01T13:45:00.000Z',
       status: 'confirmed',
       origin: 'manual',
+      clientConfirmedAt: null,
     });
 
     it('CA-09.3: without confirmation answers 409 with the appointments and saves nothing', async () => {

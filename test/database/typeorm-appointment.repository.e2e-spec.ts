@@ -610,4 +610,103 @@ describe('TypeOrmAppointmentRepository (e2e)', () => {
       ).toEqual([]);
     });
   });
+
+  describe('US-19 reminders and confirmation', () => {
+    const LATER = new Date('2026-10-01T12:10:00.000Z');
+
+    async function stored(): Promise<Appointment> {
+      const barberId = await insertBarber(barbershopA);
+      const serviceId = await insertService(barbershopA);
+      const appointment = book({
+        barbershopId: barbershopA,
+        barberId,
+        serviceIds: [serviceId],
+        startsAt: '2026-10-05T13:00:00.000Z',
+      });
+      await repository.create(appointment);
+      return appointment;
+    }
+
+    async function marksOf(id: string) {
+      const [row] = await dataSource.query<
+        {
+          reminder_24h_sent_at: Date | null;
+          reminder_1h_sent_at: Date | null;
+          client_confirmed_at: Date | null;
+        }[]
+      >(
+        `SELECT reminder_24h_sent_at, reminder_1h_sent_at, client_confirmed_at
+         FROM appointments WHERE id = $1`,
+        [id],
+      );
+      return row;
+    }
+
+    it('door 1 (C34): claims each reminder once, only for a confirmed appointment of the barbershop', async () => {
+      const appointment = await stored();
+
+      expect(
+        await repository.claimReminder(barbershopB, appointment.id, '24h', NOW),
+      ).toBe(false);
+      expect(
+        await repository.claimReminder(barbershopA, appointment.id, '24h', NOW),
+      ).toBe(true);
+      expect(
+        await repository.claimReminder(
+          barbershopA,
+          appointment.id,
+          '24h',
+          LATER,
+        ),
+      ).toBe(false);
+      expect(
+        await repository.claimReminder(
+          barbershopA,
+          appointment.id,
+          '1h',
+          LATER,
+        ),
+      ).toBe(true);
+      expect(await marksOf(appointment.id)).toEqual({
+        reminder_24h_sent_at: NOW,
+        reminder_1h_sent_at: LATER,
+        client_confirmed_at: null,
+      });
+
+      const cancelled = await stored();
+      await repository.saveStatus(cancelled.cancel());
+      expect(
+        await repository.claimReminder(barbershopA, cancelled.id, '24h', NOW),
+      ).toBe(false);
+      expect((await marksOf(cancelled.id)).reminder_24h_sent_at).toBeNull();
+    });
+
+    it('door 1 (C34): confirms by the client only a reminded, confirmed appointment not yet confirmed', async () => {
+      const reminded = await stored();
+      await repository.claimReminder(barbershopA, reminded.id, '24h', NOW);
+      const notReminded = await stored();
+      const cancelled = await stored();
+      await repository.claimReminder(barbershopA, cancelled.id, '24h', NOW);
+      await repository.saveStatus(cancelled.cancel());
+
+      expect(
+        await repository.confirmByClient(barbershopB, reminded.id, NOW),
+      ).toBe(false);
+      expect(
+        await repository.confirmByClient(barbershopA, reminded.id, NOW),
+      ).toBe(true);
+      expect(
+        await repository.confirmByClient(barbershopA, reminded.id, LATER),
+      ).toBe(false);
+      expect((await marksOf(reminded.id)).client_confirmed_at).toEqual(NOW);
+      expect(
+        await repository.confirmByClient(barbershopA, notReminded.id, NOW),
+      ).toBe(false);
+      expect(
+        await repository.confirmByClient(barbershopA, cancelled.id, NOW),
+      ).toBe(false);
+      expect((await marksOf(notReminded.id)).client_confirmed_at).toBeNull();
+      expect((await marksOf(cancelled.id)).client_confirmed_at).toBeNull();
+    });
+  });
 });

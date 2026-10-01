@@ -1,3 +1,4 @@
+import { ReminderKind } from '../src/domain/value-objects/appointment-reminder';
 import { randomUUID } from 'node:crypto';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -25,6 +26,7 @@ import { ID_GENERATOR } from '../src/usecases/ports/id-generator.port';
 import { SERVICE_REPOSITORY } from '../src/usecases/ports/service.repository.port';
 import { FixedClock } from '../src/usecases/testing/fixed-clock';
 import { truncateAccountTables } from './support/truncate-account-tables';
+import { stopScheduledJobs } from './support/stop-scheduled-jobs';
 
 // Friday 09:00 in São Paulo; the bookings are on Monday 2026-10-05.
 const NOW = new Date('2026-10-02T12:00:00.000Z');
@@ -74,6 +76,23 @@ class BarrierAppointmentRepository implements AppointmentRepository {
 
   saveStatus(appointment: Appointment): Promise<void> {
     return this.inner.saveStatus(appointment);
+  }
+
+  claimReminder(
+    barbershopId: string,
+    appointmentId: string,
+    kind: ReminderKind,
+    now: Date,
+  ): Promise<boolean> {
+    return this.inner.claimReminder(barbershopId, appointmentId, kind, now);
+  }
+
+  confirmByClient(
+    barbershopId: string,
+    appointmentId: string,
+    now: Date,
+  ): Promise<boolean> {
+    return this.inner.confirmByClient(barbershopId, appointmentId, now);
   }
 }
 
@@ -152,6 +171,7 @@ describe('Scheduling (e2e)', () => {
       .compile();
     app = moduleFixture.createNestApplication<INestApplication<App>>();
     await app.init();
+    stopScheduledJobs(app);
     dataSource = app.get(DataSource);
     await truncateAccountTables(dataSource);
     await seed();

@@ -78,6 +78,10 @@ export const messageInterpretationSchema = z.object({
     description:
       'true quando o cliente quer remarcar (trocar o dia ou o horário de) um agendamento.',
   }),
+  confirmRequested: z.boolean().meta({
+    description:
+      'true quando o cliente confirma que vai comparecer ao agendamento.',
+  }),
   choice: z.int().min(1).max(MAX_CHOICE).nullable().meta({
     description:
       'Número da opção listada (horário oferecido ou agendamento do cliente) que o cliente escolheu; null quando não escolheu.',

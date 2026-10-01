@@ -1,8 +1,10 @@
+import type { ReminderKind } from '../../domain/value-objects/appointment-reminder';
 import type { HandoffReason } from '../../domain/value-objects/handoff-reason';
 import {
   BotResumeTrigger,
   ClientReplyKind,
   PrivacyNoticeOutcome,
+  ReminderOutcome,
   WhatsAppMetrics,
 } from '../ports/whatsapp-metrics.port';
 
@@ -13,6 +15,8 @@ export class CountingWhatsAppMetrics implements WhatsAppMetrics {
   readonly replies: ClientReplyKind[] = [];
   readonly handoffs: HandoffReason[] = [];
   readonly resumes: BotResumeTrigger[] = [];
+  readonly reminders: { kind: ReminderKind; outcome: ReminderOutcome }[] = [];
+  presenceConfirmations = 0;
 
   disconnected(): void {
     this.disconnections += 1;
@@ -36,5 +40,13 @@ export class CountingWhatsAppMetrics implements WhatsAppMetrics {
 
   botResumed(trigger: BotResumeTrigger): void {
     this.resumes.push(trigger);
+  }
+
+  reminder(kind: ReminderKind, outcome: ReminderOutcome): void {
+    this.reminders.push({ kind, outcome });
+  }
+
+  presenceConfirmed(): void {
+    this.presenceConfirmations += 1;
   }
 }

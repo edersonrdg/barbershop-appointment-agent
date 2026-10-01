@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { errorIdentity } from './error-identity';
 import { ResetExpiredNoShowsUseCase } from '../../usecases/reset-expired-no-shows/reset-expired-no-shows.use-case';
 
 export const NO_SHOW_RESET_JOB = 'no-show-reset';
@@ -36,11 +37,4 @@ export class NoShowResetJob {
       this.logger.error({ err: errorIdentity(error) }, 'No-show reset failed.');
     }
   }
-}
-
-// LGPD: an error message may carry a client's phone or name, so only the
-// error's name and code are logged.
-function errorIdentity(error: unknown): { name?: string; code?: string } {
-  const { name, code } = error as { name?: string; code?: string };
-  return { name, code };
 }

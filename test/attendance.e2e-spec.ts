@@ -14,6 +14,7 @@ import { FakeEmailSender } from '../src/usecases/testing/fake-email-sender';
 import { FixedClock } from '../src/usecases/testing/fixed-clock';
 import { createBarber, signupOwner } from './support/account-flows';
 import { truncateAccountTables } from './support/truncate-account-tables';
+import { stopScheduledJobs } from './support/stop-scheduled-jobs';
 
 const FORBIDDEN = { message: 'Acesso negado.' };
 const UNAUTHORIZED = { message: 'Sessão inválida ou expirada.' };
@@ -183,6 +184,7 @@ describe('Attendance (e2e)', () => {
       .compile();
     app = moduleFixture.createNestApplication<INestApplication<App>>();
     await app.init();
+    stopScheduledJobs(app);
     dataSource = app.get(DataSource);
     appWebUrl = app.get(ConfigService).getOrThrow<string>('APP_WEB_URL');
   });
@@ -253,6 +255,7 @@ describe('Attendance (e2e)', () => {
           endsAt: utc('13:30'),
           status: 'attended',
           origin: 'manual',
+          clientConfirmedAt: null,
         },
         client: { id: maria, noShowCount: 0, selfBookingBlocked: false },
       });

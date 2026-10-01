@@ -13,6 +13,7 @@ import { FakeWhatsAppConnector } from '../src/usecases/testing/fake-whatsapp-con
 import { FixedClock } from '../src/usecases/testing/fixed-clock';
 import { createBarber, signupOwner } from './support/account-flows';
 import { truncateAccountTables } from './support/truncate-account-tables';
+import { stopScheduledJobs } from './support/stop-scheduled-jobs';
 
 // Tuesday 2026-09-29, 12:00 in São Paulo (UTC-3).
 const NOW = new Date('2026-09-29T15:00:00.000Z');
@@ -140,6 +141,7 @@ describe('WhatsApp connection (e2e)', () => {
       .compile();
     app = moduleFixture.createNestApplication<INestApplication<App>>();
     await app.init();
+    stopScheduledJobs(app);
     dataSource = app.get(DataSource);
     const config = app.get(ConfigService);
     webhookSecret = config.getOrThrow<string>('WHATSAPP_WEBHOOK_SECRET');

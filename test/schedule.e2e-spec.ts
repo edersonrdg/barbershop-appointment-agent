@@ -339,6 +339,8 @@ describe('Schedule (e2e)', () => {
           endsAt: '2026-09-28T13:45:00.000Z',
           status: 'confirmed',
           origin: 'manual',
+          clientConfirmedAt: null,
+          unconfirmed: false,
         },
       ]);
     });

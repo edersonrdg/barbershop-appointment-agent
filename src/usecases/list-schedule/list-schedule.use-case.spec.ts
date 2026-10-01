@@ -1,11 +1,14 @@
+import { BookingRules } from '../../domain/value-objects/booking-rules';
 import { BarberNotFoundError } from '../../domain/errors/barber-not-found.error';
 import { ScheduleAccessDeniedError } from '../../domain/errors/schedule-access-denied.error';
 import { seedBarber, seedBarbershop } from '../testing/barber-fixtures';
 import { InMemoryAccountStore } from '../testing/in-memory-account-store';
 import { InMemoryBarberRepository } from '../testing/in-memory-barber.repository';
 import { InMemoryBarbershopRepository } from '../testing/in-memory-barbershop.repository';
+import { InMemoryBookingRulesRepository } from '../testing/in-memory-booking-rules.repository';
 import { InMemoryScheduleQuery } from '../testing/in-memory-schedule.query';
 import { at, MONDAY } from '../testing/scheduling-fixtures';
+import { SettableClock } from '../testing/settable-clock';
 import { ListScheduleUseCase } from './list-schedule.use-case';
 
 // 2026-10-05 is a monday; 2026-10-07 is the wednesday of the same week.
@@ -50,12 +53,15 @@ async function setup() {
     barber: foreign,
     startsAt: at('10:00'),
   });
+  const clock = new SettableClock(new Date('2026-10-05T12:00:00.000Z'));
   const useCase = new ListScheduleUseCase(
     new InMemoryBarbershopRepository(store),
     barbers,
     schedule,
+    new InMemoryBookingRulesRepository(store),
+    clock,
   );
-  return { useCase, schedule };
+  return { useCase, schedule, store, clock, ana };
 }
 
 const owner = {
@@ -295,5 +301,48 @@ describe('ListScheduleUseCase', () => {
         }),
       ).rejects.toThrow(new ScheduleAccessDeniedError());
     });
+  });
+
+  describe('US-19 unconfirmed alert', () => {
+    // X starts at 11:00 local on Wednesday; its 24h reminder went out.
+    const X_STARTS = new Date('2026-10-07T14:00:00.000Z');
+
+    it.each([
+      [60, false],
+      [120, true],
+    ])(
+      'CA-19.5, AC 21 (C29): 90 min before, with a cancellation deadline of %i min, unconfirmed is %s',
+      async (deadline, expected) => {
+        const { useCase, schedule, store, clock, ana } = await setup();
+        const defaults = BookingRules.defaults();
+        store.bookingRules.set(
+          'barbershop-a',
+          BookingRules.create({
+            minimumAdvanceMinutes: defaults.minimumAdvanceMinutes,
+            cancellationDeadlineMinutes: deadline,
+            noShowLimit: defaults.noShowLimit,
+            waitlistOfferMinutes: defaults.waitlistOfferMinutes,
+            returnReminderDays: defaults.returnReminderDays,
+          }),
+        );
+        schedule.seed('barbershop-a', {
+          id: 'x',
+          barber: ana,
+          startsAt: X_STARTS,
+          reminder24hSentAt: new Date('2026-10-06T14:00:00.000Z'),
+        });
+        clock.current = new Date('2026-10-07T12:30:00.000Z');
+
+        const result = await useCase.execute({
+          ...owner,
+          view: 'day',
+          date: WEDNESDAY,
+        });
+
+        expect(
+          result.entries.find((entry) => entry.id === 'x')?.unconfirmed,
+        ).toBe(expected);
+      },
+    );
   });
 });

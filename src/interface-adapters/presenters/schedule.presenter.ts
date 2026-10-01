@@ -44,6 +44,20 @@ export const scheduleAppointmentSchema = z.object({
     description: 'bot (WhatsApp) ou manual (painel), RF-28.',
     example: 'manual',
   }),
+  clientConfirmedAt: z.string().nullable().meta({
+    description:
+      'Quando o cliente confirmou presença respondendo ao lembrete de 24h (US-19, CA-19.2), em UTC; null enquanto não confirmou.',
+    format: 'date-time',
+    example: '2026-09-29T15:00:00.000Z',
+  }),
+});
+
+const scheduleItemSchema = scheduleAppointmentSchema.extend({
+  unconfirmed: z.boolean().meta({
+    description:
+      'true quando o lembrete de 24h foi enviado, o cliente não confirmou e já chegou o prazo de cancelamento da barbearia (US-19, CA-19.5, RF-18): o painel mostra o alerta "não confirmado".',
+    example: false,
+  }),
 });
 
 export const scheduleResponseSchema = z.object({
@@ -57,7 +71,7 @@ export const scheduleResponseSchema = z.object({
     description: 'Fuso da barbearia, para exibir os horários.',
     example: 'America/Sao_Paulo',
   }),
-  appointments: z.array(scheduleAppointmentSchema).meta({
+  appointments: z.array(scheduleItemSchema).meta({
     description:
       'Agendamentos que começam no período, por início e depois por nome do barbeiro.',
   }),
@@ -75,9 +89,10 @@ export class SchedulePresenter {
       startDate: schedule.period.startDate,
       endDate: schedule.period.endDate,
       timezone: schedule.timezone,
-      appointments: schedule.entries.map((entry) =>
-        SchedulePresenter.toAppointment(entry),
-      ),
+      appointments: schedule.entries.map((entry) => ({
+        ...SchedulePresenter.toAppointment(entry),
+        unconfirmed: entry.unconfirmed,
+      })),
     };
   }
 
@@ -91,6 +106,7 @@ export class SchedulePresenter {
       endsAt: entry.endsAt.toISOString(),
       status: entry.status,
       origin: entry.origin,
+      clientConfirmedAt: entry.clientConfirmedAt?.toISOString() ?? null,
     };
   }
 }

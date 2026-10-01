@@ -14,6 +14,7 @@ import { FakeEmailSender } from '../src/usecases/testing/fake-email-sender';
 import { FixedClock } from '../src/usecases/testing/fixed-clock';
 import { createBarber, signupOwner } from './support/account-flows';
 import { truncateAccountTables } from './support/truncate-account-tables';
+import { stopScheduledJobs } from './support/stop-scheduled-jobs';
 
 const FORBIDDEN = { message: 'Acesso negado.' };
 const UNAUTHORIZED = { message: 'Sessão inválida ou expirada.' };
@@ -204,6 +205,7 @@ describe('Manual booking (e2e)', () => {
       .compile();
     app = moduleFixture.createNestApplication<INestApplication<App>>();
     await app.init();
+    stopScheduledJobs(app);
     dataSource = app.get(DataSource);
     appWebUrl = app.get(ConfigService).getOrThrow<string>('APP_WEB_URL');
   });
@@ -275,6 +277,7 @@ describe('Manual booking (e2e)', () => {
         endsAt: utc('13:45'),
         status: 'confirmed',
         origin: 'manual',
+        clientConfirmedAt: null,
       });
 
       const schedule = await request(app.getHttpServer())
@@ -284,7 +287,7 @@ describe('Manual booking (e2e)', () => {
         .expect(200);
       expect(
         (schedule.body as { appointments: AppointmentBody[] }).appointments,
-      ).toEqual([body]);
+      ).toEqual([{ ...body, unconfirmed: false }]);
     });
   });
 

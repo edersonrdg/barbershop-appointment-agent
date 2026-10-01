@@ -1,6 +1,7 @@
 import { MessageInterpreterUnavailableError } from '../../domain/errors/message-interpreter-unavailable.error';
 import type { HandoffReason } from '../../domain/value-objects/handoff-reason';
 import { BookViaWhatsAppUseCase } from '../book-via-whatsapp/book-via-whatsapp.use-case';
+import { ConfirmPresenceViaWhatsAppUseCase } from '../confirm-presence-via-whatsapp/confirm-presence-via-whatsapp.use-case';
 import { BarbershopRepository } from '../ports/barbershop.repository.port';
 import { ClientRepository } from '../ports/client.repository.port';
 import { Clock } from '../ports/clock.port';
@@ -66,7 +67,8 @@ const FAILURES_BEFORE_HANDOFF = 2;
 // conversation to a human and stays silent while it is paused (RN-22, RN-23).
 // US-17: a booking request goes to the booking use case, after the request
 // for a person and the off-topic refusal and before the questions. US-18: so
-// does a request to cancel or reschedule.
+// does a request to cancel or reschedule. US-19: a confirmation of presence
+// comes after those, before the questions.
 export class AnswerClientQuestionUseCase {
   constructor(
     private readonly connections: WhatsAppConnectionRepository,
@@ -81,6 +83,7 @@ export class AnswerClientQuestionUseCase {
     private readonly conversations: ConversationRepository,
     private readonly resumeAfterHours: number,
     private readonly booking: BookViaWhatsAppUseCase,
+    private readonly presence: ConfirmPresenceViaWhatsAppUseCase,
   ) {}
 
   async execute(input: AnswerClientQuestionInput): Promise<ClientReplyResult> {
@@ -163,6 +166,16 @@ export class AnswerClientQuestionUseCase {
           reply = { kind: outcome.kind, text: outcome.text };
           if (outcome.kind !== 'booking') appointmentId = outcome.appointmentId;
         }
+      } else if (!interpretation.offTopic && interpretation.confirmRequested) {
+        const confirmation = await this.presence.execute({
+          barbershop,
+          clientId: client.id,
+          now,
+        });
+        for (let count = 0; count < confirmation.confirmed; count += 1) {
+          this.metrics.presenceConfirmed();
+        }
+        reply = { kind: confirmation.kind, text: confirmation.text };
       } else {
         reply = composeReply(barbershop, services, interpretation);
       }

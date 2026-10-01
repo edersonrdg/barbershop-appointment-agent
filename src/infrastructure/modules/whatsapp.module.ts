@@ -7,6 +7,7 @@ import { WhatsAppConversationsController } from '../../interface-adapters/contro
 import { AnswerClientQuestionUseCase } from '../../usecases/answer-client-question/answer-client-question.use-case';
 import { BookAppointmentUseCase } from '../../usecases/book-appointment/book-appointment.use-case';
 import { BookViaWhatsAppUseCase } from '../../usecases/book-via-whatsapp/book-via-whatsapp.use-case';
+import { ConfirmPresenceViaWhatsAppUseCase } from '../../usecases/confirm-presence-via-whatsapp/confirm-presence-via-whatsapp.use-case';
 import { ListAvailableSlotsUseCase } from '../../usecases/list-available-slots/list-available-slots.use-case';
 import {
   APPOINTMENT_METRICS,
@@ -88,6 +89,7 @@ import { ListWaitingConversationsUseCase } from '../../usecases/list-waiting-con
 import { ReceiveWhatsAppMessageUseCase } from '../../usecases/receive-whatsapp-message/receive-whatsapp-message.use-case';
 import { RecordConversationActivityUseCase } from '../../usecases/record-conversation-activity/record-conversation-activity.use-case';
 import { ResumeConversationUseCase } from '../../usecases/resume-conversation/resume-conversation.use-case';
+import { SendAppointmentRemindersUseCase } from '../../usecases/send-appointment-reminders/send-appointment-reminders.use-case';
 import type { Env } from '../config/env.schema';
 import { TypeOrmInboundMessageRepository } from '../database/repositories/typeorm-inbound-message.repository';
 import { TypeOrmClientRepository } from '../database/repositories/typeorm-client.repository';
@@ -96,6 +98,7 @@ import { TypeOrmWhatsAppConnectionRepository } from '../database/repositories/ty
 import { EvolutionWebhookController } from '../external/whatsapp/evolution/evolution-webhook.controller';
 import { EvolutionWebhookGuard } from '../external/whatsapp/evolution/evolution-webhook.guard';
 import { EvolutionWhatsAppConnector } from '../external/whatsapp/evolution/evolution-whatsapp-connector';
+import { AppointmentRemindersJob } from '../jobs/appointment-reminders.job';
 import { METRICS_REGISTRY } from '../observability/metrics.registry';
 import { ObservabilityModule } from '../observability/observability.module';
 import { PrometheusWhatsAppMetrics } from '../observability/prometheus-whatsapp-metrics';
@@ -112,7 +115,8 @@ import { ServicesModule } from './services.module';
 
 // US-13: WhatsApp connection; US-14: first contact and privacy notice; US-15:
 // answers to the client's questions; US-16: hand-off to a human; US-17:
-// booking through the availability engine. Global so the readiness check can
+// booking through the availability engine; US-19: appointment reminders and
+// the client's confirmation. Global so the readiness check can
 // ping the connector through the port (AD-011).
 @Global()
 @Module({
@@ -330,6 +334,7 @@ import { ServicesModule } from './services.module';
         CONVERSATION_REPOSITORY,
         ConfigService,
         BookViaWhatsAppUseCase,
+        ConfirmPresenceViaWhatsAppUseCase,
       ],
       useFactory: (
         connections: WhatsAppConnectionRepository,
@@ -344,6 +349,7 @@ import { ServicesModule } from './services.module';
         conversations: ConversationRepository,
         config: ConfigService<Env, true>,
         booking: BookViaWhatsAppUseCase,
+        presence: ConfirmPresenceViaWhatsAppUseCase,
       ) =>
         new AnswerClientQuestionUseCase(
           connections,
@@ -358,8 +364,48 @@ import { ServicesModule } from './services.module';
           conversations,
           config.get('WHATSAPP_HANDOFF_RESUME_HOURS', { infer: true }),
           booking,
+          presence,
         ),
     },
+    {
+      provide: ConfirmPresenceViaWhatsAppUseCase,
+      inject: [SCHEDULE_QUERY, APPOINTMENT_REPOSITORY],
+      useFactory: (
+        schedule: ScheduleQuery,
+        appointments: AppointmentRepository,
+      ) => new ConfirmPresenceViaWhatsAppUseCase(schedule, appointments),
+    },
+    {
+      provide: SendAppointmentRemindersUseCase,
+      inject: [
+        BARBERSHOP_REPOSITORY,
+        WHATSAPP_CONNECTION_REPOSITORY,
+        SCHEDULE_QUERY,
+        APPOINTMENT_REPOSITORY,
+        WHATSAPP_CONNECTOR,
+        WHATSAPP_METRICS,
+        CLOCK,
+      ],
+      useFactory: (
+        barbershops: BarbershopRepository,
+        connections: WhatsAppConnectionRepository,
+        schedule: ScheduleQuery,
+        appointments: AppointmentRepository,
+        connector: WhatsAppConnector,
+        metrics: WhatsAppMetrics,
+        clock: Clock,
+      ) =>
+        new SendAppointmentRemindersUseCase(
+          barbershops,
+          connections,
+          schedule,
+          appointments,
+          connector,
+          metrics,
+          clock,
+        ),
+    },
+    AppointmentRemindersJob,
     {
       provide: RecordConversationActivityUseCase,
       inject: [

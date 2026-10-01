@@ -5,6 +5,7 @@ import { DataSource } from 'typeorm';
 import { AppModule } from '../../src/app.module';
 import { EMAIL_SENDER } from '../../src/usecases/ports/email-sender.port';
 import { FakeEmailSender } from '../../src/usecases/testing/fake-email-sender';
+import { stopScheduledJobs } from './stop-scheduled-jobs';
 
 export interface AccountTestApp {
   app: INestApplication<App>;
@@ -30,6 +31,7 @@ export async function createAccountTestApp(
   const app = moduleFixture.createNestApplication<INestApplication<App>>();
   beforeInit(app);
   await app.init();
+  stopScheduledJobs(app);
 
   return { app, dataSource: app.get(DataSource), emailSender };
 }

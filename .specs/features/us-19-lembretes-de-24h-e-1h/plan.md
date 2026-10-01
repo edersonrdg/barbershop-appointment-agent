@@ -31,7 +31,7 @@ flowchart TD
 
 1. **Envio:** um job novo dispara a cada minuto e, barbearia por barbearia (AD-009), lista os agendamentos devidos de cada tipo de lembrete; pula a barbearia cuja conexão do WhatsApp não está `connected`, sem reivindicar nada. Cada agendamento devido é reivindicado com um `UPDATE` condicional (só uma instância vence, e um agendamento cancelado nesse meio tempo não é reivindicado) e só então o texto vai pelo `WhatsAppConnector.sendText`. Erro de uma barbearia é contado e logado, e a rotina segue.
 2. **Resposta:** a mensagem do cliente entra pelo webhook e pelo `AnswerClientQuestionUseCase` como hoje. A interpretação ganha `confirmRequested`. Com ele (e sem `cancelRequested`/`rescheduleRequested`), o caso de uso grava `client_confirmed_at` nos agendamentos lembrados do cliente e responde. Remarcar ou cancelar seguem para o `BookViaWhatsAppUseCase` da US-18, que não muda.
-3. **Painel:** `GET /appointments` calcula `unconfirmed` na leitura, com o relógio e o prazo de cancelamento das regras da barbearia; todas as rotas que usam o formato de agendamento da agenda passam a trazer `clientConfirmedAt`.
+3. **Painel:** `GET /appointments` calcula `unconfirmed` na leitura (`ListScheduleUseCase`, exists, estendido com o relógio e as regras de agendamento), com o prazo de cancelamento das regras da barbearia; todas as rotas que usam o formato de agendamento da agenda passam a trazer `clientConfirmedAt`.
 
 ## Impact
 
@@ -45,9 +45,11 @@ flowchart TD
 | domain | existente: tipos de resposta do bot (`reply(kind)` na métrica de respostas) ganham o da confirmação de presença |
 | stored data | `appointments` ganha três colunas nulas (door 1); linhas existentes ficam com `NULL` e nada é migrado. Efeito no deploy: agendamentos já existentes, criados há mais de 24h e dentro da janela, recebem o lembrete no primeiro minuto depois do deploy - é o comportamento desejado |
 | rota existente | `GET /appointments`, `GET /clients/:id`, `PATCH /appointments/:id/status`, `POST /blocks` (`affectedAppointments` no `201`, `appointments` no `409`): o formato de agendamento (`scheduleAppointmentSchema`) ganha `clientConfirmedAt` |
+| rota existente | `POST /appointments` (US-10): o agendamento criado ganha `clientConfirmedAt`; achada na construção |
 | rota existente | `GET /appointments`: cada agendamento ganha `unconfirmed` |
 | painel (repo `barbershop-panel`) | precisa exibir "confirmado pelo cliente" e o alerta "não confirmado"; fica fora deste repositório (Out of scope) |
 | testes existentes | fixtures de `ScheduleEntry` e as asserções de formato das rotas acima ganham o campo novo |
+| testes existentes | todo e2e que monta o `AppModule` para os crons logo depois do `app.init()` (`test/support/stop-scheduled-jobs.ts`), porque o job de minuto em minuto agiria sobre os dados da suíte; achado na construção |
 
 ## Relations
 
@@ -61,6 +63,7 @@ flowchart TD
 | `GET /clients/:id` | sem mudança | `pastAppointments[]` e `upcomingAppointments[]` ganham `clientConfirmedAt` | `200`, `401`, `404` (sem mudança) |
 | `PATCH /appointments/:id/status` | sem mudança | `appointment` ganha `clientConfirmedAt` | `200`, `400`, `401`, `403`, `404`, `409` (sem mudança) |
 | `POST /blocks` | sem mudança | cada agendamento de `affectedAppointments` (`201`) e de `appointments` (`409`) ganha `clientConfirmedAt` | `201`, `400`, `401`, `403`, `404`, `409` (sem mudança) |
+| `POST /appointments` (achada na construção: o agendamento manual da US-10 também responde no `scheduleAppointmentSchema`) | sem mudança | o agendamento criado ganha `clientConfirmedAt` (sempre `null` ao criar) | `201`, `400`, `401`, `403`, `404`, `409`, `422` (sem mudança) |
 
 ## Landing
 
