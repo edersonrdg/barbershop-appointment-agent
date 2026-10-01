@@ -18,30 +18,41 @@ import { TimeOfDay } from '../../domain/value-objects/time-of-day';
 import { WEEKDAY_LABELS } from '../../domain/value-objects/weekday';
 import { BookAppointmentUseCase } from '../book-appointment/book-appointment.use-case';
 import { ListAvailableSlotsUseCase } from '../list-available-slots/list-available-slots.use-case';
+import { AppointmentMetrics } from '../ports/appointment-metrics.port';
+import { AppointmentRepository } from '../ports/appointment.repository.port';
 import { BarberRepository } from '../ports/barber.repository.port';
 import { BookingRulesRepository } from '../ports/booking-rules.repository.port';
 import {
+  AppointmentCandidate,
   BookingDraft,
   ConversationRepository,
+  DraftAction,
   OfferedSlot,
 } from '../ports/conversation.repository.port';
 import { IdGenerator } from '../ports/id-generator.port';
 import {
   BookingPeriod,
+  MAX_CHOICE,
   MAX_OFFERED_SLOTS,
   MessageInterpretation,
   MessageInterpreterInput,
 } from '../ports/message-interpreter.port';
 import { NoShowLedger } from '../ports/no-show-ledger.port';
+import { ScheduleEntry, ScheduleQuery } from '../ports/schedule.query.port';
 import { performsAll } from '../shared/booking-context';
 import { clientNoShowStatus } from '../shared/client-no-show-status';
 import {
+  appointmentLabel,
+  appointmentListText,
   askBarberText,
   askServiceText,
   barberNotAptText,
   bookedText,
+  cancellationDeadlineText,
+  cancelledText,
   emptyDateText,
   minimumAdvanceText,
+  NO_UPCOMING_APPOINTMENT_TEXT,
   noBarberText,
   noServicesText,
   nothingFreeText,
@@ -61,16 +72,21 @@ const SEARCH_DAYS = 7;
 const NOON_MINUTES = 12 * 60;
 const EVENING_MINUTES = 18 * 60;
 
-type Criteria = Omit<BookingDraft, 'id' | 'offer' | 'updatedAt'>;
+type Criteria = Omit<
+  BookingDraft,
+  'id' | 'action' | 'candidates' | 'targetAppointmentId' | 'offer' | 'updatedAt'
+>;
 
 export interface BookingPreparation {
   /** The draft still in force, if any. */
   draft: BookingDraft | null;
   /** Every barber of the barbershop, active or not, by name. */
   barbers: Barber[];
+  /** US-18: the appointments listed in the draft, in its order. */
+  candidates: ScheduleEntry[];
   interpreterInput: Pick<
     MessageInterpreterInput,
-    'today' | 'barberNames' | 'offeredOptions'
+    'today' | 'barberNames' | 'offeredOptions' | 'appointmentOptions'
   >;
 }
 
@@ -84,12 +100,22 @@ export interface HandleBookingInput {
   now: Date;
 }
 
+/** `notice` comes before the hand-off message (US-18). */
 export type BookingOutcome =
-  | { type: 'handoff' }
+  | {
+      type: 'handoff';
+      reason: 'blocked_client' | 'late_cancellation';
+      notice?: string;
+    }
   | { type: 'not_understood' }
   | { type: 'silent' }
   | { type: 'reply'; kind: 'booking'; text: string }
-  | { type: 'reply'; kind: 'booked'; text: string; appointmentId: string };
+  | {
+      type: 'reply';
+      kind: 'booked' | 'cancelled' | 'rescheduled';
+      text: string;
+      appointmentId: string;
+    };
 
 interface Context {
   barbershop: Barbershop;
@@ -98,11 +124,19 @@ interface Context {
   barbers: Barber[];
   timezone: BarbershopTimezone;
   now: Date;
+  /** What the drafts saved from this context are for (US-18). */
+  action: DraftAction;
+  targetAppointmentId: string | null;
 }
+
+const BLOCKED: BookingOutcome = { type: 'handoff', reason: 'blocked_client' };
 
 // US-17: books from the WhatsApp with the availability engine of US-07 (RF-01
 // to RF-03). The model only says what the client asked; slots come from the
-// engine and a booking only from an option the bot offered (AD-013).
+// engine and a booking only from an option the bot offered (AD-013). US-18:
+// cancels and reschedules the client's own appointments (RF-04) within the
+// cancellation deadline (RN-09); a new slot is searched and booked like a new
+// booking, and only then the old appointment is cancelled (RN-10).
 export class BookViaWhatsAppUseCase {
   constructor(
     private readonly barbersRepository: BarberRepository,
@@ -112,6 +146,9 @@ export class BookViaWhatsAppUseCase {
     private readonly listSlots: ListAvailableSlotsUseCase,
     private readonly book: BookAppointmentUseCase,
     private readonly ids: IdGenerator,
+    private readonly schedule: ScheduleQuery,
+    private readonly appointments: AppointmentRepository,
+    private readonly metrics: AppointmentMetrics,
   ) {}
 
   async prepare(
@@ -125,10 +162,17 @@ export class BookViaWhatsAppUseCase {
       this.conversations.findDraft(barbershop.id, clientId),
     ]);
     const draft = stored && inForce(stored, now) ? stored : null;
+    const candidates = draft?.candidates.length
+      ? listed(
+          draft.candidates,
+          await this.schedule.listForClient(barbershop.id, clientId, null),
+        )
+      : [];
     const today = timezone.localDateOf(now);
     return {
       draft,
       barbers,
+      candidates,
       interpreterInput: {
         today: {
           date: today,
@@ -143,21 +187,23 @@ export class BookViaWhatsAppUseCase {
         offeredOptions: (draft?.offer ?? []).map((slot) =>
           optionLabel(timezone, labeled(barbers, slot)),
         ),
+        appointmentOptions: candidates.map((entry) =>
+          appointmentLabel(timezone, entry),
+        ),
       },
     };
   }
 
   async handle(input: HandleBookingInput): Promise<BookingOutcome> {
     const { barbershop, client, interpretation, preparation } = input;
-    const { selfBookingBlocked } = await clientNoShowStatus(
+    // RN-12: a blocked client is handed to the team instead of booking
+    // (CA-17.6), but may still cancel (US-18).
+    const { selfBookingBlocked: blocked } = await clientNoShowStatus(
       this.ledger,
       this.bookingRules,
       barbershop.id,
       client.id,
     );
-    // RN-12: a blocked client is handed to the team instead (CA-17.6).
-    if (selfBookingBlocked) return { type: 'handoff' };
-
     const context: Context = {
       barbershop,
       client,
@@ -165,13 +211,186 @@ export class BookViaWhatsAppUseCase {
       barbers: preparation.barbers,
       timezone: BarbershopTimezone.create(barbershop.timezone),
       now: input.now,
+      action: 'book',
+      targetAppointmentId: null,
     };
+    // Assumption of the plan: a new request to cancel or reschedule replaces
+    // any draft in progress. Rescheduling wins when both are asked, since it
+    // cancels nothing before the client picks a new slot.
+    if (interpretation.cancelRequested || interpretation.rescheduleRequested) {
+      return this.locate(
+        context,
+        interpretation.rescheduleRequested ? 'reschedule' : 'cancel',
+        merge(context, null, interpretation),
+        blocked,
+      );
+    }
     const draft = preparation.draft;
     if (interpretation.choice !== null) {
-      if (!draft || draft.offer.length === 0) return { type: 'not_understood' };
-      return this.choose(context, draft, interpretation.choice);
+      if (!draft) return { type: 'not_understood' };
+      if (draft.candidates.length > 0) {
+        return this.pick(
+          context,
+          draft,
+          preparation.candidates,
+          interpretation.choice,
+          blocked,
+        );
+      }
+      if (draft.offer.length === 0) return { type: 'not_understood' };
+      if (blocked) return BLOCKED;
+      return this.choose(
+        withDraft(context, draft),
+        draft,
+        interpretation.choice,
+      );
     }
-    return this.search(context, merge(context, draft, interpretation), []);
+    if (blocked) return BLOCKED;
+    const base = draft && continues(draft) ? draft : null;
+    return this.search(
+      base ? withDraft(context, base) : context,
+      merge(context, base, interpretation),
+      [],
+    );
+  }
+
+  // CA-18.2: the client's upcoming appointments are found and, when there is
+  // more than one, listed for the client to pick one.
+  private async locate(
+    context: Context,
+    action: 'cancel' | 'reschedule',
+    preferences: Criteria,
+    blocked: boolean,
+  ): Promise<BookingOutcome> {
+    const { barbershop, client } = context;
+    const upcoming = await this.upcoming(context);
+    if (upcoming.length === 0) {
+      await this.conversations.clearDraft(barbershop.id, client.id);
+      return this.reply([NO_UPCOMING_APPOINTMENT_TEXT]);
+    }
+    // RN-12: rescheduling books, so a blocked client goes to the team.
+    if (action === 'reschedule' && blocked) return BLOCKED;
+    if (upcoming.length === 1) {
+      return this.act(context, action, upcoming[0], preferences);
+    }
+    await this.conversations.saveDraft(barbershop.id, client.id, {
+      id: this.ids.next(),
+      action,
+      candidates: upcoming.map((entry) => ({
+        appointmentId: entry.id,
+        barberId: entry.barber.id,
+        startsAt: entry.startsAt,
+      })),
+      targetAppointmentId: null,
+      ...preferences,
+      serviceIds: [],
+      offer: [],
+      updatedAt: context.now,
+    });
+    return this.reply([appointmentListText(context.timezone, upcoming)]);
+  }
+
+  private async pick(
+    context: Context,
+    draft: BookingDraft,
+    listedEntries: ScheduleEntry[],
+    choice: number,
+    blocked: boolean,
+  ): Promise<BookingOutcome> {
+    const candidate = draft.candidates[choice - 1];
+    if (!candidate) {
+      return this.reply([
+        UNKNOWN_OPTION_NOTICE,
+        appointmentListText(context.timezone, listedEntries),
+      ]);
+    }
+    const action = draft.action === 'reschedule' ? 'reschedule' : 'cancel';
+    if (action === 'reschedule' && blocked) return BLOCKED;
+    const entry = (await this.upcoming(context)).find(
+      (upcoming) => upcoming.id === candidate.appointmentId,
+    );
+    // The appointment changed since it was listed: start over.
+    if (!entry) {
+      return this.locate(context, action, criteriaOf(draft), blocked);
+    }
+    return this.act(context, action, entry, criteriaOf(draft));
+  }
+
+  // RN-09: within the deadline the bot cancels or reschedules; after it, the
+  // team decides (CA-18.4).
+  private async act(
+    context: Context,
+    action: 'cancel' | 'reschedule',
+    entry: ScheduleEntry,
+    preferences: Criteria,
+  ): Promise<BookingOutcome> {
+    const { cancellationDeadlineMinutes } = await this.rules(
+      context.barbershop.id,
+    );
+    const deadline =
+      entry.startsAt.getTime() - cancellationDeadlineMinutes * MS_PER_MINUTE;
+    if (context.now.getTime() > deadline) {
+      return {
+        type: 'handoff',
+        reason: 'late_cancellation',
+        notice: cancellationDeadlineText(cancellationDeadlineMinutes),
+      };
+    }
+    if (action === 'cancel') return this.cancel(context, entry);
+
+    const named = preferences.anyBarber || preferences.barberId !== null;
+    return this.search(
+      { ...context, action: 'reschedule', targetAppointmentId: entry.id },
+      {
+        ...preferences,
+        serviceIds: entry.services.map((service) => service.id),
+        barberId: named ? preferences.barberId : entry.barber.id,
+      },
+      [],
+    );
+  }
+
+  // CA-18.1: two concurrent cancellations end in the same state.
+  private async cancel(
+    context: Context,
+    entry: ScheduleEntry,
+  ): Promise<BookingOutcome> {
+    const { barbershop, client } = context;
+    await this.release(barbershop.id, entry.id);
+    await this.conversations.clearDraft(barbershop.id, client.id);
+    return {
+      type: 'reply',
+      kind: 'cancelled',
+      appointmentId: entry.id,
+      text: cancelledText(context.timezone, entry),
+    };
+  }
+
+  // CA-18.5: leaving the confirmed status is what frees the slot (door 4).
+  private async release(
+    barbershopId: string,
+    appointmentId: string,
+  ): Promise<void> {
+    const stored = await this.appointments.findById(
+      barbershopId,
+      appointmentId,
+    );
+    if (stored?.status !== 'confirmed') return;
+    await this.appointments.saveStatus(stored.cancel());
+    this.metrics.cancelled('bot');
+  }
+
+  private async upcoming(context: Context): Promise<ScheduleEntry[]> {
+    const entries = await this.schedule.listForClient(
+      context.barbershop.id,
+      context.client.id,
+      null,
+    );
+    return entries
+      .filter(
+        (entry) => entry.status === 'confirmed' && entry.startsAt > context.now,
+      )
+      .slice(0, MAX_CHOICE);
   }
 
   private async choose(
@@ -209,9 +428,14 @@ export class BookViaWhatsAppUseCase {
         origin: 'bot',
         client: { client: context.client, isNew: false },
       });
+      // CA-18.3: the old appointment is released only once the new one exists.
+      const rescheduled = draft.targetAppointmentId !== null;
+      if (draft.targetAppointmentId !== null) {
+        await this.release(context.barbershop.id, draft.targetAppointmentId);
+      }
       return {
         type: 'reply',
-        kind: 'booked',
+        kind: rescheduled ? 'rescheduled' : 'booked',
         appointmentId: appointment.id,
         text: bookedText({
           timezone: context.timezone,
@@ -219,6 +443,7 @@ export class BookViaWhatsAppUseCase {
           barberName: labeled(context.barbers, slot).barberName,
           startsAt: slot.startsAt,
           address: context.barbershop.address,
+          ...(rescheduled && { heading: 'Agendamento remarcado!' }),
         }),
       };
     } catch (error) {
@@ -490,7 +715,15 @@ export class BookViaWhatsAppUseCase {
     return this.conversations.saveDraft(
       context.barbershop.id,
       context.client.id,
-      { id: this.ids.next(), ...criteria, offer, updatedAt: context.now },
+      {
+        id: this.ids.next(),
+        action: context.action,
+        candidates: [],
+        targetAppointmentId: context.targetAppointmentId,
+        ...criteria,
+        offer,
+        updatedAt: context.now,
+      },
     );
   }
 
@@ -504,6 +737,31 @@ function inForce(draft: BookingDraft, now: Date): boolean {
     now.getTime() - draft.updatedAt.getTime() <
     DRAFT_TTL_MINUTES * MS_PER_MINUTE
   );
+}
+
+// A booking, or a rescheduling whose appointment is known, takes the next
+// message's criteria; a list of appointments does not.
+function continues(draft: BookingDraft): boolean {
+  if (draft.action === 'book') return true;
+  return draft.action === 'reschedule' && draft.targetAppointmentId !== null;
+}
+
+function withDraft(context: Context, draft: BookingDraft): Context {
+  return {
+    ...context,
+    action: draft.action,
+    targetAppointmentId: draft.targetAppointmentId,
+  };
+}
+
+function listed(
+  candidates: readonly AppointmentCandidate[],
+  entries: readonly ScheduleEntry[],
+): ScheduleEntry[] {
+  return candidates.flatMap((candidate) => {
+    const entry = entries.find((item) => item.id === candidate.appointmentId);
+    return entry ? [entry] : [];
+  });
 }
 
 function criteriaOf(draft: BookingDraft): Criteria {

@@ -32,4 +32,15 @@ describe('PrometheusAppointmentMetrics', () => {
     ]);
     expect(await valuesOf(registry, 'appointments_booked_total')).toEqual([]);
   });
+
+  it('AC 9: cancelled(origin) increments appointments_cancelled_total with the origin label', async () => {
+    const registry = new Registry();
+    const metrics = new PrometheusAppointmentMetrics(registry);
+
+    metrics.cancelled('bot');
+
+    expect(await valuesOf(registry, 'appointments_cancelled_total')).toEqual([
+      { labels: { origin: 'bot' }, value: 1 },
+    ]);
+  });
 });

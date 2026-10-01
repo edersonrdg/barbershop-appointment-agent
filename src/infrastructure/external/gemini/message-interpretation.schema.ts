@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import {
   BOOKING_PERIODS,
-  MAX_OFFERED_SLOTS,
+  MAX_CHOICE,
   MESSAGE_TOPICS,
 } from '../../../usecases/ports/message-interpreter.port';
 
@@ -71,8 +71,15 @@ export const messageInterpretationSchema = z.object({
         'Hora exata pedida no formato HH:MM (24 horas); null quando não disse.',
       format: 'time',
     }),
-  choice: z.int().min(1).max(MAX_OFFERED_SLOTS).nullable().meta({
+  cancelRequested: z.boolean().meta({
+    description: 'true quando o cliente quer cancelar um agendamento.',
+  }),
+  rescheduleRequested: z.boolean().meta({
     description:
-      'Número da opção de horário oferecida que o cliente escolheu; null quando não escolheu.',
+      'true quando o cliente quer remarcar (trocar o dia ou o horário de) um agendamento.',
+  }),
+  choice: z.int().min(1).max(MAX_CHOICE).nullable().meta({
+    description:
+      'Número da opção listada (horário oferecido ou agendamento do cliente) que o cliente escolheu; null quando não escolheu.',
   }),
 });

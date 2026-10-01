@@ -23,19 +23,17 @@ import { truncateAccountTables } from './support/truncate-account-tables';
 // Tuesday, 29/09, 12:00 in America/Sao_Paulo.
 const NOW = new Date('2026-09-29T15:00:00.000Z');
 const NOW_SECONDS = 1790694000;
+const TODAY = '2026-09-29';
 const TOMORROW = '2026-09-30';
 const PHONE = '+5511987654321';
 const JID = '5511987654321@s.whatsapp.net';
 const HANDOFF = 'Vou chamar alguém da equipe para te ajudar.';
-const OFFER =
-  'Horários para Corte (R$ 45,00, 30 min):\n1. quarta-feira, 30/09, às 12:00, com João\n2. quarta-feira, 30/09, às 12:30, com João\n3. quarta-feira, 30/09, às 13:00, com João\nResponda com o número do horário que você quer.';
-const REQUEST: Partial<MessageInterpretation> = {
-  bookingRequested: true,
-  services: ['Corte'],
-  barber: 'João',
-  date: TOMORROW,
-  period: 'afternoon',
-};
+const CANCEL: Partial<MessageInterpretation> = { cancelRequested: true };
+const LIST =
+  'Você tem mais de um agendamento. Qual deles?\n1. Corte, terça-feira, 29/09, às 15:00, com João\n2. Corte, quarta-feira, 30/09, às 10:00, com João\nResponda com o número do agendamento.';
+
+const at = (date: string, time: string): Date =>
+  new Date(`${date}T${time}:00-03:00`);
 
 function interpretation(
   partial: Partial<MessageInterpretation> = {},
@@ -61,13 +59,12 @@ function interpretation(
 
 interface AppointmentRow {
   id: string;
-  client_id: string | null;
   origin: string;
   status: string;
   starts_at: Date;
 }
 
-describe('WhatsApp booking (e2e)', () => {
+describe('WhatsApp reschedule and cancel (e2e)', () => {
   let app: INestApplication<App>;
   let dataSource: DataSource;
   let connector: FakeWhatsAppConnector;
@@ -88,7 +85,6 @@ describe('WhatsApp booking (e2e)', () => {
     return row.barbershop_id;
   }
 
-  // Monday to Saturday, 09:00-19:00, for the barbershop and the barber.
   async function openWeek(barbershopId: string): Promise<void> {
     for (let weekday = 1; weekday <= 6; weekday += 1) {
       await dataSource.query(
@@ -121,18 +117,18 @@ describe('WhatsApp booking (e2e)', () => {
     return id;
   }
 
-  async function insertNoShow(day: string): Promise<void> {
+  async function insertAppointment(startsAt: Date): Promise<string> {
     const id = randomUUID();
     await dataSource.query(
       `INSERT INTO appointments (id, barbershop_id, barber_id, client_id, starts_at, ends_at, status, origin, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, 'no_show', 'manual', now())`,
+       VALUES ($1, $2, $3, $4, $5, $6, 'confirmed', 'manual', now())`,
       [
         id,
         shop,
         joao,
         client,
-        new Date(`${day}T10:00:00-03:00`),
-        new Date(`${day}T10:30:00-03:00`),
+        startsAt,
+        new Date(startsAt.getTime() + 30 * 60 * 1000),
       ],
     );
     await dataSource.query(
@@ -140,14 +136,23 @@ describe('WhatsApp booking (e2e)', () => {
        VALUES ($1, 0, $2, $3)`,
       [id, corte, shop],
     );
+    return id;
   }
 
-  async function botAppointments(): Promise<AppointmentRow[]> {
+  async function appointments(): Promise<AppointmentRow[]> {
     return dataSource.query<AppointmentRow[]>(
-      `SELECT id, client_id, origin, status, starts_at FROM appointments
-        WHERE barbershop_id = $1 AND status = 'confirmed'`,
+      `SELECT id, origin, status, starts_at FROM appointments
+        WHERE barbershop_id = $1 ORDER BY starts_at`,
       [shop],
     );
+  }
+
+  async function statusOf(id: string): Promise<string> {
+    const [row] = await dataSource.query<{ status: string }[]>(
+      'SELECT status FROM appointments WHERE id = $1',
+      [id],
+    );
+    return row.status;
   }
 
   function webhook(text: string, id = randomUUID()) {
@@ -178,6 +183,15 @@ describe('WhatsApp booking (e2e)', () => {
 
   function texts(): string[] {
     return connector.sentTexts.map((sent) => sent.text);
+  }
+
+  async function metricLines(name: string): Promise<string[]> {
+    const response = await request(app.getHttpServer())
+      .get('/metrics')
+      .expect(200);
+    return response.text
+      .split('\n')
+      .filter((line) => line.startsWith(`${name}{`));
   }
 
   async function metricValue(line: string): Promise<number> {
@@ -214,7 +228,6 @@ describe('WhatsApp booking (e2e)', () => {
   });
 
   beforeEach(async () => {
-    jest.restoreAllMocks();
     connector.reset();
     interpreter.inputs.length = 0;
     await truncateAccountTables(dataSource);
@@ -250,114 +263,141 @@ describe('WhatsApp booking (e2e)', () => {
     await app.close();
   });
 
-  it('CA-17.1, CA-17.2 (C40): books through the webhook and the day schedule shows the bot origin', async () => {
-    await send(REQUEST, 'tem horário amanhã à tarde com o João para corte?');
-    expect(texts()).toEqual([OFFER]);
+  describe('US-18', () => {
+    it('CA-18.1, CA-18.2 (C34): cancels the chosen appointment and the panel shows it cancelled', async () => {
+      const first = await insertAppointment(at(TODAY, '15:00'));
+      const second = await insertAppointment(at(TOMORROW, '10:00'));
 
-    await send({ choice: 1 }, 'o primeiro');
+      await send(CANCEL, 'quero cancelar');
+      expect(texts()).toEqual([LIST]);
+      await send({ choice: 2 }, 'o de amanhã');
 
-    expect(texts()[1]).toBe(
-      'Agendamento confirmado!\nServiço: Corte\nBarbeiro: João\nData: quarta-feira, 30/09\nHorário: 12:00\nValor: R$ 45,00\nEndereço: Rua das Flores, 123',
-    );
-    const rows = await botAppointments();
-    expect(rows).toHaveLength(1);
-    expect(rows[0]).toMatchObject({
-      client_id: client,
-      origin: 'bot',
-      status: 'confirmed',
-      starts_at: new Date('2026-09-30T15:00:00.000Z'),
+      expect(texts()[1]).toBe(
+        'Agendamento cancelado.\nServiço: Corte\nBarbeiro: João\nData: quarta-feira, 30/09\nHorário: 10:00',
+      );
+      expect(await statusOf(second)).toBe('cancelled');
+      expect(await statusOf(first)).toBe('confirmed');
+
+      const schedule = await request(app.getHttpServer())
+        .get('/appointments')
+        .query({ view: 'day', date: TOMORROW })
+        .set('Authorization', `Bearer ${owner}`)
+        .expect(200);
+      expect(
+        (schedule.body as { appointments: { id: string; status: string }[] })
+          .appointments,
+      ).toEqual([expect.objectContaining({ id: second, status: 'cancelled' })]);
+      const profile = await request(app.getHttpServer())
+        .get(`/clients/${client}`)
+        .set('Authorization', `Bearer ${owner}`)
+        .expect(200);
+      expect(
+        (
+          profile.body as {
+            upcomingAppointments: { id: string; status: string }[];
+          }
+        ).upcomingAppointments,
+      ).toContainEqual(
+        expect.objectContaining({ id: second, status: 'cancelled' }),
+      );
     });
-    const schedule = await request(app.getHttpServer())
-      .get('/appointments')
-      .query({ view: 'day', date: TOMORROW })
-      .set('Authorization', `Bearer ${owner}`)
-      .expect(200);
-    const body = schedule.body as {
-      appointments: { id: string; origin: string }[];
-    };
-    expect(body.appointments).toEqual([
-      expect.objectContaining({ id: rows[0].id, origin: 'bot' }),
-    ]);
-  });
 
-  it('AC 21 (C21): two choices from the same offer at once book once', async () => {
-    await send(REQUEST);
-    connector.reset();
-    jest
-      .spyOn(interpreter, 'interpret')
-      .mockImplementation((input) =>
-        Promise.resolve(
-          interpretation({ choice: input.text === 'o primeiro' ? 1 : 2 }),
+    it('CA-18.3, CA-18.5 (C35): reschedules to the chosen slot and cancels the old appointment', async () => {
+      const old = await insertAppointment(at(TOMORROW, '17:00'));
+
+      await send(
+        { rescheduleRequested: true, date: TOMORROW, period: 'morning' },
+        'quero remarcar pra amanhã de manhã',
+      );
+      expect(texts()).toEqual([
+        'Horários para Corte (R$ 45,00, 30 min):\n1. quarta-feira, 30/09, às 09:00, com João\n2. quarta-feira, 30/09, às 09:30, com João\n3. quarta-feira, 30/09, às 10:00, com João\nResponda com o número do horário que você quer.',
+      ]);
+      const rescheduledBefore = await metricValue(
+        'whatsapp_replies_total{kind="rescheduled"}',
+      );
+
+      await send({ choice: 1 }, 'o primeiro');
+
+      expect(texts()[1]).toBe(
+        'Agendamento remarcado!\nServiço: Corte\nBarbeiro: João\nData: quarta-feira, 30/09\nHorário: 09:00\nValor: R$ 45,00\nEndereço: Rua das Flores, 123',
+      );
+      const rows = await appointments();
+      expect(rows).toEqual([
+        expect.objectContaining({
+          origin: 'bot',
+          status: 'confirmed',
+          starts_at: at(TOMORROW, '09:00'),
+        }),
+        expect.objectContaining({ id: old, status: 'cancelled' }),
+      ]);
+      expect(
+        await metricValue('whatsapp_replies_total{kind="rescheduled"}'),
+      ).toBe(rescheduledBefore + 1);
+    });
+
+    it('AC 9 (C11): counts the cancellation without client or barbershop labels', async () => {
+      await insertAppointment(at(TODAY, '15:00'));
+      const cancelledBefore = await metricValue(
+        'appointments_cancelled_total{origin="bot"}',
+      );
+      const repliesBefore = await metricValue(
+        'whatsapp_replies_total{kind="cancelled"}',
+      );
+
+      await send(CANCEL);
+
+      expect(
+        await metricValue('appointments_cancelled_total{origin="bot"}'),
+      ).toBe(cancelledBefore + 1);
+      expect(
+        await metricValue('whatsapp_replies_total{kind="cancelled"}'),
+      ).toBe(repliesBefore + 1);
+      for (const line of [
+        ...(await metricLines('appointments_cancelled_total')),
+        ...(await metricLines('whatsapp_replies_total')),
+      ]) {
+        expect(line).toMatch(/^\w+\{(origin|kind)="[a-z_]+"\} \d+$/);
+      }
+    });
+
+    it('AC 10 (C12): a cancellation that cannot be confirmed stays cancelled', async () => {
+      const appointment = await insertAppointment(at(TODAY, '15:00'));
+      connector.failing.add('sendText');
+
+      await send(CANCEL);
+
+      expect(await statusOf(appointment)).toBe('cancelled');
+    });
+
+    it('CA-18.4 (C22): a cancellation past the deadline is handed to the team as late_cancellation', async () => {
+      const appointment = await insertAppointment(at(TODAY, '13:00'));
+      const before = await metricValue(
+        'whatsapp_handoffs_total{reason="late_cancellation"}',
+      );
+
+      await send(CANCEL);
+
+      expect(texts()).toEqual([
+        `Só cancelamos ou remarcamos pelo WhatsApp com pelo menos 2h de antecedência.\n\n${HANDOFF}`,
+      ]);
+      expect(await statusOf(appointment)).toBe('confirmed');
+      const waiting = await request(app.getHttpServer())
+        .get('/whatsapp/conversations/waiting-human')
+        .set('Authorization', `Bearer ${owner}`)
+        .expect(200);
+      expect(waiting.body).toEqual({
+        conversations: [
+          expect.objectContaining({
+            clientId: client,
+            reason: 'late_cancellation',
+          }),
+        ],
+      });
+      expect(
+        await metricValue(
+          'whatsapp_handoffs_total{reason="late_cancellation"}',
         ),
-      );
-
-    await Promise.all([
-      webhook('o primeiro').expect(204),
-      webhook('o segundo').expect(204),
-    ]);
-
-    expect(await botAppointments()).toHaveLength(1);
-    expect(
-      texts().filter((text) => text.startsWith('Agendamento confirmado!')),
-    ).toHaveLength(1);
-  });
-
-  it('AC 22 (C22): a summary that cannot be sent keeps the appointment', async () => {
-    await send(REQUEST);
-    connector.failing.add('sendText');
-
-    await send({ choice: 2 });
-
-    const rows = await botAppointments();
-    expect(rows).toHaveLength(1);
-    expect(rows[0].starts_at).toEqual(new Date('2026-09-30T15:30:00.000Z'));
-  });
-
-  it('CA-17.6 (C32): a client blocked by no-shows is handed to the team and listed as blocked_client', async () => {
-    await insertNoShow('2026-09-01');
-    await insertNoShow('2026-09-02');
-
-    await send({ bookingRequested: true, services: ['Corte'] });
-
-    expect(texts()).toEqual([HANDOFF]);
-    expect(await botAppointments()).toEqual([]);
-    const waiting = await request(app.getHttpServer())
-      .get('/whatsapp/conversations/waiting-human')
-      .set('Authorization', `Bearer ${owner}`)
-      .expect(200);
-    expect(waiting.body).toEqual({
-      conversations: [
-        expect.objectContaining({ clientId: client, reason: 'blocked_client' }),
-      ],
+      ).toBe(before + 1);
     });
-  });
-
-  it('AC 39 (C34): counts the offer, the summary and the bot booking', async () => {
-    const booking = 'whatsapp_replies_total{kind="booking"}';
-    const booked = 'whatsapp_replies_total{kind="booked"}';
-    const bot = 'appointments_booked_total{origin="bot"}';
-    const before = {
-      booking: await metricValue(booking),
-      booked: await metricValue(booked),
-      bot: await metricValue(bot),
-    };
-
-    await send(REQUEST);
-    await send({ choice: 1 });
-
-    expect(await metricValue(booking)).toBe(before.booking + 1);
-    expect(await metricValue(booked)).toBe(before.booked + 1);
-    expect(await metricValue(bot)).toBe(before.bot + 1);
-    const metrics = await request(app.getHttpServer()).get('/metrics');
-    const lines = metrics.text
-      .split('\n')
-      .filter(
-        (line) =>
-          line.startsWith('whatsapp_replies_total{') ||
-          line.startsWith('appointments_booked_total{'),
-      );
-    for (const line of lines) {
-      expect(line).toMatch(/^\w+\{(kind|origin)="[a-z_]+"\} \d+$/);
-    }
   });
 });

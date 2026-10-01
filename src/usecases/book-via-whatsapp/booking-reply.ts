@@ -6,6 +6,7 @@ import {
   formatPrice,
 } from '../answer-client-question/client-question-reply';
 import { BookingPeriod } from '../ports/message-interpreter.port';
+import { ScheduleEntry } from '../ports/schedule.query.port';
 
 export interface LabeledSlot {
   barberName: string;
@@ -21,6 +22,8 @@ const PERIOD_LABELS: Record<BookingPeriod, string> = {
 export const UNKNOWN_OPTION_NOTICE = 'Não encontrei essa opção.';
 export const SLOT_TAKEN_NOTICE = 'Esse horário acabou de ser ocupado.';
 export const PAST_DATE_NOTICE = 'Essa data já passou.';
+export const NO_UPCOMING_APPOINTMENT_TEXT =
+  'Você não tem nenhum agendamento futuro.';
 
 /** `quarta-feira, 30/09` for a local date `YYYY-MM-DD`. */
 export function dateLabel(timezone: BarbershopTimezone, date: string): string {
@@ -70,17 +73,19 @@ export function bookedText({
   barberName,
   startsAt,
   address,
+  heading = 'Agendamento confirmado!',
 }: {
   timezone: BarbershopTimezone;
   services: readonly BarbershopService[];
   barberName: string;
   startsAt: Date;
   address: string | null;
+  heading?: string;
 }): string {
   const price = services.reduce((sum, service) => sum + service.priceCents, 0);
   const serviceLabel = services.length > 1 ? 'Serviços' : 'Serviço';
   return [
-    'Agendamento confirmado!',
+    heading,
     `${serviceLabel}: ${serviceNames(services, ', ')}`,
     `Barbeiro: ${barberName}`,
     `Data: ${dateLabel(timezone, timezone.localDateOf(startsAt))}`,
@@ -145,4 +150,44 @@ export function nothingFreeText(
   lastDate: string,
 ): string {
   return `Não encontrei horário livre para ${serviceNames(services, ' + ')} até ${dateLabel(timezone, lastDate)}.`;
+}
+
+/** The appointment as the client reads it in the list, without its number. */
+export function appointmentLabel(
+  timezone: BarbershopTimezone,
+  entry: ScheduleEntry,
+): string {
+  const services = entry.services.map((service) => service.name).join(' + ');
+  return `${services}, ${optionLabel(timezone, { barberName: entry.barber.name, startsAt: entry.startsAt })}`;
+}
+
+export function appointmentListText(
+  timezone: BarbershopTimezone,
+  entries: readonly ScheduleEntry[],
+): string {
+  return [
+    'Você tem mais de um agendamento. Qual deles?',
+    ...entries.map(
+      (entry, index) => `${index + 1}. ${appointmentLabel(timezone, entry)}`,
+    ),
+    'Responda com o número do agendamento.',
+  ].join('\n');
+}
+
+export function cancelledText(
+  timezone: BarbershopTimezone,
+  entry: ScheduleEntry,
+): string {
+  const serviceLabel = entry.services.length > 1 ? 'Serviços' : 'Serviço';
+  return [
+    'Agendamento cancelado.',
+    `${serviceLabel}: ${entry.services.map((service) => service.name).join(', ')}`,
+    `Barbeiro: ${entry.barber.name}`,
+    `Data: ${dateLabel(timezone, timezone.localDateOf(entry.startsAt))}`,
+    `Horário: ${timezone.localTimeOf(entry.startsAt)}`,
+  ].join('\n');
+}
+
+export function cancellationDeadlineText(minutes: number): string {
+  return `Só cancelamos ou remarcamos pelo WhatsApp com pelo menos ${formatDuration(minutes)} de antecedência.`;
 }

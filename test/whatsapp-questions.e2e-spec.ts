@@ -45,6 +45,8 @@ function interpretation(
     date: null,
     period: null,
     time: null,
+    cancelRequested: false,
+    rescheduleRequested: false,
     choice: null,
     ...partial,
   };
@@ -226,6 +228,7 @@ describe('WhatsApp questions (e2e)', () => {
           today: { date: '2026-09-29', weekday: 'terça-feira' },
           barberNames: [],
           offeredOptions: [],
+          appointmentOptions: [],
         },
       ]);
     });

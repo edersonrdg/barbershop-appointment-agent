@@ -156,6 +156,7 @@ function copyDraft(draft: BookingDraft): BookingDraft {
   return {
     ...draft,
     serviceIds: [...draft.serviceIds],
+    candidates: draft.candidates.map((candidate) => ({ ...candidate })),
     offer: draft.offer.map((slot) => ({ ...slot })),
   };
 }

@@ -6,8 +6,10 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import { AppointmentCancelledError } from '../../domain/errors/appointment-cancelled.error';
 import { AppointmentConflictError } from '../../domain/errors/appointment-conflict.error';
 import { AppointmentNotFoundError } from '../../domain/errors/appointment-not-found.error';
+import { AppointmentNotConfirmedError } from '../../domain/errors/appointment-not-confirmed.error';
 import { AppointmentNotStartedError } from '../../domain/errors/appointment-not-started.error';
 import { BarberBlockNotFoundError } from '../../domain/errors/barber-block-not-found.error';
 import { BarberNameAlreadyExistsError } from '../../domain/errors/barber-name-already-exists.error';
@@ -64,6 +66,8 @@ const STATUS_BY_ERROR = new Map<unknown, HttpStatus>([
   [ServiceNotPerformedError, HttpStatus.BAD_REQUEST],
   [AppointmentNotFoundError, HttpStatus.NOT_FOUND],
   [AppointmentNotStartedError, HttpStatus.UNPROCESSABLE_ENTITY],
+  [AppointmentCancelledError, HttpStatus.CONFLICT],
+  [AppointmentNotConfirmedError, HttpStatus.CONFLICT],
   [ClientNotFoundError, HttpStatus.NOT_FOUND],
   [WhatsAppAlreadyConnectedError, HttpStatus.CONFLICT],
   [WhatsAppConnectorUnavailableError, HttpStatus.BAD_GATEWAY],

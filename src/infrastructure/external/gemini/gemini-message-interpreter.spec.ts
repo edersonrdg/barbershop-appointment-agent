@@ -22,6 +22,10 @@ const INPUT = {
     'quarta-feira, 30/09, às 12:00, com João',
     'quarta-feira, 30/09, às 12:30, com Pedro',
   ],
+  appointmentOptions: [
+    'Corte, terça-feira, 29/09, às 15:00, com João',
+    'Barba, quarta-feira, 30/09, às 10:00, com João',
+  ],
 };
 const VALID = {
   topics: ['services'],
@@ -35,6 +39,8 @@ const VALID = {
   date: null,
   period: null,
   time: null,
+  cancelRequested: false,
+  rescheduleRequested: false,
   choice: null,
 };
 
@@ -312,7 +318,7 @@ describe('GeminiMessageInterpreter', () => {
       ['an hour past 23', { time: '25:00' }],
       ['a period outside the enum', { period: 'night' }],
       ['choice 0', { choice: 0 }],
-      ['choice 4', { choice: 4 }],
+      ['choice 11', { choice: 11 }],
       ['a fractional choice', { choice: 1.5 }],
       ['no bookingRequested', { bookingRequested: undefined }],
     ])('door 1 (C37): rejects %s', async (_case, override) => {
@@ -356,6 +362,50 @@ describe('GeminiMessageInterpreter', () => {
       ]) {
         expect(instruction).toContain(expected);
       }
+    });
+  });
+
+  describe('US-18 cancel and reschedule fields (doors 1 and 5)', () => {
+    const CANCEL = { ...VALID, cancelRequested: true, choice: 10 };
+
+    it('door 1 (C1): passes cancelRequested, rescheduleRequested and a choice of 10 through', async () => {
+      const { interpreter, models } = setup();
+      models.result = withText(JSON.stringify(CANCEL));
+
+      await expect(interpreter.interpret(INPUT)).resolves.toEqual(CANCEL);
+    });
+
+    it.each<[string, Record<string, unknown>]>([
+      ['choice 11', { choice: 11 }],
+      ['no cancelRequested', { cancelRequested: undefined }],
+      ['no rescheduleRequested', { rescheduleRequested: undefined }],
+    ])('door 1 (C1): rejects %s', async (_case, override) => {
+      const { interpreter, models } = setup();
+      models.result = withText(JSON.stringify({ ...CANCEL, ...override }));
+
+      await expect(interpreter.interpret(INPUT)).rejects.toBeInstanceOf(
+        MessageInterpreterUnavailableError,
+      );
+    });
+
+    it('door 1 (C1): requires both fields and lists the appointments in the instruction', async () => {
+      const { interpreter, models } = setup();
+
+      await interpreter.interpret(INPUT);
+
+      const schema = models.calls[0].config?.responseJsonSchema as {
+        required: string[];
+      };
+      expect(schema.required).toEqual(
+        expect.arrayContaining(['cancelRequested', 'rescheduleRequested']),
+      );
+      const instruction = models.calls[0].config?.systemInstruction as string;
+      expect(instruction).toContain(
+        '1. Corte, terça-feira, 29/09, às 15:00, com João',
+      );
+      expect(instruction).toContain(
+        '2. Barba, quarta-feira, 30/09, às 10:00, com João',
+      );
     });
   });
 });

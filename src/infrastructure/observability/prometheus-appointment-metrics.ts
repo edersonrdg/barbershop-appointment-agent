@@ -5,6 +5,7 @@ import { AppointmentMetrics } from '../../usecases/ports/appointment-metrics.por
 export class PrometheusAppointmentMetrics implements AppointmentMetrics {
   private readonly bookedTotal: Counter<'origin'>;
   private readonly conflictsTotal: Counter<'origin'>;
+  private readonly cancelledTotal: Counter<'origin'>;
 
   constructor(registry: Registry) {
     this.bookedTotal = new Counter({
@@ -19,6 +20,12 @@ export class PrometheusAppointmentMetrics implements AppointmentMetrics {
       labelNames: ['origin'],
       registers: [registry],
     });
+    this.cancelledTotal = new Counter({
+      name: 'appointments_cancelled_total',
+      help: 'Total de agendamentos cancelados, por origem do pedido',
+      labelNames: ['origin'],
+      registers: [registry],
+    });
   }
 
   booked(origin: AppointmentOrigin): void {
@@ -27,5 +34,9 @@ export class PrometheusAppointmentMetrics implements AppointmentMetrics {
 
   conflict(origin: AppointmentOrigin): void {
     this.conflictsTotal.inc({ origin });
+  }
+
+  cancelled(origin: AppointmentOrigin): void {
+    this.cancelledTotal.inc({ origin });
   }
 }

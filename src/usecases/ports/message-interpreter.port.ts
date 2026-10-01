@@ -11,6 +11,12 @@ export type BookingPeriod = (typeof BOOKING_PERIODS)[number];
 /** CA-17.1: the bot offers up to this many slots at a time. */
 export const MAX_OFFERED_SLOTS = 3;
 
+/**
+ * Highest option number the client can choose: up to 3 offered slots or, in
+ * US-18, up to this many of their appointments (door 5).
+ */
+export const MAX_CHOICE = 10;
+
 export interface MessageInterpretation {
   topics: MessageTopic[];
   /** Catalog names the client asked about, or wants to book (US-17). */
@@ -31,7 +37,11 @@ export interface MessageInterpretation {
   period: BookingPeriod | null;
   /** Local time, `HH:MM`. */
   time: string | null;
-  /** Number of the offered option the client chose, 1 to 3. */
+  /** US-18: the client wants to cancel an appointment (RF-04). */
+  cancelRequested: boolean;
+  /** US-18: the client wants to move an appointment to another slot (RF-04). */
+  rescheduleRequested: boolean;
+  /** Number of the listed option the client chose, 1 to `MAX_CHOICE`. */
   choice: number | null;
 }
 
@@ -45,11 +55,17 @@ export interface MessageInterpreterInput {
   barberNames: string[];
   /** The options in the offer in force, in order, without their numbers. */
   offeredOptions: string[];
+  /**
+   * US-18: the client's appointments listed for them to pick one, in order,
+   * without their numbers.
+   */
+  appointmentOptions: string[];
 }
 
 // US-15: the LLM only extracts what the client wants; the reply is written
 // from the barbershop's data (RF-09). US-17: it never picks a slot, it only
-// says which offered option was chosen. Every method rejects with
+// says which offered option was chosen. US-18: likewise it only says which
+// listed appointment was chosen. Every method rejects with
 // MessageInterpreterUnavailableError when the model fails.
 export interface MessageInterpreter {
   interpret(input: MessageInterpreterInput): Promise<MessageInterpretation>;

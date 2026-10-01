@@ -33,7 +33,7 @@ export interface AnswerClientQuestionInput {
 
 /**
  * `handoff` is set when the message paused the conversation (US-16), and
- * `appointmentId` when it booked (US-17).
+ * `appointmentId` when it booked (US-17), cancelled or rescheduled (US-18).
  */
 export type ClientReplyResult =
   | { outcome: 'none' }
@@ -47,6 +47,8 @@ export type ClientReplyResult =
       outcome: 'failed';
       error: unknown;
       handoff?: HandoffReason;
+      /** The reply that was not sent, given with `appointmentId`. */
+      kind?: ClientReplyKind;
       appointmentId?: string;
     };
 
@@ -63,7 +65,8 @@ const FAILURES_BEFORE_HANDOFF = 2;
 // with the barbershop's data only (RF-05, RF-08, RF-09). US-16: hands the
 // conversation to a human and stays silent while it is paused (RN-22, RN-23).
 // US-17: a booking request goes to the booking use case, after the request
-// for a person and the off-topic refusal and before the questions.
+// for a person and the off-topic refusal and before the questions. US-18: so
+// does a request to cancel or reschedule.
 export class AnswerClientQuestionUseCase {
   constructor(
     private readonly connections: WhatsAppConnectionRepository,
@@ -131,7 +134,10 @@ export class AnswerClientQuestionUseCase {
       }
       if (
         !interpretation.offTopic &&
-        (interpretation.bookingRequested || interpretation.choice !== null)
+        (interpretation.bookingRequested ||
+          interpretation.cancelRequested ||
+          interpretation.rescheduleRequested ||
+          interpretation.choice !== null)
       ) {
         const outcome = await this.booking.handle({
           barbershop,
@@ -142,14 +148,20 @@ export class AnswerClientQuestionUseCase {
           now,
         });
         if (outcome.type === 'handoff') {
-          return this.handOff(input, client.id, 'blocked_client', now);
+          return this.handOff(
+            input,
+            client.id,
+            outcome.reason,
+            now,
+            outcome.notice,
+          );
         }
         if (outcome.type === 'silent') return NO_REPLY;
         if (outcome.type === 'not_understood') {
           reply = fallbackReply(barbershop);
         } else {
           reply = { kind: outcome.kind, text: outcome.text };
-          if (outcome.kind === 'booked') appointmentId = outcome.appointmentId;
+          if (outcome.kind !== 'booking') appointmentId = outcome.appointmentId;
         }
       } else {
         reply = composeReply(barbershop, services, interpretation);
@@ -181,7 +193,7 @@ export class AnswerClientQuestionUseCase {
       return {
         outcome: 'failed',
         error,
-        ...(appointmentId && { appointmentId }),
+        ...(appointmentId && { appointmentId, kind: reply.kind }),
       };
     }
     this.metrics.reply(reply.kind);
@@ -194,12 +206,14 @@ export class AnswerClientQuestionUseCase {
 
   // The pause is stored before the notice goes out, so a failed send still
   // leaves the conversation with the team; of two concurrent hand-offs only the
-  // one that paused sends the notice (door 2).
+  // one that paused sends the notice (door 2). `preface` explains why, in the
+  // same message (US-18).
   private async handOff(
     input: AnswerClientQuestionInput,
     clientId: string,
     reason: HandoffReason,
     now: Date,
+    preface?: string,
   ): Promise<ClientReplyResult> {
     if (
       !(await this.conversations.pause(
@@ -216,7 +230,7 @@ export class AnswerClientQuestionUseCase {
       await this.connector.sendText(
         input.barbershopId,
         input.phone,
-        HANDOFF_REPLY,
+        preface ? `${preface}\n\n${HANDOFF_REPLY}` : HANDOFF_REPLY,
       );
     } catch (error) {
       return { outcome: 'failed', error, handoff: reason };

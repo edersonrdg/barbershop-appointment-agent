@@ -22,7 +22,7 @@ import { ClientEntity } from './client.entity';
 // migration. The barber FK is composite so the barber belongs to the same
 // barbershop (RN-26), and so is the client FK; a null client skips it.
 // Attended and no-show appointments keep holding the slot (RN-03, ATD-04); the
-// explicit status list leaves future statuses such as cancelled (US-18) out.
+// explicit status list leaves cancelled (US-18) out, which frees the slot.
 // The partial no-show index serves the derived no-show count (RN-11, RN-13).
 @Entity({ name: 'appointments' })
 @Index('appointments_barbershop_starts_idx', ['barbershopId', 'startsAt'])
@@ -47,7 +47,7 @@ import { ClientEntity } from './client.entity';
 @Check('appointments_ends_after_starts_check', '"ends_at" > "starts_at"')
 @Check(
   'appointments_status_check',
-  `"status" IN ('confirmed', 'attended', 'no_show')`,
+  `"status" IN ('confirmed', 'attended', 'no_show', 'cancelled')`,
 )
 @Check('appointments_origin_check', `"origin" IN ('bot', 'manual')`)
 @Exclusion(

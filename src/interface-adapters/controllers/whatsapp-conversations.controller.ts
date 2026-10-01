@@ -36,7 +36,7 @@ export class WhatsAppConversationsController {
   @ApiOperation({
     summary: 'Lista as conversas aguardando atendimento humano (US-16)',
     description:
-      'Conversas em que o bot está pausado porque o cliente pediu um atendente, porque o bot não o entendeu duas vezes seguidas ou porque um cliente bloqueado por faltas pediu para agendar (US-17). A equipe responde pelo app WhatsApp Business. Uma conversa sai da lista quando o Dono reativa o bot ou depois de `WHATSAPP_HANDOFF_RESUME_HOURS` horas (padrão 12) sem mensagens do cliente nem da equipe.',
+      'Conversas em que o bot está pausado porque o cliente pediu um atendente, porque o bot não o entendeu duas vezes seguidas porque um cliente bloqueado por faltas pediu para agendar ou remarcar (US-17, US-18) ou porque o cliente pediu para cancelar ou remarcar fora do prazo de cancelamento (US-18). A equipe responde pelo app WhatsApp Business. Uma conversa sai da lista quando o Dono reativa o bot ou depois de `WHATSAPP_HANDOFF_RESUME_HOURS` horas (padrão 12) sem mensagens do cliente nem da equipe.',
   })
   @ApiZodResponse({
     status: HttpStatus.OK,

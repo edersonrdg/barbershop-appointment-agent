@@ -17,6 +17,8 @@ const NO_TOPIC: MessageInterpretation = {
   date: null,
   period: null,
   time: null,
+  cancelRequested: false,
+  rescheduleRequested: false,
   choice: null,
 };
 

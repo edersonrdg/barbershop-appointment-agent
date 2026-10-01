@@ -145,4 +145,15 @@ describe('WhatsApp conversations schema (e2e)', () => {
       insertConversation({ paused_at: NOW, pause_reason: 'bored' }),
     ).rejects.toMatchObject({ driverError: { code: CHECK_VIOLATION } });
   });
+
+  describe('US-18', () => {
+    it('door 3 (C32): late_cancellation is a pause reason', async () => {
+      await expect(
+        insertConversation({
+          paused_at: NOW,
+          pause_reason: 'late_cancellation',
+        }),
+      ).resolves.toBeDefined();
+    });
+  });
 });

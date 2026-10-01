@@ -2,6 +2,7 @@ import {
   Appointment,
   AppointmentStatus,
 } from '../../domain/entities/appointment';
+import { AppointmentCancelledError } from '../../domain/errors/appointment-cancelled.error';
 import { AppointmentNotFoundError } from '../../domain/errors/appointment-not-found.error';
 import { AppointmentNotStartedError } from '../../domain/errors/appointment-not-started.error';
 import { ScheduleAccessDeniedError } from '../../domain/errors/schedule-access-denied.error';
@@ -424,5 +425,22 @@ describe('MarkAttendanceUseCase', () => {
     await expect(attempt).rejects.toThrow('Acesso negado.');
     expect(await statusOf('today')).toBe('confirmed');
     expect(await noShowsOfMaria()).toBe(0);
+  });
+
+  describe('US-18 cancelled appointments', () => {
+    it('AC 24 (C29): marking attendance on a cancelled appointment is refused and changes nothing', async () => {
+      const { seed, mark, statusOf } = await setup();
+      await seed({
+        id: 'cancelled',
+        startsAt: at('09:00'),
+        status: 'cancelled',
+      });
+
+      const attempt = mark({ appointmentId: 'cancelled', status: 'attended' });
+
+      await expect(attempt).rejects.toThrow(AppointmentCancelledError);
+      await expect(attempt).rejects.toThrow('Esse agendamento foi cancelado.');
+      expect(await statusOf('cancelled')).toBe('cancelled');
+    });
   });
 });

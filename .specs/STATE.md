@@ -106,5 +106,13 @@
 - **Date**: 2026-09-30
 - **Status**: active
 
+### AD-014
+- **Decision**: Cancelar um agendamento é a transição de status `confirmed` → `cancelled` (`Appointment.cancel`), que tira o agendamento de `SLOT_HOLDING_STATUSES` e da constraint de exclusão e assim libera o horário para o motor da US-07. O "evento horário liberado" (CA-18.5) é essa própria transição: nada é despachado; quem precisar dele (US-24) lê o estado na hora, como os jobs do AD-009.
+- **Reason**: US-18 (CA-18.1, CA-18.5, RF-04). Uma porta de notificação sem consumidor hoje seria estrutura além do mínimo do CLAUDE.md; o código nunca usou barramento de eventos.
+- **Trade-off**: A US-24 precisa descobrir os horários liberados lendo os agendamentos `cancelled`, sem gancho no momento do cancelamento. Um agendamento cancelado continua visível na agenda e no perfil do cliente.
+- **Scope**: Agendamentos, US-18 em diante (US-24).
+- **Date**: 2026-10-01
+- **Status**: active
+
 ## Handoff
 

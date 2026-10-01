@@ -7,7 +7,7 @@ import { ClientEntity } from './client.entity';
 @Entity({ name: 'whatsapp_conversations' })
 @Check(
   'whatsapp_conversations_pause_reason_check',
-  `"pause_reason" IN ('requested', 'not_understood', 'blocked_client')`,
+  `"pause_reason" IN ('requested', 'not_understood', 'blocked_client', 'late_cancellation')`,
 )
 @Check(
   'whatsapp_conversations_pause_check',
