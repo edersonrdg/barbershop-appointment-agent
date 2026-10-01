@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 17,
+  "next_id": 19,
   "lessons": [
     {
       "id": "L-001",
@@ -298,6 +298,42 @@
       ],
       "created": "2026-09-29T23:48:03Z",
       "last_seen": "2026-09-29T23:48:03Z"
+    },
+    {
+      "id": "L-017",
+      "key": "spec_precision_gap::in a table driven check write the exact expected output of every row including the boundary row where the rule does not fire",
+      "text": "In a table-driven check, write the exact expected output of every row, including the boundary row where the rule does not fire.",
+      "signal": "spec_precision_gap",
+      "scope": "spec",
+      "status": "candidate",
+      "features": [
+        "us-17-agendamento-pelo-whatsapp"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "C25 (src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts:371) (spec)"
+      ],
+      "created": "2026-10-01T00:46:26Z",
+      "last_seen": "2026-10-01T00:46:26Z"
+    },
+    {
+      "id": "L-018",
+      "key": "spec_precision_gap::when a check reuses the reply of another check assert the full reply text again not a substring of it",
+      "text": "When a check reuses the reply of another check, assert the full reply text again, not a substring of it.",
+      "signal": "spec_precision_gap",
+      "scope": "spec",
+      "status": "candidate",
+      "features": [
+        "us-17-agendamento-pelo-whatsapp"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "C9 (src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts:183) (spec)"
+      ],
+      "created": "2026-10-01T00:46:26Z",
+      "last_seen": "2026-10-01T00:46:26Z"
     }
   ]
 }

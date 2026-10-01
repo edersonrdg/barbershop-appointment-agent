@@ -108,6 +108,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: C26 - src/usecases/answer-client-question/answer-client-question.use-case.spec.ts:144-150 (usecase-controller-seam)
 - last seen: 2026-09-29T23:48:03Z
 
+### L-017 - In a table-driven check, write the exact expected output of every row, including the boundary row where the rule does not fire.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec` · harmful: 0
+- features: us-17-agendamento-pelo-whatsapp
+- evidence: C25 (src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts:371) (spec)
+- last seen: 2026-10-01T00:46:26Z
+
+### L-018 - When a check reuses the reply of another check, assert the full reply text again, not a substring of it.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec` · harmful: 0
+- features: us-17-agendamento-pelo-whatsapp
+- evidence: C9 (src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts:183) (spec)
+- last seen: 2026-10-01T00:46:26Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
