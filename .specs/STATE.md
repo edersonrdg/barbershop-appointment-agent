@@ -114,5 +114,13 @@
 - **Date**: 2026-10-01
 - **Status**: active
 
+### AD-015
+- **Decision**: Os lembretes de agendamento (US-19) rodam num `@Cron('* * * * *')` em toda instância, e cada envio é reivindicado antes com um `UPDATE ... WHERE <coluna> IS NULL AND status = 'confirmed'` sobre as colunas `reminder_24h_sent_at`/`reminder_1h_sent_at` de `appointments`; a falha no envio mantém a reivindicação (sem reenvio). Nos e2e, todo app montado com o `AppModule` para os crons logo depois do `app.init()` com `stopScheduledJobs(app)` (`test/support/stop-scheduled-jobs.ts`), e a suíte que testa um job chama o `run()` dele.
+- **Reason**: Com várias instâncias, a reivindicação no banco é o que garante um envio por lembrete, sem fila nem Redis. Um cron de minuto em minuto dispararia no relógio real no meio de qualquer suíte e agiria sobre os dados dela.
+- **Trade-off**: Um lembrete cujo envio falhou não é reenviado. Toda suíte e2e nova que monta o app precisa chamar o helper.
+- **Scope**: Jobs agendados e e2e, US-19 em diante (lembrete de retorno da US-25, oferta da lista de espera da US-24).
+- **Date**: 2026-10-01
+- **Status**: active
+
 ## Handoff
 

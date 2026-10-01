@@ -258,6 +258,8 @@ describe('CreateBarberBlockUseCase', () => {
           endsAt: new Date('2026-10-01T13:30:00.000Z'),
           status: 'confirmed',
           origin: 'manual',
+          reminder24hSentAt: null,
+          clientConfirmedAt: null,
         },
       ]);
       expect(await savedBlocks()).toEqual([]);

@@ -51,6 +51,8 @@ class StoredScheduleQuery extends InMemoryScheduleQuery {
       endsAt: appointment.endsAt,
       status: appointment.status,
       origin: appointment.origin,
+      reminder24hSentAt: null,
+      clientConfirmedAt: null,
     };
   }
 }

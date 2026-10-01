@@ -12,6 +12,7 @@ import { FakeEmailSender } from '../src/usecases/testing/fake-email-sender';
 import { FixedClock } from '../src/usecases/testing/fixed-clock';
 import { signupOwner } from './support/account-flows';
 import { truncateAccountTables } from './support/truncate-account-tables';
+import { stopScheduledJobs } from './support/stop-scheduled-jobs';
 
 const NOW = new Date('2026-12-30T12:00:00.000Z');
 const NINETY_DAYS_AGO = '2026-10-01T12:00:00.000Z';
@@ -83,6 +84,7 @@ describe('No-show reset job (e2e)', () => {
       .compile();
     app = moduleFixture.createNestApplication<INestApplication<App>>();
     await app.init();
+    stopScheduledJobs(app);
     dataSource = app.get(DataSource);
   });
 

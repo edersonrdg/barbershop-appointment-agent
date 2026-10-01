@@ -29,6 +29,8 @@ export class InMemoryScheduleQuery implements ScheduleQuery {
         endsAt: new Date(entry.startsAt.getTime() + 30 * 60 * 1000),
         status: 'confirmed',
         origin: 'manual',
+        reminder24hSentAt: null,
+        clientConfirmedAt: null,
         ...entry,
       },
     });
@@ -106,5 +108,9 @@ export class InMemoryScheduleQuery implements ScheduleQuery {
             a.id.localeCompare(b.id),
         ),
     );
+  }
+
+  listPendingReminders(): never {
+    throw new Error('not used by the schedule tests');
   }
 }

@@ -7,6 +7,7 @@ import { UtcPeriod } from '../../domain/entities/barbershop';
 import { Client } from '../../domain/entities/client';
 import { AppointmentConflictError } from '../../domain/errors/appointment-conflict.error';
 import { ClientPhoneTakenError } from '../../domain/errors/client-phone-taken.error';
+import { ReminderKind } from '../../domain/value-objects/appointment-reminder';
 import {
   AppointmentRepository,
   BusyPeriod,
@@ -19,12 +20,31 @@ const SLOT_HOLDING_STATUSES: readonly AppointmentStatus[] = [
   'no_show',
 ];
 
+/** US-19: the instants stored beside the appointment (door 1). */
+export interface AppointmentMarks {
+  reminder24hSentAt: Date | null;
+  reminder1hSentAt: Date | null;
+  clientConfirmedAt: Date | null;
+}
+
+const NO_MARKS: AppointmentMarks = {
+  reminder24hSentAt: null,
+  reminder1hSentAt: null,
+  clientConfirmedAt: null,
+};
+
+const REMINDER_MARKS: Record<ReminderKind, keyof AppointmentMarks> = {
+  '24h': 'reminder24hSentAt',
+  '1h': 'reminder1hSentAt',
+};
+
 // Stores snapshots and refuses overlapping appointments of the same barber
 // that hold the slot (RN-03), like the database exclusion constraint does. The new client is
 // stored only when the appointment is, as in the database transaction.
 export class InMemoryAppointmentRepository implements AppointmentRepository {
   private appointments: Appointment[] = [];
   private racingClients: Client[] = [];
+  private readonly marks = new Map<string, AppointmentMarks>();
 
   constructor(
     private readonly clients: InMemoryClientRepository = new InMemoryClientRepository(),
@@ -127,6 +147,76 @@ export class InMemoryAppointmentRepository implements AppointmentRepository {
         : stored,
     );
     return Promise.resolve();
+  }
+
+  marksOf(barbershopId: string, appointmentId: string): AppointmentMarks {
+    return {
+      ...(this.marks.get(`${barbershopId}:${appointmentId}`) ?? NO_MARKS),
+    };
+  }
+
+  setMarks(
+    barbershopId: string,
+    appointmentId: string,
+    marks: Partial<AppointmentMarks>,
+  ): void {
+    this.marks.set(`${barbershopId}:${appointmentId}`, {
+      ...this.marksOf(barbershopId, appointmentId),
+      ...marks,
+    });
+  }
+
+  claimReminder(
+    barbershopId: string,
+    appointmentId: string,
+    kind: ReminderKind,
+    now: Date,
+  ): Promise<boolean> {
+    const mark = REMINDER_MARKS[kind];
+    return Promise.resolve(
+      this.markIf(barbershopId, appointmentId, mark, now, () => true),
+    );
+  }
+
+  confirmByClient(
+    barbershopId: string,
+    appointmentId: string,
+    now: Date,
+  ): Promise<boolean> {
+    return Promise.resolve(
+      this.markIf(
+        barbershopId,
+        appointmentId,
+        'clientConfirmedAt',
+        now,
+        (marks) => marks.reminder24hSentAt !== null,
+      ),
+    );
+  }
+
+  // Same guards as the conditional UPDATE of the database (door 1).
+  private markIf(
+    barbershopId: string,
+    appointmentId: string,
+    mark: keyof AppointmentMarks,
+    now: Date,
+    condition: (marks: AppointmentMarks) => boolean,
+  ): boolean {
+    const stored = this.appointments.find(
+      (appointment) =>
+        appointment.id === appointmentId &&
+        appointment.barbershopId === barbershopId,
+    );
+    const marks = this.marksOf(barbershopId, appointmentId);
+    if (
+      stored?.status !== 'confirmed' ||
+      marks[mark] !== null ||
+      !condition(marks)
+    ) {
+      return false;
+    }
+    this.setMarks(barbershopId, appointmentId, { [mark]: now });
+    return true;
   }
 
   listBusyPeriods(

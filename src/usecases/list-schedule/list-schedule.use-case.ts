@@ -1,12 +1,16 @@
 import { UserRole } from '../../domain/entities/user';
 import { InvalidCredentialsError } from '../../domain/errors/invalid-credentials.error';
+import { isUnconfirmed } from '../../domain/value-objects/appointment-reminder';
 import { BarbershopTimezone } from '../../domain/value-objects/barbershop-timezone';
+import { BookingRules } from '../../domain/value-objects/booking-rules';
 import {
   SchedulePeriod,
   ScheduleView,
 } from '../../domain/value-objects/schedule-period';
 import { BarberRepository } from '../ports/barber.repository.port';
 import { BarbershopRepository } from '../ports/barbershop.repository.port';
+import { BookingRulesRepository } from '../ports/booking-rules.repository.port';
+import { Clock } from '../ports/clock.port';
 import { ScheduleEntry, ScheduleQuery } from '../ports/schedule.query.port';
 import { BarberAccessPolicy } from '../shared/barber-access-policy';
 
@@ -19,10 +23,15 @@ export interface ListScheduleInput {
   barberId?: string;
 }
 
+/** US-19 (CA-19.5): `unconfirmed` is the alert the panel shows. */
+export interface ScheduleItem extends ScheduleEntry {
+  unconfirmed: boolean;
+}
+
 export interface Schedule {
   period: SchedulePeriod;
   timezone: string;
-  entries: ScheduleEntry[];
+  entries: ScheduleItem[];
 }
 
 export class ListScheduleUseCase {
@@ -32,6 +41,8 @@ export class ListScheduleUseCase {
     private readonly barbershops: BarbershopRepository,
     barbers: BarberRepository,
     private readonly schedule: ScheduleQuery,
+    private readonly bookingRules: BookingRulesRepository,
+    private readonly clock: Clock,
   ) {
     this.access = new BarberAccessPolicy(barbers);
   }
@@ -56,6 +67,21 @@ export class ListScheduleUseCase {
             period.utc,
             barberId,
           );
-    return { period, timezone: timezone.value, entries };
+    const rules =
+      (await this.bookingRules.findByBarbershopId(input.barbershopId)) ??
+      BookingRules.defaults();
+    const now = this.clock.now();
+    return {
+      period,
+      timezone: timezone.value,
+      entries: entries.map((entry) => ({
+        ...entry,
+        unconfirmed: isUnconfirmed(
+          entry,
+          rules.cancellationDeadlineMinutes,
+          now,
+        ),
+      })),
+    };
   }
 }

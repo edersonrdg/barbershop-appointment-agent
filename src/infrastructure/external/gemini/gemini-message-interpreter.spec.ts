@@ -41,6 +41,7 @@ const VALID = {
   time: null,
   cancelRequested: false,
   rescheduleRequested: false,
+  confirmRequested: false,
   choice: null,
 };
 
@@ -405,6 +406,43 @@ describe('GeminiMessageInterpreter', () => {
       );
       expect(instruction).toContain(
         '2. Barba, quarta-feira, 30/09, às 10:00, com João',
+      );
+    });
+  });
+
+  describe('US-19 confirm presence field (door 2)', () => {
+    const CONFIRM = { ...VALID, confirmRequested: true };
+
+    it('door 2 (C16): passes confirmRequested through', async () => {
+      const { interpreter, models } = setup();
+      models.result = withText(JSON.stringify(CONFIRM));
+
+      await expect(interpreter.interpret(INPUT)).resolves.toEqual(CONFIRM);
+    });
+
+    it('door 2 (C16): rejects an answer without confirmRequested', async () => {
+      const { interpreter, models } = setup();
+      models.result = withText(
+        JSON.stringify({ ...CONFIRM, confirmRequested: undefined }),
+      );
+
+      await expect(interpreter.interpret(INPUT)).rejects.toBeInstanceOf(
+        MessageInterpreterUnavailableError,
+      );
+    });
+
+    it('door 2 (C16): requires confirmRequested and explains it in the instruction', async () => {
+      const { interpreter, models } = setup();
+
+      await interpreter.interpret(INPUT);
+
+      const schema = models.calls[0].config?.responseJsonSchema as {
+        required: string[];
+      };
+      expect(schema.required).toContain('confirmRequested');
+      const instruction = models.calls[0].config?.systemInstruction as string;
+      expect(instruction).toContain(
+        '- confirmRequested: true quando o cliente confirma que vai comparecer ao agendamento (por exemplo, "confirmo", "confirmar", "estarei lá").',
       );
     });
   });

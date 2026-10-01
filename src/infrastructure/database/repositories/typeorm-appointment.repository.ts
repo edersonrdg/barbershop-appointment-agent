@@ -7,6 +7,7 @@ import { UtcPeriod } from '../../../domain/entities/barbershop';
 import { Client } from '../../../domain/entities/client';
 import { AppointmentConflictError } from '../../../domain/errors/appointment-conflict.error';
 import { ClientPhoneTakenError } from '../../../domain/errors/client-phone-taken.error';
+import { ReminderKind } from '../../../domain/value-objects/appointment-reminder';
 import {
   AppointmentRepository,
   BusyPeriod,
@@ -25,6 +26,11 @@ const SLOT_HOLDING_STATUSES: AppointmentStatus[] = [
   'attended',
   'no_show',
 ];
+
+const REMINDER_COLUMNS: Record<ReminderKind, string> = {
+  '24h': 'reminder_24h_sent_at',
+  '1h': 'reminder_1h_sent_at',
+};
 
 export class TypeOrmAppointmentRepository implements AppointmentRepository {
   constructor(private readonly dataSource: DataSource) {}
@@ -87,6 +93,39 @@ export class TypeOrmAppointmentRepository implements AppointmentRepository {
         { id: appointment.id, barbershopId: appointment.barbershopId },
         { status: appointment.status },
       );
+  }
+
+  // A conditional UPDATE, so of two concurrent runs only one records the
+  // reminder, and a cancellation in between leaves it unrecorded (door 1).
+  async claimReminder(
+    barbershopId: string,
+    appointmentId: string,
+    kind: ReminderKind,
+    now: Date,
+  ): Promise<boolean> {
+    const column = REMINDER_COLUMNS[kind];
+    const [, affected] = await this.dataSource.query<[unknown, number]>(
+      `UPDATE appointments SET ${column} = $3
+       WHERE barbershop_id = $1 AND id = $2
+         AND ${column} IS NULL AND status = 'confirmed'`,
+      [barbershopId, appointmentId, now],
+    );
+    return affected === 1;
+  }
+
+  async confirmByClient(
+    barbershopId: string,
+    appointmentId: string,
+    now: Date,
+  ): Promise<boolean> {
+    const [, affected] = await this.dataSource.query<[unknown, number]>(
+      `UPDATE appointments SET client_confirmed_at = $3
+       WHERE barbershop_id = $1 AND id = $2
+         AND client_confirmed_at IS NULL AND status = 'confirmed'
+         AND reminder_24h_sent_at IS NOT NULL`,
+      [barbershopId, appointmentId, now],
+    );
+    return affected === 1;
   }
 
   async create(

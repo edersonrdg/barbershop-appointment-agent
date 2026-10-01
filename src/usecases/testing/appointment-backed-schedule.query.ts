@@ -1,4 +1,10 @@
-import { ScheduleEntry, ScheduleQuery } from '../ports/schedule.query.port';
+import { Appointment } from '../../domain/entities/appointment';
+import { ReminderKind } from '../../domain/value-objects/appointment-reminder';
+import {
+  PendingReminder,
+  ScheduleEntry,
+  ScheduleQuery,
+} from '../ports/schedule.query.port';
 import { InMemoryAppointmentRepository } from './in-memory-appointment.repository';
 import { InMemoryBarberRepository } from './in-memory-barber.repository';
 import { InMemoryClientRepository } from './in-memory-client.repository';
@@ -19,20 +25,55 @@ export class AppointmentBackedScheduleQuery implements ScheduleQuery {
     clientId: string,
     barberId: string | null,
   ): Promise<ScheduleEntry[]> {
-    const client = await this.clients.findById(barbershopId, clientId);
-    const stored = (await this.appointments.list(barbershopId))
-      .filter(
-        (appointment) =>
-          appointment.clientId === clientId &&
-          (barberId === null || appointment.barberId === barberId),
-      )
-      .sort(
-        (a, b) =>
-          a.startsAt.getTime() - b.startsAt.getTime() ||
-          a.id.localeCompare(b.id),
-      );
+    const stored = (await this.appointments.list(barbershopId)).filter(
+      (appointment) =>
+        appointment.clientId === clientId &&
+        (barberId === null || appointment.barberId === barberId),
+    );
+    return this.toEntries(barbershopId, stored);
+  }
+
+  // US-19: the same filter as the database query, from the stored marks.
+  async listPendingReminders(
+    barbershopId: string,
+    kind: ReminderKind,
+    after: Date,
+    until: Date,
+  ): Promise<PendingReminder[]> {
+    const mark = kind === '24h' ? 'reminder24hSentAt' : 'reminder1hSentAt';
+    const stored = (await this.appointments.list(barbershopId)).filter(
+      (appointment) =>
+        appointment.status === 'confirmed' &&
+        appointment.clientId !== null &&
+        this.appointments.marksOf(barbershopId, appointment.id)[mark] ===
+          null &&
+        appointment.startsAt > after &&
+        appointment.startsAt <= until,
+    );
+    const entries = await this.toEntries(barbershopId, stored);
+    return entries.flatMap((entry) => {
+      const appointment = stored.find(({ id }) => id === entry.id);
+      return appointment
+        ? [{ ...entry, createdAt: appointment.createdAt }]
+        : [];
+    });
+  }
+
+  private async toEntries(
+    barbershopId: string,
+    appointments: Appointment[],
+  ): Promise<ScheduleEntry[]> {
+    const sorted = [...appointments].sort(
+      (a, b) =>
+        a.startsAt.getTime() - b.startsAt.getTime() || a.id.localeCompare(b.id),
+    );
     const entries: ScheduleEntry[] = [];
-    for (const appointment of stored) {
+    for (const appointment of sorted) {
+      const client =
+        appointment.clientId === null
+          ? null
+          : await this.clients.findById(barbershopId, appointment.clientId);
+      const marks = this.appointments.marksOf(barbershopId, appointment.id);
       const barber = await this.barbers.findById(
         barbershopId,
         appointment.barberId,
@@ -57,6 +98,8 @@ export class AppointmentBackedScheduleQuery implements ScheduleQuery {
         endsAt: appointment.endsAt,
         status: appointment.status,
         origin: appointment.origin,
+        reminder24hSentAt: marks.reminder24hSentAt,
+        clientConfirmedAt: marks.clientConfirmedAt,
       });
     }
     return entries;

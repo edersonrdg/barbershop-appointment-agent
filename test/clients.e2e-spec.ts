@@ -14,6 +14,7 @@ import { FakeEmailSender } from '../src/usecases/testing/fake-email-sender';
 import { FixedClock } from '../src/usecases/testing/fixed-clock';
 import { createBarber, signupOwner } from './support/account-flows';
 import { truncateAccountTables } from './support/truncate-account-tables';
+import { stopScheduledJobs } from './support/stop-scheduled-jobs';
 
 const UNAUTHORIZED = { message: 'Sessão inválida ou expirada.' };
 const CLIENT_NOT_FOUND = { message: 'Cliente não encontrado.' };
@@ -240,6 +241,7 @@ describe('Clients (e2e)', () => {
       .compile();
     app = moduleFixture.createNestApplication<INestApplication<App>>();
     await app.init();
+    stopScheduledJobs(app);
     dataSource = app.get(DataSource);
     appWebUrl = app.get(ConfigService).getOrThrow<string>('APP_WEB_URL');
   });
@@ -408,6 +410,7 @@ describe('Clients (e2e)', () => {
           endsAt: '2026-10-03T13:30:00.000Z',
           status: 'attended',
           origin: 'manual',
+          clientConfirmedAt: null,
         },
       ]);
     });

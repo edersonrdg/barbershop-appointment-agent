@@ -126,6 +126,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: checks.md C37 / test/api-docs.e2e-spec.ts:73-86 (asserts only /users/invitations and /me) / test/clients.e2e-spec.ts:664 (/clients/{id} documents no 403) (api-docs)
 - last seen: 2026-10-01T13:41:45Z
 
+### L-020 - When a check enumerates the members a multi-condition filter excludes, give each condition a member that only that condition excludes (e.g. a past appointment with the passing status), or deleting the condition goes unnoticed.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `checks` · harmful: 0
+- features: us-19-lembretes-de-24h-e-1h
+- evidence: F4 confirm-presence-via-whatsapp.use-case.ts:39 (checks)
+- last seen: 2026-10-01T15:19:48Z
+
+### L-021 - For each time condition in a filter, name the boundary member equal to now in checks.md, as the reminder windows do; otherwise swapping > for >= survives.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `checks` · harmful: 0
+- features: us-19-lembretes-de-24h-e-1h
+- evidence: confirm-presence-via-whatsapp.use-case.ts:39 (> vs >=) (checks)
+- last seen: 2026-10-01T15:19:48Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

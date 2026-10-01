@@ -7,6 +7,7 @@ import { MESSAGE_INTERPRETER } from './../src/usecases/ports/message-interpreter
 import { WHATSAPP_CONNECTOR } from './../src/usecases/ports/whatsapp-connector.port';
 import { FakeMessageInterpreter } from './../src/usecases/testing/fake-message-interpreter';
 import { FakeWhatsAppConnector } from './../src/usecases/testing/fake-whatsapp-connector';
+import { stopScheduledJobs } from './support/stop-scheduled-jobs';
 
 describe('Observability (e2e)', () => {
   let app: INestApplication<App>;
@@ -28,6 +29,7 @@ describe('Observability (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+    stopScheduledJobs(app);
   });
 
   afterAll(async () => {

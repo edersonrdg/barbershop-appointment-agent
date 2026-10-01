@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 20,
+  "next_id": 22,
   "lessons": [
     {
       "id": "L-001",
@@ -354,6 +354,42 @@
       ],
       "created": "2026-10-01T13:41:45Z",
       "last_seen": "2026-10-01T13:41:45Z"
+    },
+    {
+      "id": "L-020",
+      "key": "surviving_mutant::when a check enumerates the members a multi condition filter excludes give each condition a member that only that condition excludes e g a past appointment with the passing status or deleting the condition goes unnoticed",
+      "text": "When a check enumerates the members a multi-condition filter excludes, give each condition a member that only that condition excludes (e.g. a past appointment with the passing status), or deleting the condition goes unnoticed.",
+      "signal": "surviving_mutant",
+      "scope": "checks",
+      "status": "candidate",
+      "features": [
+        "us-19-lembretes-de-24h-e-1h"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "F4 confirm-presence-via-whatsapp.use-case.ts:39 (checks)"
+      ],
+      "created": "2026-10-01T15:19:48Z",
+      "last_seen": "2026-10-01T15:19:48Z"
+    },
+    {
+      "id": "L-021",
+      "key": "spec_precision_gap::for each time condition in a filter name the boundary member equal to now in checks md as the reminder windows do otherwise swapping for survives",
+      "text": "For each time condition in a filter, name the boundary member equal to now in checks.md, as the reminder windows do; otherwise swapping > for >= survives.",
+      "signal": "spec_precision_gap",
+      "scope": "checks",
+      "status": "candidate",
+      "features": [
+        "us-19-lembretes-de-24h-e-1h"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "confirm-presence-via-whatsapp.use-case.ts:39 (> vs >=) (checks)"
+      ],
+      "created": "2026-10-01T15:19:48Z",
+      "last_seen": "2026-10-01T15:19:48Z"
     }
   ]
 }

@@ -3,6 +3,7 @@ import type {
   AppointmentStatus,
 } from '../../domain/entities/appointment';
 import { UtcPeriod } from '../../domain/entities/barbershop';
+import type { ReminderKind } from '../../domain/value-objects/appointment-reminder';
 
 export const SCHEDULE_QUERY = Symbol('ScheduleQuery');
 
@@ -15,6 +16,14 @@ export interface ScheduleEntry {
   endsAt: Date;
   status: AppointmentStatus;
   origin: AppointmentOrigin;
+  /** US-19: when the 24h reminder went out; null while it has not. */
+  reminder24hSentAt: Date | null;
+  /** US-19: when the client confirmed they will come (CA-19.2). */
+  clientConfirmedAt: Date | null;
+}
+
+export interface PendingReminder extends ScheduleEntry {
+  createdAt: Date;
 }
 
 export interface ScheduleQuery {
@@ -59,4 +68,16 @@ export interface ScheduleQuery {
     clientId: string,
     barberId: string | null,
   ): Promise<ScheduleEntry[]>;
+
+  /**
+   * The confirmed appointments of the barbershop that have a client, have not
+   * had the `kind` reminder yet and start after `after` and up to `until`,
+   * ordered by start and id, with their creation instant (US-19).
+   */
+  listPendingReminders(
+    barbershopId: string,
+    kind: ReminderKind,
+    after: Date,
+    until: Date,
+  ): Promise<PendingReminder[]>;
 }

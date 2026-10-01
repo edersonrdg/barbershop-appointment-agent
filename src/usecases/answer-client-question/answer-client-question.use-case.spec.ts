@@ -6,6 +6,7 @@ import { PhoneNumber } from '../../domain/value-objects/phone-number';
 import { WeeklyOpeningHours } from '../../domain/value-objects/weekly-opening-hours';
 import { BookAppointmentUseCase } from '../book-appointment/book-appointment.use-case';
 import { BookViaWhatsAppUseCase } from '../book-via-whatsapp/book-via-whatsapp.use-case';
+import { ConfirmPresenceViaWhatsAppUseCase } from '../confirm-presence-via-whatsapp/confirm-presence-via-whatsapp.use-case';
 import { ListAvailableSlotsUseCase } from '../list-available-slots/list-available-slots.use-case';
 import { MessageInterpretation } from '../ports/message-interpreter.port';
 import { CountingAppointmentMetrics } from '../testing/counting-appointment-metrics';
@@ -70,6 +71,7 @@ function interpretation(
     time: null,
     cancelRequested: false,
     rescheduleRequested: false,
+    confirmRequested: false,
     choice: null,
     ...partial,
   };
@@ -215,6 +217,10 @@ async function setup({
     conversations,
     resumeAfterHours,
     booking,
+    new ConfirmPresenceViaWhatsAppUseCase(
+      new InMemoryScheduleQuery(),
+      new InMemoryAppointmentRepository(),
+    ),
   );
   let nextId = 0;
   const reply = async (
@@ -574,6 +580,7 @@ describe('AnswerClientQuestionUseCase', () => {
         conversations,
         12,
         scenario.booking,
+        scenario.presence,
       );
       let nextId = 0;
       const execute = (partial: Partial<MessageInterpretation>) => {
@@ -980,6 +987,214 @@ describe('AnswerClientQuestionUseCase', () => {
           );
         },
       );
+    });
+    describe('US-19 confirm presence', () => {
+      const REMINDED_AT = new Date('2026-09-29T14:00:00.000Z');
+      const CONFIRM = { confirmRequested: true };
+      const X_CONFIRMED =
+        'Presença confirmada!\nCorte, quarta-feira, 30/09, às 11:00, com João';
+
+      async function withX({ reminded = true } = {}) {
+        const setup = await bookingSetup();
+        await setup.own({ id: 'X', startsAt: local(TOMORROW, '11:00') });
+        if (reminded) remind(setup, 'X');
+        return setup;
+      }
+
+      function remind(
+        setup: Awaited<ReturnType<typeof bookingSetup>>,
+        id: string,
+        barbershopId = setup.barbershop.id,
+      ): void {
+        setup.appointments.setMarks(barbershopId, id, {
+          reminder24hSentAt: REMINDED_AT,
+        });
+      }
+
+      const confirmedAt = (
+        setup: Awaited<ReturnType<typeof bookingSetup>>,
+        id: string,
+        barbershopId = setup.barbershop.id,
+      ) => setup.appointments.marksOf(barbershopId, id).clientConfirmedAt;
+
+      it('CA-19.2, AC 13 (C17): confirms the reminded appointment once and answers with it', async () => {
+        const setup = await withX();
+
+        expect(await setup.lastText(CONFIRM)).toEqual([X_CONFIRMED]);
+        expect(confirmedAt(setup, 'X')).toEqual(BOOKING_NOW);
+
+        setup.clock.current = new Date(BOOKING_NOW.getTime() + 10 * 60 * 1000);
+
+        expect(await setup.lastText(CONFIRM)).toEqual([X_CONFIRMED]);
+        expect(confirmedAt(setup, 'X')).toEqual(BOOKING_NOW);
+      });
+
+      it('CA-19.2, AC 13, AC 18 (C18): confirms every reminded upcoming appointment of the client, and only them', async () => {
+        const setup = await withX();
+        await setup.own({
+          id: 'W',
+          startsAt: local('2026-10-01', '10:00'),
+          serviceIds: ['barba'],
+        });
+        remind(setup, 'W');
+        await setup.own({
+          id: 'not-reminded',
+          startsAt: local('2026-10-02', '10:00'),
+        });
+        await setup.own({
+          id: 'past',
+          startsAt: local('2026-09-28', '10:00'),
+          status: 'attended',
+        });
+        remind(setup, 'past');
+        await setup.own({
+          id: 'cancelled',
+          startsAt: local('2026-10-03', '10:00'),
+          status: 'cancelled',
+        });
+        remind(setup, 'cancelled');
+        await setup.own({
+          id: 'other-client',
+          startsAt: local('2026-10-01', '15:00'),
+          clientId: 'someone-else',
+        });
+        remind(setup, 'other-client');
+        await setup.own({
+          id: 'other-shop',
+          startsAt: local('2026-10-01', '16:00'),
+          barbershopId: 'barbershop-b',
+          barberId: 'marcos',
+        });
+        remind(setup, 'other-shop', 'barbershop-b');
+
+        expect(await setup.lastText(CONFIRM)).toEqual([
+          'Presença confirmada!\nCorte, quarta-feira, 30/09, às 11:00, com João\nBarba, quinta-feira, 01/10, às 10:00, com João',
+        ]);
+        expect(confirmedAt(setup, 'X')).toEqual(BOOKING_NOW);
+        expect(confirmedAt(setup, 'W')).toEqual(BOOKING_NOW);
+        for (const id of [
+          'not-reminded',
+          'past',
+          'cancelled',
+          'other-client',
+        ]) {
+          expect(confirmedAt(setup, id)).toBeNull();
+        }
+        expect(confirmedAt(setup, 'other-shop', 'barbershop-b')).toBeNull();
+      });
+
+      it('AC 13 (C18): a reminded confirmed appointment that already started is neither confirmed nor listed', async () => {
+        const setup = await withX();
+        await setup.own({
+          id: 'started',
+          startsAt: local('2026-09-29', '11:30'),
+        });
+        remind(setup, 'started');
+
+        expect(await setup.lastText(CONFIRM)).toEqual([X_CONFIRMED]);
+        expect(confirmedAt(setup, 'started')).toBeNull();
+        expect(await setup.statusOf('started')).toBe('confirmed');
+      });
+
+      it('AC 14 (C19): without a reminded appointment answers that there is nothing to confirm', async () => {
+        const setup = await withX({ reminded: false });
+
+        expect(await setup.lastText(CONFIRM)).toEqual([
+          'Você não tem nenhum agendamento aguardando confirmação.',
+        ]);
+        expect(confirmedAt(setup, 'X')).toBeNull();
+      });
+
+      it.each<[string, Partial<MessageInterpretation>, RegExp]>([
+        ['cancel', { cancelRequested: true }, /^Agendamento cancelado\./],
+        [
+          'reschedule',
+          { rescheduleRequested: true, date: TOMORROW, period: 'afternoon' },
+          /^Horários para Corte/,
+        ],
+      ])(
+        'CA-19.2, AC 15 (C20): confirm with a request to %s follows US-18',
+        async (action, partial, expected) => {
+          const setup = await withX();
+
+          const texts = await setup.lastText({ ...CONFIRM, ...partial });
+
+          expect(texts).toHaveLength(1);
+          expect(texts[0]).toMatch(expected);
+          expect(await setup.statusOf('X')).toBe(
+            action === 'cancel' ? 'cancelled' : 'confirmed',
+          );
+          expect(confirmedAt(setup, 'X')).toBeNull();
+        },
+      );
+
+      type Setup = Awaited<ReturnType<typeof bookingSetup>>;
+      it.each<
+        [
+          string,
+          Partial<MessageInterpretation>,
+          (text: string, setup: Setup) => void,
+        ]
+      >([
+        [
+          'a request for a person',
+          { humanRequested: true },
+          (text, setup) => {
+            expect(text).toBe(HANDOFF_REPLY);
+            expect(setup.conversation()?.pauseReason).toBe('requested');
+          },
+        ],
+        [
+          'an off-topic message',
+          { offTopic: true },
+          (text) => expect(text).toBe(REFUSAL),
+        ],
+        [
+          'a booking request',
+          { bookingRequested: true },
+          (text) => expect(text).toMatch(/^Qual serviço você quer agendar\?/),
+        ],
+      ])(
+        'AC 16 (C21): confirm with %s follows the earlier flow',
+        async (_case, partial, check) => {
+          const setup = await withX();
+
+          const texts = await setup.lastText({ ...CONFIRM, ...partial });
+
+          expect(texts).toHaveLength(1);
+          check(texts[0], setup);
+          expect(confirmedAt(setup, 'X')).toBeNull();
+        },
+      );
+
+      it('AC 17 (C22): a paused conversation stays silent and confirms nothing', async () => {
+        const setup = await withX();
+        await setup.execute({ humanRequested: true });
+        expect(setup.conversation()?.pauseReason).toBe('requested');
+
+        expect(await setup.lastText(CONFIRM)).toEqual([]);
+        expect(confirmedAt(setup, 'X')).toBeNull();
+      });
+
+      it('AC 19 (C23): counts each new confirmation and the reply kind', async () => {
+        const setup = await withX();
+
+        await setup.execute(CONFIRM);
+        expect(setup.metrics.presenceConfirmations).toBe(1);
+        expect(setup.metrics.replies).toEqual(['presence_confirmed']);
+
+        await setup.execute(CONFIRM);
+        expect(setup.metrics.presenceConfirmations).toBe(1);
+        expect(setup.metrics.replies).toEqual([
+          'presence_confirmed',
+          'presence_confirmed',
+        ]);
+
+        const empty = await withX({ reminded: false });
+        await empty.execute(CONFIRM);
+        expect(empty.metrics.presenceConfirmations).toBe(0);
+        expect(empty.metrics.replies).toEqual(['nothing_to_confirm']);
+      });
     });
   });
 });

@@ -4,7 +4,9 @@ import type {
   AppointmentStatus,
 } from '../../../domain/entities/appointment';
 import { UtcPeriod } from '../../../domain/entities/barbershop';
+import { ReminderKind } from '../../../domain/value-objects/appointment-reminder';
 import {
+  PendingReminder,
   ScheduleEntry,
   ScheduleQuery,
 } from '../../../usecases/ports/schedule.query.port';
@@ -15,6 +17,9 @@ interface AppointmentRow {
   ends_at: Date;
   status: AppointmentStatus;
   origin: AppointmentOrigin;
+  reminder_24h_sent_at: Date | null;
+  client_confirmed_at: Date | null;
+  created_at: Date;
   barber_id: string;
   barber_name: string;
   client: ScheduleEntry['client'];
@@ -27,6 +32,7 @@ interface ServiceRow {
 }
 
 const SELECT_APPOINTMENTS = `SELECT a.id, a.starts_at, a.ends_at, a.status, a.origin,
+              a.reminder_24h_sent_at, a.client_confirmed_at, a.created_at,
               b.id AS barber_id, b.name AS barber_name,
               CASE WHEN c.id IS NULL THEN NULL
                    ELSE json_build_object('id', c.id, 'name', c.name, 'phone', c.phone)
@@ -34,6 +40,11 @@ const SELECT_APPOINTMENTS = `SELECT a.id, a.starts_at, a.ends_at, a.status, a.or
        FROM appointments a
        JOIN barbers b ON b.id = a.barber_id AND b.barbershop_id = a.barbershop_id
        LEFT JOIN clients c ON c.id = a.client_id AND c.barbershop_id = a.barbershop_id`;
+
+const REMINDER_COLUMNS: Record<ReminderKind, string> = {
+  '24h': 'a.reminder_24h_sent_at',
+  '1h': 'a.reminder_1h_sent_at',
+};
 
 // Every join also matches barbershop_id, so a row of another barbershop never
 // reaches the schedule (RN-26).
@@ -102,6 +113,29 @@ export class TypeOrmScheduleQuery implements ScheduleQuery {
     return this.withServices(barbershopId, rows);
   }
 
+  async listPendingReminders(
+    barbershopId: string,
+    kind: ReminderKind,
+    after: Date,
+    until: Date,
+  ): Promise<PendingReminder[]> {
+    const rows = await this.dataSource.query<AppointmentRow[]>(
+      `${SELECT_APPOINTMENTS}
+       WHERE a.barbershop_id = $1
+         AND a.status = 'confirmed'
+         AND a.client_id IS NOT NULL
+         AND ${REMINDER_COLUMNS[kind]} IS NULL
+         AND a.starts_at > $2 AND a.starts_at <= $3
+       ORDER BY a.starts_at, a.id`,
+      [barbershopId, after, until],
+    );
+    const entries = await this.withServices(barbershopId, rows);
+    return entries.map((entry, index) => ({
+      ...entry,
+      createdAt: rows[index].created_at,
+    }));
+  }
+
   private async withServices(
     barbershopId: string,
     rows: AppointmentRow[],
@@ -126,6 +160,8 @@ export class TypeOrmScheduleQuery implements ScheduleQuery {
       endsAt: row.ends_at,
       status: row.status,
       origin: row.origin,
+      reminder24hSentAt: row.reminder_24h_sent_at,
+      clientConfirmedAt: row.client_confirmed_at,
     }));
   }
 }

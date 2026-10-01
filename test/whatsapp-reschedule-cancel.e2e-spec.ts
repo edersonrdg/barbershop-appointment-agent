@@ -19,6 +19,7 @@ import { FakeWhatsAppConnector } from '../src/usecases/testing/fake-whatsapp-con
 import { FixedClock } from '../src/usecases/testing/fixed-clock';
 import { signupOwner } from './support/account-flows';
 import { truncateAccountTables } from './support/truncate-account-tables';
+import { stopScheduledJobs } from './support/stop-scheduled-jobs';
 
 // Tuesday, 29/09, 12:00 in America/Sao_Paulo.
 const NOW = new Date('2026-09-29T15:00:00.000Z');
@@ -52,6 +53,7 @@ function interpretation(
     time: null,
     cancelRequested: false,
     rescheduleRequested: false,
+    confirmRequested: false,
     choice: null,
     ...partial,
   };
@@ -221,6 +223,7 @@ describe('WhatsApp reschedule and cancel (e2e)', () => {
       .compile();
     app = moduleFixture.createNestApplication<INestApplication<App>>();
     await app.init();
+    stopScheduledJobs(app);
     dataSource = app.get(DataSource);
     webhookSecret = app
       .get(ConfigService)

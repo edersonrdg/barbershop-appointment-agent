@@ -76,6 +76,8 @@ class BookedScheduleQuery extends InMemoryScheduleQuery {
       endsAt: appointment.endsAt,
       status: appointment.status,
       origin: appointment.origin,
+      reminder24hSentAt: null,
+      clientConfirmedAt: null,
     };
   }
 }
@@ -221,6 +223,8 @@ describe('CreateManualAppointmentUseCase', () => {
         endsAt: at('10:45'),
         status: 'confirmed',
         origin: 'manual',
+        reminder24hSentAt: null,
+        clientConfirmedAt: null,
       });
       const [saved] = await newAppointments();
       expect(saved.id).toBe('id-2');

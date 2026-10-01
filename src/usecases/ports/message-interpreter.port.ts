@@ -41,6 +41,8 @@ export interface MessageInterpretation {
   cancelRequested: boolean;
   /** US-18: the client wants to move an appointment to another slot (RF-04). */
   rescheduleRequested: boolean;
+  /** US-19: the client confirms they will come to the appointment (CA-19.2). */
+  confirmRequested: boolean;
   /** Number of the listed option the client chose, 1 to `MAX_CHOICE`. */
   choice: number | null;
 }
