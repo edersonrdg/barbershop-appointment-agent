@@ -272,7 +272,12 @@ describe('API docs (e2e)', () => {
 
       expect(
         schema.properties.conversations.items.properties.reason.enum,
-      ).toContain('late_cancellation');
+      ).toEqual([
+        'requested',
+        'not_understood',
+        'blocked_client',
+        'late_cancellation',
+      ]);
       expect(
         document.paths['/webhooks/whatsapp/evolution'].post!.description,
       ).toContain('US-18');

@@ -44,7 +44,7 @@ Reaproveita o webhook, a conversa e a desambiguação de intenção da US-15/US-
 | Route | In | Out | Status |
 | --- | --- | --- | --- |
 | `GET /appointments` | sem mudança | `appointments[].status` passa a aceitar `cancelled` | `200`, `401`, `403` (sem mudança) |
-| `GET /clients/:id` | sem mudança | mesmo campo `status`, reaproveitando o schema de `GET /appointments` | `200`, `401`, `403`, `404` (sem mudança) |
+| `GET /clients/:id` | sem mudança | mesmo campo `status`, reaproveitando o schema de `GET /appointments` | `200`, `401`, `404` (sem mudança; corrigido com o usuário na verificação: a rota nunca teve `403`, o Barbeiro sem acesso recebe `404`, CA-12.3) |
 | `PATCH /appointments/:id/status` | sem mudança | sem mudança | ganha `409` (AC 24) |
 | `GET /whatsapp/conversations/waiting-human` | sem mudança | `reason` passa a aceitar `late_cancellation` | `200`, `401`, `403` (sem mudança) |
 
@@ -57,6 +57,7 @@ Reaproveita o webhook, a conversa e a desambiguação de intenção da US-15/US-
 | 3. motivo `late_cancellation` | `HANDOFF_REASONS` ganha `'late_cancellation'`; migration troca `whatsapp_conversations_pause_reason_check` por um CHECK que também aceita o valor novo, no mesmo padrão do `blocked_client` da US-17; o enum de `reason` em `waiting-human` ganha o valor | reusar `requested`: pelo mesmo motivo da US-17 rejeitar isso para `blocked_client` — a equipe precisa ver que o cliente bateu no prazo, não que pediu um atendente |
 | 4. como o CA-18.5 ("evento horário liberado") se realiza agora | Nada novo é despachado. O fato é a própria transição de status para `cancelled` (porta 1): o agendamento mantém `barberId`, `startsAt`/`endsAt` e `serviceIds`, e no momento em que o status sai de `SLOT_HOLDING_STATUSES` o motor (US-07) já trata o horário como livre. A US-24, quando for construída, lê esse fato do jeito que todo job deste código já lê estado (AD-009: listar e varrer, sem barramento) | uma porta de notificação (`AppointmentReleaseNotifier`) com um adaptador vazio por enquanto: seria uma dependência sem nenhum consumidor hoje, exatamente o que o "mínimo estrutural" do CLAUDE.md não cobre fora de colunas de banco simples; AD-009 e AD-012 mostram que este código prefere ler o estado na hora de usar a manter um mecanismo de despacho aquecido para um assinante que ainda não existe |
 | 5. limite de `choice` na interpretação (door 1 da US-17, ampliada; decidida com o usuário na derivação dos checks) | `MAX_CHOICE = 10` em `message-interpreter.port.ts`; o schema Zod e o JSON Schema mandado ao Gemini passam a `choice: int 1..10 \| null`; `MAX_OFFERED_SLOTS` continua 3 para horários; a lista de candidatos do AC 4 traz no máximo os 10 agendamentos futuros mais próximos. No C37 da US-17 o caso recusado `choice 4` vira `choice 11` (continua afirmando o limite) | manter `1..3` e listar só 3 candidatos: contraria o "listá-los" do AC 4 para quem tem 4 ou mais agendamentos futuros |
+| 1a. assinatura de `Appointment.cancel` (divergência da porta 1 achada na verificação; mantida com o usuário) | `cancel(): Appointment`, sem `now`: lança `AppointmentNotConfirmedError` quando o status não é `confirmed`; o prazo (RN-09) é conferido no `BookViaWhatsAppUseCase`, não na entidade | `cancel(now)`, o formato literal da porta 1: um parâmetro que a regra não usa |
 
 - Nada mais nesta mudança é difícil de reverter.
 

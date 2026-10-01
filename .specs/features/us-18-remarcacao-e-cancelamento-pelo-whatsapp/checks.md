@@ -154,10 +154,9 @@ Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-reschedule-cancel.e
 Proof: `npm test`
 Proof: `npm run test:e2e`
 
-**C37** - As rotas do painel que esta história altera mantêm as respostas de erro de hoje: `GET /appointments` sem sessão responde `401` e com Barbeiro pedindo outro barbeiro `403`; `GET /clients/:id` sem sessão `401` e com id desconhecido `404`; o documento OpenAPI marca as duas com `401` e `403` (Surface, sem mudança) ✅
-Proof: `npx jest --config ./test/jest-e2e.json test/schedule.e2e-spec.ts -t "answers 401 without a session|CA-08.2"`
-Proof: `npx jest --config ./test/jest-e2e.json test/clients.e2e-spec.ts -t "CA-12.3 \(C25\)|CA-12.2 \(C17\)"`
-Proof: `npx jest --config ./test/jest-e2e.json test/api-docs.e2e-spec.ts -t "marks protected routes with bearer auth, roles, 401 and 403"`
+**C37** - As rotas do painel que esta história altera mantêm as respostas de erro de hoje: `GET /appointments` sem sessão responde `401` e com Barbeiro pedindo outro barbeiro `403`; `GET /clients/:id` sem sessão `401` e com id desconhecido `404`; o documento OpenAPI lista para `GET /appointments` as respostas `200`, `400`, `401`, `403` e `404`, e para `GET /clients/{id}` as respostas `200`, `400`, `401` e `404` (Surface, sem mudança; o `403` de `GET /clients/:id` foi tirado com o usuário na verificação: a rota nunca o teve, CA-12.3) ✅
+Proof: `npx jest --config ./test/jest-e2e.json test/schedule.e2e-spec.ts -t "answers 401 without a session|CA-08.2|AGD-25"`
+Proof: `npx jest --config ./test/jest-e2e.json test/clients.e2e-spec.ts -t "CA-12.3 \(C25\)|CA-12.2 \(C17\)|CA-12.1 \(C26\)"`
 
 ## Coverage
 
@@ -180,7 +179,7 @@ Proof: `npx jest --config ./test/jest-e2e.json test/api-docs.e2e-spec.ts -t "mar
 | transições de `cancel` (4) | `confirmed` C30 · `attended` C30 · `no_show` C30 · `cancelled` C30 | - |
 | doors do plano (5) | 1 status `cancelled` C30, C32, C33, C9 · 2 rascunho C2, C13, C33 · 3 `late_cancellation` C32, C22, C31 · 4 horário liberado C9, C15 · 5 `choice` 1..10 C1, C4 | - |
 | `GET /appointments` statuses (3) | 200 C34 (com `cancelled`) · 401 C37 · 403 C37 | - |
-| `GET /clients/:id` statuses (4) | 200 C34 · 401 C37 · 403 C37 · 404 C37 | - |
+| `GET /clients/:id` statuses (3) | 200 C34 · 401 C37 · 404 C37 | - |
 | `PATCH /appointments/:id/status` statuses (1 novo) | 409 C29 | - |
 | `GET /whatsapp/conversations/waiting-human` statuses (3) | 200 C22 (com `late_cancellation`) · 401 existing C17 da US-16 · 403 existing C17 da US-16 | - |
 | startup config: ScheduleQuery, AppointmentRepository e métricas no `BookViaWhatsAppUseCase` (2 montagens) | `WhatsAppModule` do app C34, C35 · `setupWhatsAppBooking` dos unitários C2, C15 | - |

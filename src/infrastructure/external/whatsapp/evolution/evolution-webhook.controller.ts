@@ -18,6 +18,7 @@ import { AnswerClientQuestionUseCase } from '../../../../usecases/answer-client-
 import { ApplyWhatsAppConnectionStateUseCase } from '../../../../usecases/apply-whatsapp-connection-state/apply-whatsapp-connection-state.use-case';
 import type { Clock } from '../../../../usecases/ports/clock.port';
 import { CLOCK } from '../../../../usecases/ports/clock.port';
+import type { ClientReplyKind } from '../../../../usecases/ports/whatsapp-metrics.port';
 import { ReceiveWhatsAppMessageUseCase } from '../../../../usecases/receive-whatsapp-message/receive-whatsapp-message.use-case';
 import { RecordConversationActivityUseCase } from '../../../../usecases/record-conversation-activity/record-conversation-activity.use-case';
 import {
@@ -44,6 +45,11 @@ const barbershopIdSchema = z.uuid();
 // When the instance connects, the Evolution API re-emits recent history as
 // `messages.upsert`; only messages sent in this window count as a contact.
 const MESSAGE_MAX_AGE_MS = 5 * 60 * 1000;
+// US-18: an appointment id also comes with a cancellation or a rescheduling.
+const APPOINTMENT_LOG_MESSAGES: Partial<Record<ClientReplyKind, string>> = {
+  cancelled: 'Appointment cancelled by the bot.',
+  rescheduled: 'Appointment rescheduled by the bot.',
+};
 
 // LGPD: the body and headers are never logged; they carry the instance token and, from
 // US-14 on, client messages.
@@ -162,7 +168,8 @@ export class EvolutionWebhookController {
           barbershopId: barbershopId.data,
           appointmentId: reply.appointmentId,
         },
-        'Appointment booked by the bot.',
+        (reply.kind && APPOINTMENT_LOG_MESSAGES[reply.kind]) ??
+          'Appointment booked by the bot.',
       );
     }
     if (reply.outcome === 'failed') {

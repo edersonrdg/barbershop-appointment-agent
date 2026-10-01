@@ -418,4 +418,39 @@ describe('EvolutionWebhookController', () => {
     expect(logged).not.toContain('Carlos');
     expect(logged).not.toContain('quero o das');
   });
+
+  it.each([
+    ['sent', 'cancelled', 'Appointment cancelled by the bot.'],
+    ['sent', 'rescheduled', 'Appointment rescheduled by the bot.'],
+    ['failed', 'cancelled', 'Appointment cancelled by the bot.'],
+  ] as const)(
+    'US-18: logs a %s %s reply with what happened to the appointment',
+    async (outcome, kind, expected) => {
+      const { controller } = messageController(
+        outcome === 'sent'
+          ? { outcome, kind, appointmentId: 'appointment-1' }
+          : {
+              outcome,
+              kind,
+              appointmentId: 'appointment-1',
+              error: new Error('down'),
+            },
+      );
+
+      await controller.receive(
+        message({ message: { conversation: 'quero cancelar, Carlos Souza' } }),
+      );
+
+      const [[context, text]] = spies[0].mock.calls as unknown[][];
+      expect(context).toEqual({
+        barbershopId: SHOP,
+        appointmentId: 'appointment-1',
+      });
+      expect(text).toBe(expected);
+      const logged = loggedArguments(spies);
+      expect(logged).not.toContain('5511987654321');
+      expect(logged).not.toContain('Carlos');
+      expect(logged).not.toContain('quero cancelar');
+    },
+  );
 });

@@ -47,6 +47,8 @@ export type ClientReplyResult =
       outcome: 'failed';
       error: unknown;
       handoff?: HandoffReason;
+      /** The reply that was not sent, given with `appointmentId`. */
+      kind?: ClientReplyKind;
       appointmentId?: string;
     };
 
@@ -191,7 +193,7 @@ export class AnswerClientQuestionUseCase {
       return {
         outcome: 'failed',
         error,
-        ...(appointmentId && { appointmentId }),
+        ...(appointmentId && { appointmentId, kind: reply.kind }),
       };
     }
     this.metrics.reply(reply.kind);
