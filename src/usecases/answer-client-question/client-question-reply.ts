@@ -53,13 +53,15 @@ export function composeReply(
   if (interpretation.topics.includes('opening_hours')) {
     blocks.push(openingHoursBlock(barbershop));
   }
-  if (blocks.length === 0) {
-    return {
-      kind: 'fallback',
-      text: `Posso te ajudar com serviços, preços, endereço e horário de funcionamento da ${barbershop.name}. O que você gostaria de saber?`,
-    };
-  }
+  if (blocks.length === 0) return fallbackReply(barbershop);
   return { kind: 'answer', text: blocks.join('\n\n') };
+}
+
+export function fallbackReply(barbershop: Barbershop): ClientQuestionReply {
+  return {
+    kind: 'fallback',
+    text: `Posso te ajudar com serviços, preços, endereço e horário de funcionamento da ${barbershop.name}. O que você gostaria de saber?`,
+  };
 }
 
 function servicesBlock(

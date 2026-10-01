@@ -5,7 +5,13 @@ export const WHATSAPP_METRICS = Symbol('WhatsAppMetrics');
 export type PrivacyNoticeOutcome = 'sent' | 'failed';
 
 export type ClientReplyKind =
-  'answer' | 'off_topic' | 'fallback' | 'unavailable' | 'handoff';
+  | 'answer'
+  | 'off_topic'
+  | 'fallback'
+  | 'unavailable'
+  | 'handoff'
+  | 'booking'
+  | 'booked';
 
 export type BotResumeTrigger = 'owner' | 'timeout';
 

@@ -7,7 +7,7 @@ import { ClientEntity } from './client.entity';
 @Entity({ name: 'whatsapp_conversations' })
 @Check(
   'whatsapp_conversations_pause_reason_check',
-  `"pause_reason" IN ('requested', 'not_understood')`,
+  `"pause_reason" IN ('requested', 'not_understood', 'blocked_client')`,
 )
 @Check(
   'whatsapp_conversations_pause_check',
@@ -42,4 +42,8 @@ export class WhatsAppConversationEntity {
 
   @Column({ name: 'last_activity_at', type: 'timestamptz' })
   lastActivityAt!: Date;
+
+  // US-17 (AD-013): the booking in progress, validated when read.
+  @Column({ name: 'booking_draft', type: 'jsonb', nullable: true })
+  bookingDraft!: unknown;
 }

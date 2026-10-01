@@ -207,6 +207,23 @@ describe('API docs (e2e)', () => {
     expect(hook.description).toContain('US-16');
   });
 
+  it('US-17 (C36): describes the booking on the webhook and the blocked_client reason', () => {
+    const hook = document.paths['/webhooks/whatsapp/evolution'].post!;
+    expect(hook.description).toContain('US-17');
+
+    const list = document.paths['/whatsapp/conversations/waiting-human'].get!;
+    const schema = jsonSchemaOf(list, 200) as {
+      properties: {
+        conversations: {
+          items: { properties: { reason: { enum: string[] } } };
+        };
+      };
+    };
+    expect(
+      schema.properties.conversations.items.properties.reason.enum,
+    ).toEqual(['requested', 'not_understood', 'blocked_client']);
+  });
+
   it('serves the UI and the JSON document once enabled', async () => {
     const docsApp = (await createAccountTestApp([], setupApiDocs)).app;
 

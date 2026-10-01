@@ -1,4 +1,5 @@
 import type { HandoffReason } from '../../domain/value-objects/handoff-reason';
+import type { BookingPeriod } from './message-interpreter.port';
 
 export const CONVERSATION_REPOSITORY = Symbol('ConversationRepository');
 
@@ -13,6 +14,25 @@ export interface WaitingConversation {
   reason: HandoffReason;
   pausedAt: Date;
   lastActivityAt: Date;
+}
+
+export interface OfferedSlot {
+  barberId: string;
+  startsAt: Date;
+}
+
+/** US-17: what the bot knows of the booking in progress (AD-013). */
+export interface BookingDraft {
+  id: string;
+  serviceIds: string[];
+  barberId: string | null;
+  anyBarber: boolean;
+  date: string | null;
+  period: BookingPeriod | null;
+  time: string | null;
+  /** The options shown to the client, in order. */
+  offer: OfferedSlot[];
+  updatedAt: Date;
 }
 
 // US-16: the bot's state with each client of a barbershop. A pause is in force
@@ -42,9 +62,29 @@ export interface ConversationRepository {
   /** Adds one understanding failure and resolves to the new count. */
   recordFailure(barbershopId: string, clientId: string): Promise<number>;
   resetFailures(barbershopId: string, clientId: string): Promise<void>;
+  /** The stored draft; `null` when there is none or it is unreadable. */
+  findDraft(
+    barbershopId: string,
+    clientId: string,
+  ): Promise<BookingDraft | null>;
+  saveDraft(
+    barbershopId: string,
+    clientId: string,
+    draft: BookingDraft,
+  ): Promise<void>;
+  clearDraft(barbershopId: string, clientId: string): Promise<void>;
+  /**
+   * Removes the draft only while it is still the one with `draftId`, so of two
+   * messages choosing from the same offer only one resolves to true.
+   */
+  consumeDraft(
+    barbershopId: string,
+    clientId: string,
+    draftId: string,
+  ): Promise<boolean>;
   /**
    * Pauses the conversation unless it is already paused, so of two concurrent
-   * pauses only one resolves to true.
+   * pauses only one resolves to true. The draft is dropped with it.
    */
   pause(
     barbershopId: string,
@@ -52,7 +92,10 @@ export interface ConversationRepository {
     reason: HandoffReason,
     at: Date,
   ): Promise<boolean>;
-  /** Lifts the pause and the failure count; `false` when it was not paused. */
+  /**
+   * Lifts the pause, the failure count and the draft; `false` when it was not
+   * paused.
+   */
   resume(barbershopId: string, clientId: string): Promise<boolean>;
   /** Pauses still in force, oldest first. */
   listWaiting(

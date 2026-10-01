@@ -98,5 +98,13 @@
 - **Date**: 2026-09-29
 - **Status**: active
 
+### AD-013
+- **Decision**: O pedido de agendamento em andamento no WhatsApp fica em `whatsapp_conversations.booking_draft` (`jsonb`, nulo quando não há), validado com Zod na leitura; um valor inválido conta como sem rascunho. Traz um `id` e as opções oferecidas; consumir a oferta é um `UPDATE ... WHERE booking_draft->>'id' = $id`, então só uma mensagem agenda a partir de uma oferta. O rascunho vence 60 min depois da última alteração e é limpo ao agendar, ao pausar e ao reativar a conversa. O modelo só recebe os textos das opções e devolve o número escolhido; o horário gravado sai do rascunho.
+- **Reason**: US-17 (CA-17.2, CA-17.4, RN-07). A US-18 vai guardar o agendamento a remarcar ou cancelar no mesmo lugar, e a US-23 a oferta da lista de espera.
+- **Trade-off**: O formato do `jsonb` não é conferido pelo banco; quem muda o formato precisa aceitar que rascunhos antigos sejam descartados na leitura.
+- **Scope**: Conversas do WhatsApp, US-17 em diante (US-18, US-23).
+- **Date**: 2026-09-30
+- **Status**: active
+
 ## Handoff
 

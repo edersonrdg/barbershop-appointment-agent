@@ -11,6 +11,13 @@ const NO_TOPIC: MessageInterpretation = {
   unknownServices: [],
   offTopic: false,
   humanRequested: false,
+  bookingRequested: false,
+  barber: null,
+  anyBarber: false,
+  date: null,
+  period: null,
+  time: null,
+  choice: null,
 };
 
 export class FakeMessageInterpreter implements MessageInterpreter {

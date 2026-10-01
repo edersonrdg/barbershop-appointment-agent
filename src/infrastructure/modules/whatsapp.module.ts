@@ -5,6 +5,21 @@ import { DataSource } from 'typeorm';
 import { WhatsAppConnectionController } from '../../interface-adapters/controllers/whatsapp-connection.controller';
 import { WhatsAppConversationsController } from '../../interface-adapters/controllers/whatsapp-conversations.controller';
 import { AnswerClientQuestionUseCase } from '../../usecases/answer-client-question/answer-client-question.use-case';
+import { BookAppointmentUseCase } from '../../usecases/book-appointment/book-appointment.use-case';
+import { BookViaWhatsAppUseCase } from '../../usecases/book-via-whatsapp/book-via-whatsapp.use-case';
+import { ListAvailableSlotsUseCase } from '../../usecases/list-available-slots/list-available-slots.use-case';
+import {
+  BARBER_REPOSITORY,
+  BarberRepository,
+} from '../../usecases/ports/barber.repository.port';
+import {
+  BOOKING_RULES_REPOSITORY,
+  BookingRulesRepository,
+} from '../../usecases/ports/booking-rules.repository.port';
+import {
+  NO_SHOW_LEDGER,
+  NoShowLedger,
+} from '../../usecases/ports/no-show-ledger.port';
 import { ApplyWhatsAppConnectionStateUseCase } from '../../usecases/apply-whatsapp-connection-state/apply-whatsapp-connection-state.use-case';
 import { ConnectWhatsAppUseCase } from '../../usecases/connect-whatsapp/connect-whatsapp.use-case';
 import { GetWhatsAppConnectionUseCase } from '../../usecases/get-whatsapp-connection/get-whatsapp-connection.use-case';
@@ -75,15 +90,29 @@ import { PrometheusWhatsAppMetrics } from '../observability/prometheus-whatsapp-
 import { SystemClock } from '../security/system-clock';
 import { UuidIdGenerator } from '../security/uuid-id-generator';
 import { AccountModule } from './account.module';
+import { AttendanceModule } from './attendance.module';
+import { BarbersModule } from './barbers.module';
+import { BookingRulesModule } from './booking-rules.module';
 import { GeminiModule } from './gemini.module';
+import { SchedulingModule } from './scheduling.module';
 import { ServicesModule } from './services.module';
 
 // US-13: WhatsApp connection; US-14: first contact and privacy notice; US-15:
-// answers to the client's questions; US-16: hand-off to a human. Global so the readiness check can ping the
-// connector through the port (AD-011).
+// answers to the client's questions; US-16: hand-off to a human; US-17:
+// booking through the availability engine. Global so the readiness check can
+// ping the connector through the port (AD-011).
 @Global()
 @Module({
-  imports: [AccountModule, ObservabilityModule, ServicesModule, GeminiModule],
+  imports: [
+    AccountModule,
+    ObservabilityModule,
+    ServicesModule,
+    GeminiModule,
+    BarbersModule,
+    BookingRulesModule,
+    SchedulingModule,
+    AttendanceModule,
+  ],
   controllers: [
     WhatsAppConnectionController,
     WhatsAppConversationsController,
@@ -234,6 +263,36 @@ import { ServicesModule } from './services.module';
         ),
     },
     {
+      provide: BookViaWhatsAppUseCase,
+      inject: [
+        BARBER_REPOSITORY,
+        BOOKING_RULES_REPOSITORY,
+        NO_SHOW_LEDGER,
+        CONVERSATION_REPOSITORY,
+        ListAvailableSlotsUseCase,
+        BookAppointmentUseCase,
+        ID_GENERATOR,
+      ],
+      useFactory: (
+        barbers: BarberRepository,
+        bookingRules: BookingRulesRepository,
+        ledger: NoShowLedger,
+        conversations: ConversationRepository,
+        listSlots: ListAvailableSlotsUseCase,
+        book: BookAppointmentUseCase,
+        ids: IdGenerator,
+      ) =>
+        new BookViaWhatsAppUseCase(
+          barbers,
+          bookingRules,
+          ledger,
+          conversations,
+          listSlots,
+          book,
+          ids,
+        ),
+    },
+    {
       provide: AnswerClientQuestionUseCase,
       inject: [
         WHATSAPP_CONNECTION_REPOSITORY,
@@ -247,6 +306,7 @@ import { ServicesModule } from './services.module';
         CLIENT_REPOSITORY,
         CONVERSATION_REPOSITORY,
         ConfigService,
+        BookViaWhatsAppUseCase,
       ],
       useFactory: (
         connections: WhatsAppConnectionRepository,
@@ -260,6 +320,7 @@ import { ServicesModule } from './services.module';
         clients: ClientRepository,
         conversations: ConversationRepository,
         config: ConfigService<Env, true>,
+        booking: BookViaWhatsAppUseCase,
       ) =>
         new AnswerClientQuestionUseCase(
           connections,
@@ -273,6 +334,7 @@ import { ServicesModule } from './services.module';
           clients,
           conversations,
           config.get('WHATSAPP_HANDOFF_RESUME_HOURS', { infer: true }),
+          booking,
         ),
     },
     {
