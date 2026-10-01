@@ -20,6 +20,12 @@ Corroborated across multiple features. Safe to apply as guidance.
 - evidence: src/interface-adapters/controllers/schemas/barber-block.schema.ts:13 (confirmConflicts message untested) (schema) (+1 more)
 - last seen: 2026-09-28T22:18:21Z
 
+### L-016 - When a controller acts on a field of a use case result, assert that field on the value the use case returns, not only on a stubbed result in the controller test.
+- signal: `ac_gap` · recurrence: 2 feature(s) · scope: `usecase-controller-seam` · harmful: 0
+- features: us-16-transferencia-para-atendimento-humano, us-18-remarcacao-e-cancelamento-pelo-whatsapp
+- evidence: C26 - src/usecases/answer-client-question/answer-client-question.use-case.spec.ts:144-150 (usecase-controller-seam) (+1 more)
+- last seen: 2026-10-01T13:55:35Z
+
 ## Candidates (under observation - do NOT load as guidance yet)
 
 Seen once or not yet corroborated. Tracked, not trusted.
@@ -102,12 +108,6 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: AC 20 - client-question-reply.ts:79-81; message-interpretation.schema.ts services max(80) (llm)
 - last seen: 2026-09-29T23:11:38Z
 
-### L-016 - When a controller acts on a field of a use case result, assert that field on the value the use case returns, not only on a stubbed result in the controller test.
-- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `usecase-controller-seam` · harmful: 0
-- features: us-16-transferencia-para-atendimento-humano
-- evidence: C26 - src/usecases/answer-client-question/answer-client-question.use-case.spec.ts:144-150 (usecase-controller-seam)
-- last seen: 2026-09-29T23:48:03Z
-
 ### L-017 - In a table-driven check, write the exact expected output of every row, including the boundary row where the rule does not fire.
 - signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec` · harmful: 0
 - features: us-17-agendamento-pelo-whatsapp
@@ -119,6 +119,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - features: us-17-agendamento-pelo-whatsapp
 - evidence: C9 (src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts:183) (spec)
 - last seen: 2026-10-01T00:46:26Z
+
+### L-019 - When a check restates the statuses of an existing route, read them from the generated OpenAPI document and that route's own docs test, and cite a proof that asserts that route, not a generic test of another route.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `api-docs` · harmful: 0
+- features: us-18-remarcacao-e-cancelamento-pelo-whatsapp
+- evidence: checks.md C37 / test/api-docs.e2e-spec.ts:73-86 (asserts only /users/invitations and /me) / test/clients.e2e-spec.ts:664 (/clients/{id} documents no 403) (api-docs)
+- last seen: 2026-10-01T13:41:45Z
 
 ## Quarantined (failed when applied - ignore)
 

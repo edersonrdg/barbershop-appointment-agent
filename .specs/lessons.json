@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 19,
+  "next_id": 20,
   "lessons": [
     {
       "id": "L-001",
@@ -287,17 +287,19 @@
       "text": "When a controller acts on a field of a use case result, assert that field on the value the use case returns, not only on a stubbed result in the controller test.",
       "signal": "ac_gap",
       "scope": "usecase-controller-seam",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "us-16-transferencia-para-atendimento-humano"
+        "us-16-transferencia-para-atendimento-humano",
+        "us-18-remarcacao-e-cancelamento-pelo-whatsapp"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "C26 - src/usecases/answer-client-question/answer-client-question.use-case.spec.ts:144-150 (usecase-controller-seam)"
+        "C26 - src/usecases/answer-client-question/answer-client-question.use-case.spec.ts:144-150 (usecase-controller-seam)",
+        "verification.md R2-3 / src/usecases/answer-client-question/answer-client-question.use-case.ts:196 (kind on failed result unasserted; controller spec stubs it) (usecase-controller-seam)"
       ],
       "created": "2026-09-29T23:48:03Z",
-      "last_seen": "2026-09-29T23:48:03Z"
+      "last_seen": "2026-10-01T13:55:35Z"
     },
     {
       "id": "L-017",
@@ -334,6 +336,24 @@
       ],
       "created": "2026-10-01T00:46:26Z",
       "last_seen": "2026-10-01T00:46:26Z"
+    },
+    {
+      "id": "L-019",
+      "key": "ac_gap::when a check restates the statuses of an existing route read them from the generated openapi document and that route s own docs test and cite a proof that asserts that route not a generic test of another route",
+      "text": "When a check restates the statuses of an existing route, read them from the generated OpenAPI document and that route's own docs test, and cite a proof that asserts that route, not a generic test of another route.",
+      "signal": "ac_gap",
+      "scope": "api-docs",
+      "status": "candidate",
+      "features": [
+        "us-18-remarcacao-e-cancelamento-pelo-whatsapp"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "checks.md C37 / test/api-docs.e2e-spec.ts:73-86 (asserts only /users/invitations and /me) / test/clients.e2e-spec.ts:664 (/clients/{id} documents no 403) (api-docs)"
+      ],
+      "created": "2026-10-01T13:41:45Z",
+      "last_seen": "2026-10-01T13:41:45Z"
     }
   ]
 }
