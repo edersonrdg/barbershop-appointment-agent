@@ -1,3 +1,5 @@
+import { AppointmentCancelledError } from '../errors/appointment-cancelled.error';
+import { AppointmentNotConfirmedError } from '../errors/appointment-not-confirmed.error';
 import { AppointmentNotStartedError } from '../errors/appointment-not-started.error';
 import {
   Appointment,
@@ -167,6 +169,57 @@ describe('Appointment', () => {
       expect(act).toThrow(AppointmentNotStartedError);
       expect(act).toThrow('O agendamento ainda não começou.');
       expect(original.status).toBe('confirmed');
+    });
+  });
+
+  describe('US-18 cancel', () => {
+    const STARTS_AT = new Date('2026-10-05T14:00:00.000Z');
+
+    function withStatus(status: AppointmentStatus): Appointment {
+      return Appointment.restore({
+        id: 'appointment-1',
+        barbershopId: 'barbershop-1',
+        barberId: 'barber-1',
+        clientId: 'client-1',
+        serviceIds: ['service-1', 'service-2'],
+        startsAt: STARTS_AT,
+        endsAt: new Date('2026-10-05T14:45:00.000Z'),
+        status,
+        origin: 'bot',
+        createdAt: NOW,
+      });
+    }
+
+    it('door 1 (C30): a confirmed appointment becomes cancelled and keeps the rest', () => {
+      const original = withStatus('confirmed');
+
+      const cancelled = original.cancel();
+
+      expect(describeAppointment(cancelled)).toEqual({
+        ...describeAppointment(original),
+        status: 'cancelled',
+      });
+      expect(original.status).toBe('confirmed');
+    });
+
+    it.each<AppointmentStatus>(['attended', 'no_show', 'cancelled'])(
+      'door 1 (C30): an appointment %s is not cancelled',
+      (status) => {
+        expect(() => withStatus(status).cancel()).toThrow(
+          AppointmentNotConfirmedError,
+        );
+      },
+    );
+
+    it('AC 24: marking attendance on a cancelled appointment is refused', () => {
+      const act = () =>
+        withStatus('cancelled').markAttendance(
+          'attended',
+          new Date('2026-10-05T15:00:00.000Z'),
+        );
+
+      expect(act).toThrow(AppointmentCancelledError);
+      expect(act).toThrow('Esse agendamento foi cancelado.');
     });
   });
 });

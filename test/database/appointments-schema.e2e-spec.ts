@@ -215,7 +215,7 @@ describe('Appointments schema (e2e)', () => {
       const insert = insertAppointment({
         startsAt: '2026-10-05T13:00:00Z',
         endsAt: '2026-10-05T13:30:00Z',
-        status: 'cancelled',
+        status: 'bogus',
       });
 
       await expect(insert).rejects.toMatchObject({
@@ -399,6 +399,56 @@ describe('Appointments schema (e2e)', () => {
         },
       });
       expect(await count('barber_blocks')).toBe(0);
+    });
+  });
+
+  describe('US-18: cancelled status', () => {
+    it('door 1 (C32): accepts cancelled and still refuses a status outside the list', async () => {
+      const id = await insertAppointment({
+        startsAt: '2026-10-05T13:00:00Z',
+        endsAt: '2026-10-05T13:30:00Z',
+        status: 'cancelled',
+      });
+      const [row] = await dataSource.query<{ status: string }[]>(
+        'SELECT status FROM appointments WHERE id = $1',
+        [id],
+      );
+      expect(row.status).toBe('cancelled');
+
+      await expect(
+        insertAppointment({
+          startsAt: '2026-10-06T13:00:00Z',
+          endsAt: '2026-10-06T13:30:00Z',
+          status: 'bogus',
+        }),
+      ).rejects.toMatchObject({ driverError: { code: CHECK_VIOLATION } });
+    });
+
+    it('door 1 (C32): a cancelled appointment does not hold the slot, two confirmed still collide', async () => {
+      await insertAppointment({
+        startsAt: '2026-10-05T13:00:00Z',
+        endsAt: '2026-10-05T13:30:00Z',
+        status: 'cancelled',
+      });
+
+      await insertAppointment({
+        startsAt: '2026-10-05T13:00:00Z',
+        endsAt: '2026-10-05T13:30:00Z',
+        status: 'confirmed',
+      });
+      await expect(
+        insertAppointment({
+          startsAt: '2026-10-05T13:15:00Z',
+          endsAt: '2026-10-05T13:45:00Z',
+          status: 'confirmed',
+        }),
+      ).rejects.toMatchObject({
+        driverError: {
+          code: EXCLUSION_VIOLATION,
+          constraint: 'appointments_no_overlap',
+        },
+      });
+      expect(await count('appointments')).toBe(2);
     });
   });
 });

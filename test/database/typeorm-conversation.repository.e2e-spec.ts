@@ -17,6 +17,9 @@ describe('TypeOrmConversationRepository booking draft (e2e)', () => {
   function draft(id = 'draft-1'): BookingDraft {
     return {
       id,
+      action: 'book',
+      candidates: [],
+      targetAppointmentId: null,
       serviceIds: [randomUUID()],
       barberId: randomUUID(),
       anyBarber: false,
@@ -118,5 +121,54 @@ describe('TypeOrmConversationRepository booking draft (e2e)', () => {
     await repository.saveDraft(barbershopId, clientId, draft('draft-2'));
     await repository.resume(barbershopId, clientId);
     expect(await storedDraft()).toBeNull();
+  });
+
+  describe('US-18', () => {
+    it('door 2 (C33): reads back a draft listing appointments', async () => {
+      const listing: BookingDraft = {
+        ...draft(),
+        action: 'cancel',
+        candidates: [
+          {
+            appointmentId: randomUUID(),
+            barberId: randomUUID(),
+            startsAt: new Date('2026-09-29T18:00:00.000Z'),
+          },
+          {
+            appointmentId: randomUUID(),
+            barberId: randomUUID(),
+            startsAt: new Date('2026-09-30T13:00:00.000Z'),
+          },
+        ],
+        targetAppointmentId: null,
+        offer: [],
+      };
+      await repository.saveDraft(barbershopId, clientId, listing);
+
+      expect(await repository.findDraft(barbershopId, clientId)).toEqual(
+        listing,
+      );
+    });
+
+    it('door 2 (C33): reads a draft stored before US-18 as a booking', async () => {
+      const { action, candidates, targetAppointmentId, ...legacy } = draft();
+      expect([action, candidates, targetAppointmentId]).toEqual([
+        'book',
+        [],
+        null,
+      ]);
+      await dataSource.query(
+        `UPDATE whatsapp_conversations SET booking_draft = $3
+          WHERE barbershop_id = $1 AND client_id = $2`,
+        [barbershopId, clientId, JSON.stringify(legacy)],
+      );
+
+      expect(await repository.findDraft(barbershopId, clientId)).toEqual({
+        ...legacy,
+        action: 'book',
+        candidates: [],
+        targetAppointmentId: null,
+      });
+    });
   });
 });

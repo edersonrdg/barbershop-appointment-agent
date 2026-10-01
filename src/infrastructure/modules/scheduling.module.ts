@@ -150,6 +150,7 @@ import { ServicesModule } from './services.module';
     ListAvailableSlotsUseCase,
     BookAppointmentUseCase,
     APPOINTMENT_REPOSITORY,
+    APPOINTMENT_METRICS,
     BARBER_BLOCK_REPOSITORY,
   ],
 })

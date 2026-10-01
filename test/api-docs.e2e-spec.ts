@@ -221,7 +221,62 @@ describe('API docs (e2e)', () => {
     };
     expect(
       schema.properties.conversations.items.properties.reason.enum,
-    ).toEqual(['requested', 'not_understood', 'blocked_client']);
+    ).toEqual([
+      'requested',
+      'not_understood',
+      'blocked_client',
+      'late_cancellation',
+    ]);
+  });
+
+  describe('US-18', () => {
+    type WithStatus = { properties: { status: { enum: string[] } } };
+    const STATUSES = ['confirmed', 'attended', 'no_show', 'cancelled'];
+
+    it('AC 25 (C31): documents the 409 of a cancelled appointment on the attendance route', () => {
+      const route = document.paths['/appointments/{id}/status'].patch!;
+
+      expect(Object.keys(route.responses)).toContain('409');
+      expect(jsonSchemaOf(route, 409)).toMatchObject({
+        example: { message: 'Esse agendamento foi cancelado.' },
+      });
+    });
+
+    it('AC 25 (C31): documents the cancelled status on the schedule and the client profile', () => {
+      const schedule = jsonSchemaOf(
+        document.paths['/appointments'].get!,
+        200,
+      ) as { properties: { appointments: { items: WithStatus } } };
+      const profile = jsonSchemaOf(
+        document.paths['/clients/{id}'].get!,
+        200,
+      ) as { properties: { upcomingAppointments: { items: WithStatus } } };
+
+      expect(
+        schedule.properties.appointments.items.properties.status.enum,
+      ).toEqual(STATUSES);
+      expect(
+        profile.properties.upcomingAppointments.items.properties.status.enum,
+      ).toEqual(STATUSES);
+    });
+
+    it('AC 25 (C31): documents the late_cancellation reason and the US-18 webhook behaviour', () => {
+      const list = document.paths['/whatsapp/conversations/waiting-human'].get!;
+      const schema = jsonSchemaOf(list, 200) as {
+        properties: {
+          conversations: {
+            items: { properties: { reason: { enum: string[] } } };
+          };
+        };
+      };
+
+      expect(
+        schema.properties.conversations.items.properties.reason.enum,
+      ).toContain('late_cancellation');
+      expect(
+        document.paths['/webhooks/whatsapp/evolution'].post!.description,
+      ).toContain('US-18');
+    });
   });
 
   it('serves the UI and the JSON document once enabled', async () => {

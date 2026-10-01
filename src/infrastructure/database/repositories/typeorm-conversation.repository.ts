@@ -10,9 +10,21 @@ import {
 import { BOOKING_PERIODS } from '../../../usecases/ports/message-interpreter.port';
 
 // AD-013: the stored draft is read back through this schema; a value it does
-// not accept is treated as no draft.
+// not accept is treated as no draft. A draft stored before US-18 has no action
+// and is a booking (door 2).
 const storedDraftSchema = z.object({
   id: z.string().min(1),
+  action: z.enum(['book', 'cancel', 'reschedule']).default('book'),
+  candidates: z
+    .array(
+      z.object({
+        appointmentId: z.string(),
+        barberId: z.string(),
+        startsAt: z.coerce.date(),
+      }),
+    )
+    .default([]),
+  targetAppointmentId: z.string().nullable().default(null),
   serviceIds: z.array(z.string()),
   barberId: z.string().nullable(),
   anyBarber: z.boolean(),

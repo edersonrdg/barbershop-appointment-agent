@@ -14,7 +14,7 @@ const waitingConversationSchema = z.object({
   }),
   reason: z.enum(HANDOFF_REASONS).meta({
     description:
-      'Por que o bot transferiu: `requested` (o cliente pediu um atendente) , `not_understood` (duas falhas seguidas de entendimento) ou `blocked_client` (cliente bloqueado por faltas pediu para agendar, US-17).',
+      'Por que o bot transferiu: `requested` (o cliente pediu um atendente) , `not_understood` (duas falhas seguidas de entendimento) `blocked_client` (cliente bloqueado por faltas pediu para agendar ou remarcar, US-17 e US-18) ou `late_cancellation` (pedido de cancelamento ou remarcação fora do prazo, US-18).',
     example: 'requested',
   }),
   pausedAt: z.iso.datetime().meta({

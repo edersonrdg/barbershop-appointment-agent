@@ -31,130 +31,130 @@ Textos esperados (blocos separados por `\n\n`, linhas por `\n`):
 
 ### S1 - Agendamento localizado e desambiguado · ~8 arquivos · ~110 KB · ~28k
 
-**C1** - O adaptador do Gemini repassa `{ cancelRequested: true, rescheduleRequested: false, choice: 10 }`; rejeita com `MessageInterpreterUnavailableError`, por tabela, `choice: 11` e JSON sem `cancelRequested` e sem `rescheduleRequested`; o `responseJsonSchema` tem `cancelRequested` e `rescheduleRequested` em `required`; o `systemInstruction` contém cada linha de `appointmentOptions` (door 1 ampliada, door 5)
+**C1** - O adaptador do Gemini repassa `{ cancelRequested: true, rescheduleRequested: false, choice: 10 }`; rejeita com `MessageInterpreterUnavailableError`, por tabela, `choice: 11` e JSON sem `cancelRequested` e sem `rescheduleRequested`; o `responseJsonSchema` tem `cancelRequested` e `rescheduleRequested` em `required`; o `systemInstruction` contém cada linha de `appointmentOptions` (door 1 ampliada, door 5) ✅
 Proof: `npx jest src/infrastructure/external/gemini/gemini-message-interpreter.spec.ts -t "US-18.*\(C1\)"`
 
-**C2** - Com B semeado antes de A, mais um agendamento passado `attended` do Carlos, um futuro `cancelled` do Carlos, um futuro de outro cliente e um futuro do Carlos na barbearia B, `{ cancelRequested: true }` responde exatamente `Você tem mais de um agendamento. Qual deles?\n1. Corte, terça-feira, 29/09, às 15:00, com João\n2. Barba, quarta-feira, 30/09, às 10:00, com João\nResponda com o número do agendamento.` e o rascunho fica com `action: 'cancel'`, `candidates` = [A, B] nessa ordem (id, barbeiro, início) e `targetAppointmentId: null` (AC 1, AC 4, AC 7, CA-18.2, RN-26)
+**C2** - Com B semeado antes de A, mais um agendamento passado `attended` do Carlos, um futuro `cancelled` do Carlos, um futuro de outro cliente e um futuro do Carlos na barbearia B, `{ cancelRequested: true }` responde exatamente `Você tem mais de um agendamento. Qual deles?\n1. Corte, terça-feira, 29/09, às 15:00, com João\n2. Barba, quarta-feira, 30/09, às 10:00, com João\nResponda com o número do agendamento.` e o rascunho fica com `action: 'cancel'`, `candidates` = [A, B] nessa ordem (id, barbeiro, início) e `targetAppointmentId: null` (AC 1, AC 4, AC 7, CA-18.2, RN-26) ✅
 Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-18.*\(C2\)"`
 
-**C3** - Por tabela (`cancelRequested` e `rescheduleRequested`), com o Carlos tendo só um agendamento passado `attended` e um futuro `cancelled`, a resposta é exatamente `Você não tem nenhum agendamento futuro.` e o rascunho fica nulo (AC 2)
+**C3** - Por tabela (`cancelRequested` e `rescheduleRequested`), com o Carlos tendo só um agendamento passado `attended` e um futuro `cancelled`, a resposta é exatamente `Você não tem nenhum agendamento futuro.` e o rascunho fica nulo (AC 2) ✅
 Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-18.*\(C3\)"`
 
-**C4** - Com 11 agendamentos futuros confirmados do Carlos, a lista traz exatamente 10 linhas, a última numerada `10.`, e o 11º (o mais distante) fica fora de `candidates` (door 5)
+**C4** - Com 11 agendamentos futuros confirmados do Carlos, a lista traz exatamente 10 linhas, a última numerada `10.`, e o 11º (o mais distante) fica fora de `candidates` (door 5) ✅
 Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-18.*\(C4\)"`
 
-**C5** - Depois da lista do C2, `{ choice: 2 }` deixa B com status `cancelled`, A com `confirmed`, e responde exatamente `Agendamento cancelado.\nServiço: Barba\nBarbeiro: João\nData: quarta-feira, 30/09\nHorário: 10:00` (AC 5)
+**C5** - Depois da lista do C2, `{ choice: 2 }` deixa B com status `cancelled`, A com `confirmed`, e responde exatamente `Agendamento cancelado.\nServiço: Barba\nBarbeiro: João\nData: quarta-feira, 30/09\nHorário: 10:00` (AC 5) ✅
 Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-18.*\(C5\)"`
 
-**C6** - Depois da lista do C2, `{ choice: 3 }` responde exatamente `Não encontrei essa opção.\n\n` + a mesma lista do C2, nenhum agendamento muda de status e o rascunho continua com os 2 candidatos (AC 6)
+**C6** - Depois da lista do C2, `{ choice: 3 }` responde exatamente `Não encontrei essa opção.\n\n` + a mesma lista do C2, nenhum agendamento muda de status e o rascunho continua com os 2 candidatos (AC 6) ✅
 Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-18.*\(C6\)"`
 
-**C7** - No `AnswerClientQuestionUseCase`, sem rascunho o intérprete recebe `appointmentOptions: []`; depois da lista do C2, a mensagem seguinte manda `appointmentOptions` = `['Corte, terça-feira, 29/09, às 15:00, com João', 'Barba, quarta-feira, 30/09, às 10:00, com João']` e `offeredOptions: []` (AC 4, door 1)
+**C7** - No `AnswerClientQuestionUseCase`, sem rascunho o intérprete recebe `appointmentOptions: []`; depois da lista do C2, a mensagem seguinte manda `appointmentOptions` = `['Corte, terça-feira, 29/09, às 15:00, com João', 'Barba, quarta-feira, 30/09, às 10:00, com João']` e `offeredOptions: []` (AC 4, door 1) ✅
 Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "US-18.*\(C7\)"`
 
 ### S2 - Cancelamento dentro do prazo · ~6 arquivos · ~60 KB · ~15k
 
-**C8** - Com só A, `{ cancelRequested: true }` deixa A com status `cancelled` e responde exatamente `Agendamento cancelado.\nServiço: Corte\nBarbeiro: João\nData: terça-feira, 29/09\nHorário: 15:00`, sem a pergunta da lista, e o rascunho fica nulo; com A tendo Corte e Barba, a segunda linha é `Serviços: Corte, Barba` (AC 3, AC 8, CA-18.1)
+**C8** - Com só A, `{ cancelRequested: true }` deixa A com status `cancelled` e responde exatamente `Agendamento cancelado.\nServiço: Corte\nBarbeiro: João\nData: terça-feira, 29/09\nHorário: 15:00`, sem a pergunta da lista, e o rascunho fica nulo; com A tendo Corte e Barba, a segunda linha é `Serviços: Corte, Barba` (AC 3, AC 8, CA-18.1) ✅
 Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-18.*\(C8\)"`
 
-**C9** - Antes do cancelamento do C8, os horários livres de Corte com João na terça 29/09 (origem `bot`) não trazem 15:00; depois, trazem 15:00 (CA-18.5, door 4)
+**C9** - Antes do cancelamento do C8, os horários livres de Corte com João na terça 29/09 (origem `bot`) não trazem 15:00; depois, trazem 15:00 (CA-18.5, door 4) ✅
 Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-18.*\(C9\)"`
 
-**C10** - Por tabela de prazo e início do único agendamento: prazo 120 e início às 14:00 (exatamente 120 min) → cancela; prazo 120 e início às 13:55 → não cancela e devolve transferência `late_cancellation`; prazo 30 e início às 12:30 → cancela (AC 8, AC 16, AC 17, RN-09)
+**C10** - Por tabela de prazo e início do único agendamento: prazo 120 e início às 14:00 (exatamente 120 min) → cancela; prazo 120 e início às 13:55 → não cancela e devolve transferência `late_cancellation`; prazo 30 e início às 12:30 → cancela (AC 8, AC 16, AC 17, RN-09) ✅
 Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-18.*\(C10\)"`
 
-**C11** - No e2e, um webhook de cancelamento aumenta `appointments_cancelled_total{origin="bot"}` e `whatsapp_replies_total{kind="cancelled"}` em 1 cada; as linhas de `/metrics` dessas métricas não trazem label além de `origin` e `kind` (AC 9)
+**C11** - No e2e, um webhook de cancelamento aumenta `appointments_cancelled_total{origin="bot"}` e `whatsapp_replies_total{kind="cancelled"}` em 1 cada; as linhas de `/metrics` dessas métricas não trazem label além de `origin` e `kind` (AC 9) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-reschedule-cancel.e2e-spec.ts -t "US-18.*\(C11\)"`
 
-**C12** - Com o fake do conector falhando no `sendText` da confirmação de cancelamento, o use case devolve `{ outcome: 'failed' }` com o `appointmentId` de A e A fica `cancelled` no repositório; no e2e o webhook responde `204` e a linha de A tem `status = 'cancelled'` (AC 10)
+**C12** - Com o fake do conector falhando no `sendText` da confirmação de cancelamento, o use case devolve `{ outcome: 'failed' }` com o `appointmentId` de A e A fica `cancelled` no repositório; no e2e o webhook responde `204` e a linha de A tem `status = 'cancelled'` (AC 10) ✅
 Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "US-18.*\(C12\)"`
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-reschedule-cancel.e2e-spec.ts -t "US-18.*\(C12\)"`
 
 ### S3 - Remarcação dentro do prazo · ~4 arquivos · ~60 KB · ~15k
 
-**C13** - Com só R, `{ rescheduleRequested: true, date: '2026-09-30', period: 'morning' }` responde exatamente `Horários para Corte (R$ 45,00, 30 min):\n1. quarta-feira, 30/09, às 09:00, com João\n2. quarta-feira, 30/09, às 09:30, com João\n3. quarta-feira, 30/09, às 10:00, com João\nResponda com o número do horário que você quer.`, e o rascunho fica com `action: 'reschedule'`, `targetAppointmentId` = id de R, `serviceIds: ['corte']`, `barberId` = João e 3 opções em `offer`; R continua `confirmed` (AC 3, AC 11, CA-18.3)
+**C13** - Com só R, `{ rescheduleRequested: true, date: '2026-09-30', period: 'morning' }` responde exatamente `Horários para Corte (R$ 45,00, 30 min):\n1. quarta-feira, 30/09, às 09:00, com João\n2. quarta-feira, 30/09, às 09:30, com João\n3. quarta-feira, 30/09, às 10:00, com João\nResponda com o número do horário que você quer.`, e o rascunho fica com `action: 'reschedule'`, `targetAppointmentId` = id de R, `serviceIds: ['corte']`, `barberId` = João e 3 opções em `offer`; R continua `confirmed` (AC 3, AC 11, CA-18.3) ✅
 Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-18.*\(C13\)"`
 
-**C14** - Por tabela, com só R e pedido de remarcação para amanhã de manhã: `anyBarber: true` com João ocupado das 09:00 às 10:00 oferece `09:00 com Pedro`, `09:30 com Pedro`, `10:00 com João`; `barber: 'Pedro'` oferece 09:00, 09:30 e 10:00 com Pedro (AC 11)
+**C14** - Por tabela, com só R e pedido de remarcação para amanhã de manhã: `anyBarber: true` com João ocupado das 09:00 às 10:00 oferece `09:00 com Pedro`, `09:30 com Pedro`, `10:00 com João`; `barber: 'Pedro'` oferece 09:00, 09:30 e 10:00 com Pedro (AC 11) ✅
 Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-18.*\(C14\)"`
 
-**C15** - Depois da oferta do C13, `{ choice: 1 }` cria exatamente 1 agendamento novo do Carlos com `status: 'confirmed'`, `origin: 'bot'`, João, `serviceIds: ['corte']`, `startsAt 2026-09-30T12:00:00Z` e `endsAt 2026-09-30T12:30:00Z`; R fica `cancelled`; a resposta é exatamente `Agendamento remarcado!\nServiço: Corte\nBarbeiro: João\nData: quarta-feira, 30/09\nHorário: 09:00\nValor: R$ 45,00\nEndereço: Rua das Flores, 123` e o rascunho fica nulo (AC 12, AC 13, CA-18.3, CA-18.5)
+**C15** - Depois da oferta do C13, `{ choice: 1 }` cria exatamente 1 agendamento novo do Carlos com `status: 'confirmed'`, `origin: 'bot'`, João, `serviceIds: ['corte']`, `startsAt 2026-09-30T12:00:00Z` e `endsAt 2026-09-30T12:30:00Z`; R fica `cancelled`; a resposta é exatamente `Agendamento remarcado!\nServiço: Corte\nBarbeiro: João\nData: quarta-feira, 30/09\nHorário: 09:00\nValor: R$ 45,00\nEndereço: Rua das Flores, 123` e o rascunho fica nulo (AC 12, AC 13, CA-18.3, CA-18.5) ✅
 Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-18.*\(C15\)"`
 
-**C16** - Na remarcação do C15, as métricas contadas são exatamente `booked` = `['bot']` e `cancelled` = `['bot']` (AC 14)
+**C16** - Na remarcação do C15, as métricas contadas são exatamente `booked` = `['bot']` e `cancelled` = `['bot']` (AC 14) ✅
 Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-18.*\(C16\)"`
 
-**C17** - Com o fake do conector falhando no `sendText` da confirmação de remarcação, o use case devolve `{ outcome: 'failed' }` com o `appointmentId` do agendamento novo, que fica `confirmed`, e R fica `cancelled` (AC 15)
+**C17** - Com o fake do conector falhando no `sendText` da confirmação de remarcação, o use case devolve `{ outcome: 'failed' }` com o `appointmentId` do agendamento novo, que fica `confirmed`, e R fica `cancelled` (AC 15) ✅
 Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "US-18.*\(C17\)"`
 
-**C18** - Depois da oferta do C13, `{ bookingRequested: true, date: '2026-10-01' }` responde a oferta de quinta-feira, 01/10, às 09:00, 09:30 e 10:00 com João, mantendo `action: 'reschedule'` e o alvo R; `{ choice: 2 }` em seguida cria o agendamento das 09:30 de 01/10 e cancela R (AC 11)
+**C18** - Depois da oferta do C13, `{ bookingRequested: true, date: '2026-10-01' }` responde a oferta de quinta-feira, 01/10, às 09:00, 09:30 e 10:00 com João, mantendo `action: 'reschedule'` e o alvo R; `{ choice: 2 }` em seguida cria o agendamento das 09:30 de 01/10 e cancela R (AC 11) ✅
 Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-18.*\(C18\)"`
 
 ### S4 - Fora do prazo · ~4 arquivos · ~50 KB · ~12k
 
-**C19** - Por tabela no `AnswerClientQuestionUseCase` (`cancelRequested` e `rescheduleRequested`), com só um agendamento de Corte com João às 13:00 de hoje (1h): exatamente 1 `sendText` com `Só cancelamos ou remarcamos pelo WhatsApp com pelo menos 2h de antecedência.\n\nVou chamar alguém da equipe para te ajudar.`, conversa com `pauseReason: 'late_cancellation'`, rascunho nulo, agendamento ainda `confirmed` e nenhum agendamento novo (AC 16, CA-18.4, RN-09, RN-22)
+**C19** - Por tabela no `AnswerClientQuestionUseCase` (`cancelRequested` e `rescheduleRequested`), com só um agendamento de Corte com João às 13:00 de hoje (1h): exatamente 1 `sendText` com `Só cancelamos ou remarcamos pelo WhatsApp com pelo menos 2h de antecedência.\n\nVou chamar alguém da equipe para te ajudar.`, conversa com `pauseReason: 'late_cancellation'`, rascunho nulo, agendamento ainda `confirmed` e nenhum agendamento novo (AC 16, CA-18.4, RN-09, RN-22) ✅
 Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "US-18.*\(C19\)"`
 
-**C20** - Por tabela, com o único agendamento às 12:20 de hoje: prazo 120 → `... pelo menos 2h de antecedência.`; prazo 30 → `... pelo menos 30 min de antecedência.`; prazo 90 → `... pelo menos 1h30 de antecedência.` (AC 17)
+**C20** - Por tabela, com o único agendamento às 12:20 de hoje: prazo 120 → `... pelo menos 2h de antecedência.`; prazo 30 → `... pelo menos 30 min de antecedência.`; prazo 90 → `... pelo menos 1h30 de antecedência.` (AC 17) ✅
 Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-18.*\(C20\)"`
 
-**C21** - Com A e um agendamento de Corte com João às 13:00 de hoje (L), `{ cancelRequested: true }` lista L e A; `{ choice: 1 }` devolve a transferência `late_cancellation` com o texto do prazo e L continua `confirmed` (AC 16)
+**C21** - Com A e um agendamento de Corte com João às 13:00 de hoje (L), `{ cancelRequested: true }` lista L e A; `{ choice: 1 }` devolve a transferência `late_cancellation` com o texto do prazo e L continua `confirmed` (AC 16) ✅
 Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-18.*\(C21\)"`
 
-**C22** - No e2e, com um agendamento daqui 1h, o webhook de cancelamento responde `204`, envia o texto do C19, `GET /whatsapp/conversations/waiting-human` como Dono traz a conversa com `reason: 'late_cancellation'` e `/metrics` mostra `whatsapp_handoffs_total{reason="late_cancellation"} 1` (AC 18)
+**C22** - No e2e, com um agendamento daqui 1h, o webhook de cancelamento responde `204`, envia o texto do C19, `GET /whatsapp/conversations/waiting-human` como Dono traz a conversa com `reason: 'late_cancellation'` e `/metrics` mostra `whatsapp_handoffs_total{reason="late_cancellation"} 1` (AC 18) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-reschedule-cancel.e2e-spec.ts -t "US-18.*\(C22\)"`
 
 ### S5 - Opção de remarcação disputada ou vencida · ~2 arquivos · ~40 KB · ~10k
 
-**C23** - Depois da oferta do C13, com outro agendamento do João criado amanhã das 09:00 às 09:30, `{ choice: 1 }` não cria agendamento do Carlos, R continua `confirmed` e a resposta é exatamente `Esse horário acabou de ser ocupado.\n\n` + oferta de 09:30, 10:00 e 10:30 de 30/09 com João; com um repositório cujo `create` rejeita com `AppointmentConflictError`, a resposta começa com a mesma frase e R continua `confirmed` (AC 19, RN-07)
+**C23** - Depois da oferta do C13, com outro agendamento do João criado amanhã das 09:00 às 09:30, `{ choice: 1 }` não cria agendamento do Carlos, R continua `confirmed` e a resposta é exatamente `Esse horário acabou de ser ocupado.\n\n` + oferta de 09:30, 10:00 e 10:30 de 30/09 com João; com um repositório cujo `create` rejeita com `AppointmentConflictError`, a resposta começa com a mesma frase e R continua `confirmed` (AC 19, RN-07) ✅
 Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-18.*\(C23\)"`
 
-**C24** - Com só R, `{ rescheduleRequested: true }` oferece terça-feira, 29/09, às 13:00, 13:30 e 14:00 com João; com o relógio em `2026-09-29T15:01:00Z`, `{ choice: 1 }` não cria agendamento, R continua `confirmed` e a resposta é exatamente `Só agendamos pelo WhatsApp com pelo menos 1h de antecedência.\n\n` + `Horários para Corte (R$ 45,00, 30 min):\n1. terça-feira, 29/09, às 13:30, com João\nResponda com o número do horário que você quer.` (AC 20)
+**C24** - Com só R, `{ rescheduleRequested: true }` oferece terça-feira, 29/09, às 13:00, 13:30 e 14:00 com João; com o relógio em `2026-09-29T15:01:00Z`, `{ choice: 1 }` não cria agendamento, R continua `confirmed` e a resposta é exatamente `Só agendamos pelo WhatsApp com pelo menos 1h de antecedência.\n\n` + `Horários para Corte (R$ 45,00, 30 min):\n1. terça-feira, 29/09, às 13:30, com João\nResponda com o número do horário que você quer.` (AC 20) ✅
 Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-18.*\(C24\)"`
 
 ### S6 - Consistência, painel, documentação e doors · ~16 arquivos · ~190 KB · ~48k
 
-**C25** - Com o Carlos com 2 faltas (limite 2) e só A: `{ cancelRequested: true }` cancela A e responde o texto de cancelado; com A restaurado, `{ rescheduleRequested: true }` envia exatamente 1 `sendText` com o texto de transferência, pausa com `pauseReason: 'blocked_client'`, A continua `confirmed` e nenhuma oferta é gravada (AC 21, RN-12)
+**C25** - Com o Carlos com 2 faltas (limite 2) e só A: `{ cancelRequested: true }` cancela A e responde o texto de cancelado; com A restaurado, `{ rescheduleRequested: true }` envia exatamente 1 `sendText` com o texto de transferência, pausa com `pauseReason: 'blocked_client'`, A continua `confirmed` e nenhuma oferta é gravada (AC 21, RN-12) ✅
 Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "US-18.*\(C25\)"`
 
-**C26** - Por tabela no `AnswerClientQuestionUseCase`, com só A: `{ humanRequested: true, cancelRequested: true }` transfere com `requested` e A continua `confirmed`; `{ offTopic: true, cancelRequested: true }` responde a recusa da US-15 e A continua `confirmed` (AC 22)
+**C26** - Por tabela no `AnswerClientQuestionUseCase`, com só A: `{ humanRequested: true, cancelRequested: true }` transfere com `requested` e A continua `confirmed`; `{ offTopic: true, cancelRequested: true }` responde a recusa da US-15 e A continua `confirmed` (AC 22) ✅
 Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "US-18.*\(C26\)"`
 
-**C27** - Por tabela no `AnswerClientQuestionUseCase`: `{ choice: 1 }` com a lista do C2 gravada há 61 min, e com a oferta de remarcação do C13 gravada há 61 min, recebe o texto sem tópico, deixa `consecutiveFailures = 1` e nenhum agendamento muda; com a lista gravada há 59 min, cancela A (AC 23, AD-013)
+**C27** - Por tabela no `AnswerClientQuestionUseCase`: `{ choice: 1 }` com a lista do C2 gravada há 61 min, e com a oferta de remarcação do C13 gravada há 61 min, recebe o texto sem tópico, deixa `consecutiveFailures = 1` e nenhum agendamento muda; com a lista gravada há 59 min, cancela A (AC 23, AD-013) ✅
 Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "US-18.*\(C27\)"`
 
-**C28** - Com uma oferta de agendamento novo da US-17 em vigor e só A, `{ cancelRequested: true }` cancela A e deixa o rascunho nulo; com a lista do C2 em vigor, `{ bookingRequested: true, services: ['Corte'], barber: 'João', date: '2026-09-30', period: 'afternoon' }` responde a oferta de agendamento da US-17 (12:00, 12:30, 13:00) com `action: 'book'` e `candidates: []` no rascunho (Assumptions: um pedido novo sobrescreve o rascunho)
+**C28** - Com uma oferta de agendamento novo da US-17 em vigor e só A, `{ cancelRequested: true }` cancela A e deixa o rascunho nulo; com a lista do C2 em vigor, `{ bookingRequested: true, services: ['Corte'], barber: 'João', date: '2026-09-30', period: 'afternoon' }` responde a oferta de agendamento da US-17 (12:00, 12:30, 13:00) com `action: 'book'` e `candidates: []` no rascunho (Assumptions: um pedido novo sobrescreve o rascunho) ✅
 Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-18.*\(C28\)"`
 
-**C29** - `MarkAttendanceUseCase` sobre um agendamento `cancelled` já iniciado rejeita com `AppointmentCancelledError` de mensagem `Esse agendamento foi cancelado.` e o status continua `cancelled`; no e2e, `PATCH /appointments/:id/status` com `attended` nesse agendamento responde `409` com `message: 'Esse agendamento foi cancelado.'` e a linha continua `cancelled` (AC 24)
+**C29** - `MarkAttendanceUseCase` sobre um agendamento `cancelled` já iniciado rejeita com `AppointmentCancelledError` de mensagem `Esse agendamento foi cancelado.` e o status continua `cancelled`; no e2e, `PATCH /appointments/:id/status` com `attended` nesse agendamento responde `409` com `message: 'Esse agendamento foi cancelado.'` e a linha continua `cancelled` (AC 24) ✅
 Proof: `npx jest src/usecases/mark-attendance/mark-attendance.use-case.spec.ts -t "US-18.*\(C29\)"`
 Proof: `npx jest --config ./test/jest-e2e.json test/attendance.e2e-spec.ts -t "US-18.*\(C29\)"`
 
-**C30** - `Appointment.cancel(now)`: `confirmed` vira `cancelled` mantendo barbeiro, início, fim e serviços; por tabela, `attended`, `no_show` e `cancelled` lançam erro (door 1)
+**C30** - `Appointment.cancel(now)`: `confirmed` vira `cancelled` mantendo barbeiro, início, fim e serviços; por tabela, `attended`, `no_show` e `cancelled` lançam erro (door 1) ✅
 Proof: `npx jest src/domain/entities/appointment.spec.ts -t "US-18.*\(C30\)"`
 
-**C31** - No documento OpenAPI: `PATCH /appointments/{id}/status` tem resposta `409` com exemplo `Esse agendamento foi cancelado.`; o `status` do item de `GET /appointments` e o de `upcomingAppointments` em `GET /clients/{id}` têm `enum` igual a `['confirmed', 'attended', 'no_show', 'cancelled']`; o `reason` de `GET /whatsapp/conversations/waiting-human` tem `enum` igual a `['requested', 'not_understood', 'blocked_client', 'late_cancellation']` (AC 25, Surface)
+**C31** - No documento OpenAPI: `PATCH /appointments/{id}/status` tem resposta `409` com exemplo `Esse agendamento foi cancelado.`; o `status` do item de `GET /appointments` e o de `upcomingAppointments` em `GET /clients/{id}` têm `enum` igual a `['confirmed', 'attended', 'no_show', 'cancelled']`; o `reason` de `GET /whatsapp/conversations/waiting-human` tem `enum` igual a `['requested', 'not_understood', 'blocked_client', 'late_cancellation']` (AC 25, Surface) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/api-docs.e2e-spec.ts -t "US-18.*\(C31\)"`
 
-**C32** - No banco, `appointments.status = 'cancelled'` é aceito e `'bogus'` continua recusado; um agendamento `confirmed` sobreposto a um `cancelled` do mesmo barbeiro é aceito, e dois `confirmed` sobrepostos continuam recusados; `whatsapp_conversations.pause_reason = 'late_cancellation'` é aceito com `paused_at` preenchido (door 1, door 3)
+**C32** - No banco, `appointments.status = 'cancelled'` é aceito e `'bogus'` continua recusado; um agendamento `confirmed` sobreposto a um `cancelled` do mesmo barbeiro é aceito, e dois `confirmed` sobrepostos continuam recusados; `whatsapp_conversations.pause_reason = 'late_cancellation'` é aceito com `paused_at` preenchido (door 1, door 3) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/database/appointments-schema.e2e-spec.ts -t "US-18.*\(C32\)"`
 Proof: `npx jest --config ./test/jest-e2e.json test/database/whatsapp-conversations-schema.e2e-spec.ts -t "US-18.*\(C32\)"`
 
-**C33** - No repositório TypeORM de agendamentos, `saveStatus` de um agendamento cancelado grava `cancelled` e `listBusyPeriods` deixa de devolvê-lo; no de conversas, um rascunho com `action: 'cancel'`, 2 `candidates` e `targetAppointmentId: null` volta igual na leitura, e um rascunho da US-17 gravado por SQL sem `action`, `candidates` nem `targetAppointmentId` é lido com `action: 'book'`, `candidates: []` e `targetAppointmentId: null` (door 1, door 2)
+**C33** - No repositório TypeORM de agendamentos, `saveStatus` de um agendamento cancelado grava `cancelled` e `listBusyPeriods` deixa de devolvê-lo; no de conversas, um rascunho com `action: 'cancel'`, 2 `candidates` e `targetAppointmentId: null` volta igual na leitura, e um rascunho da US-17 gravado por SQL sem `action`, `candidates` nem `targetAppointmentId` é lido com `action: 'book'`, `candidates: []` e `targetAppointmentId: null` (door 1, door 2) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/database/typeorm-appointment.repository.e2e-spec.ts -t "US-18.*\(C33\)"`
 Proof: `npx jest --config ./test/jest-e2e.json test/database/typeorm-conversation.repository.e2e-spec.ts -t "US-18.*\(C33\)"`
 
-**C34** - No e2e, o cancelamento completo: com 2 agendamentos futuros confirmados do cliente, o webhook de `{ cancelRequested: true }` envia a lista; o de `{ choice: 2 }` envia o texto de cancelado; a linha do segundo tem `status = 'cancelled'` e a do primeiro `confirmed`; `GET /appointments` do dia do segundo como Dono traz a entrada com `status: 'cancelled'`, e `GET /clients/:id` traz o mesmo `status` em `upcomingAppointments` (CA-18.1, CA-18.2, Surface)
+**C34** - No e2e, o cancelamento completo: com 2 agendamentos futuros confirmados do cliente, o webhook de `{ cancelRequested: true }` envia a lista; o de `{ choice: 2 }` envia o texto de cancelado; a linha do segundo tem `status = 'cancelled'` e a do primeiro `confirmed`; `GET /appointments` do dia do segundo como Dono traz a entrada com `status: 'cancelled'`, e `GET /clients/:id` traz o mesmo `status` em `upcomingAppointments` (CA-18.1, CA-18.2, Surface) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-reschedule-cancel.e2e-spec.ts -t "US-18.*\(C34\)"`
 
-**C35** - No e2e, a remarcação completa: com um agendamento de Corte com João amanhã às 17:00, o webhook de `{ rescheduleRequested: true, date: amanhã, period: 'morning' }` envia a oferta de 09:00, 09:30 e 10:00 com João; o de `{ choice: 1 }` envia o texto de remarcado; há uma linha nova com `origin = 'bot'`, `status = 'confirmed'` e início às 09:00 de amanhã, e a antiga tem `status = 'cancelled'` (CA-18.3, CA-18.5)
+**C35** - No e2e, a remarcação completa: com um agendamento de Corte com João amanhã às 17:00, o webhook de `{ rescheduleRequested: true, date: amanhã, period: 'morning' }` envia a oferta de 09:00, 09:30 e 10:00 com João; o de `{ choice: 1 }` envia o texto de remarcado; há uma linha nova com `origin = 'bot'`, `status = 'confirmed'` e início às 09:00 de amanhã, e a antiga tem `status = 'cancelled'` (CA-18.3, CA-18.5) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-reschedule-cancel.e2e-spec.ts -t "US-18.*\(C35\)"`
 
-**C36** - Os e2e e unitários da US-11 a US-17 passam; as únicas asserções existentes alteradas são as que enumeram um conjunto que esta história amplia (`choice 4` → `choice 11` no C37 da US-17, door 5; o `enum` de `reason` no C36 da US-17 ganha `late_cancellation`; os `toEqual` do input do intérprete ganham `appointmentOptions: []`; o exemplo de status fora da lista em `appointments-schema.e2e-spec.ts` passa de `'cancelled'`, agora válido pela door 1, a `'bogus'`; a lista de respostas do ATD-22 em `attendance.e2e-spec.ts` ganha `'409'`), nenhuma enfraquecida (Flow, Impact)
+**C36** - Os e2e e unitários da US-11 a US-17 passam; as únicas asserções existentes alteradas são as que enumeram um conjunto que esta história amplia (`choice 4` → `choice 11` no C37 da US-17, door 5; o `enum` de `reason` no C36 da US-17 ganha `late_cancellation`; os `toEqual` do input do intérprete ganham `appointmentOptions: []`; o exemplo de status fora da lista em `appointments-schema.e2e-spec.ts` passa de `'cancelled'`, agora válido pela door 1, a `'bogus'`; a lista de respostas do ATD-22 em `attendance.e2e-spec.ts` ganha `'409'`), nenhuma enfraquecida (Flow, Impact) ✅
 Proof: `npm test`
 Proof: `npm run test:e2e`
 
-**C37** - As rotas do painel que esta história altera mantêm as respostas de erro de hoje: `GET /appointments` sem sessão responde `401` e com Barbeiro pedindo outro barbeiro `403`; `GET /clients/:id` sem sessão `401` e com id desconhecido `404`; o documento OpenAPI marca as duas com `401` e `403` (Surface, sem mudança)
+**C37** - As rotas do painel que esta história altera mantêm as respostas de erro de hoje: `GET /appointments` sem sessão responde `401` e com Barbeiro pedindo outro barbeiro `403`; `GET /clients/:id` sem sessão `401` e com id desconhecido `404`; o documento OpenAPI marca as duas com `401` e `403` (Surface, sem mudança) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/schedule.e2e-spec.ts -t "answers 401 without a session|CA-08.2"`
 Proof: `npx jest --config ./test/jest-e2e.json test/clients.e2e-spec.ts -t "CA-12.3 \(C25\)|CA-12.2 \(C17\)"`
 Proof: `npx jest --config ./test/jest-e2e.json test/api-docs.e2e-spec.ts -t "marks protected routes with bearer auth, roles, 401 and 403"`
@@ -232,3 +232,8 @@ Decisões tomadas na derivação (não renegociam o plano):
 - Fora do prazo envia uma mensagem só: o texto do prazo e o de transferência em blocos (C19)
 - Cliente bloqueado que pede para remarcar e tem pelo menos um agendamento futuro é transferido sem a pergunta "qual deles"; sem agendamento futuro recebe o AC 2
 - Com `cancelRequested` e `rescheduleRequested` juntos, vale a remarcação (não destrói nada antes de o cliente escolher)
+
+- **Boundary:** C1-C37 closed by the `feat(US-18)` commit after `d953fb3`
+- **Settled mid-build:** `Appointment.cancel` sobre um status diferente de `confirmed` lança `AppointmentNotConfirmedError` (`Só um agendamento confirmado pode ser cancelado.`, mapeado para `409`), não o `AppointmentCancelledError` do AC 24, cuja mensagem só vale para o agendamento já cancelado; nenhuma rota chama `cancel` hoje, o use case só cancela `confirmed`. Os unitários da US-18 usam um `ScheduleQuery` de teste lido do repositório de agendamentos em memória (`AppointmentBackedScheduleQuery`), para que o status gravado apareça na listagem seguinte como no banco. O C36 ganhou as duas asserções antigas que enumeram conjuntos ampliados e que o e2e completo revelou (status fora da lista em `appointments-schema` e respostas do ATD-22)
+- **Abandoned:** nada
+

@@ -1,12 +1,18 @@
+import { AppointmentCancelledError } from '../errors/appointment-cancelled.error';
+import { AppointmentNotConfirmedError } from '../errors/appointment-not-confirmed.error';
 import { AppointmentNotStartedError } from '../errors/appointment-not-started.error';
 
 const MS_PER_MINUTE = 60 * 1000;
 
 export type AppointmentOrigin = 'bot' | 'manual';
 
-export type AppointmentStatus = 'confirmed' | 'attended' | 'no_show';
+export type AppointmentStatus =
+  'confirmed' | 'attended' | 'no_show' | 'cancelled';
 
-export type AttendanceStatus = Exclude<AppointmentStatus, 'confirmed'>;
+export type AttendanceStatus = Exclude<
+  AppointmentStatus,
+  'confirmed' | 'cancelled'
+>;
 
 export interface AppointmentProps {
   id: string;
@@ -66,6 +72,9 @@ export class Appointment {
   // RF-27: attendance is recorded once the appointment has started, and a
   // wrong mark can be corrected between attended and no_show (CA-11.4).
   markAttendance(status: AttendanceStatus, now: Date): Appointment {
+    if (this.props.status === 'cancelled') {
+      throw new AppointmentCancelledError();
+    }
     if (now < this.props.startsAt) {
       throw new AppointmentNotStartedError();
     }
@@ -73,6 +82,15 @@ export class Appointment {
       return this;
     }
     return Appointment.restore({ ...this.props, status });
+  }
+
+  // US-18: only a confirmed appointment is cancelled; leaving the statuses
+  // that hold the slot is what frees it (RN-03, CA-18.5).
+  cancel(): Appointment {
+    if (this.props.status !== 'confirmed') {
+      throw new AppointmentNotConfirmedError();
+    }
+    return Appointment.restore({ ...this.props, status: 'cancelled' });
   }
 
   get id(): string {

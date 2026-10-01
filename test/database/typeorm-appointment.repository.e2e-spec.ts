@@ -587,4 +587,27 @@ describe('TypeOrmAppointmentRepository (e2e)', () => {
       expect(await statusOf(foreign.id)).toBe('confirmed');
     });
   });
+
+  describe('US-18 cancel', () => {
+    it('door 1 (C33): stores cancelled and the appointment no longer holds the slot', async () => {
+      const barberId = await insertBarber(barbershopA);
+      const serviceId = await insertService(barbershopA);
+      const appointment = book({
+        barbershopId: barbershopA,
+        barberId,
+        serviceIds: [serviceId],
+        startsAt: '2026-10-05T13:00:00.000Z',
+      });
+      await repository.create(appointment);
+
+      await repository.saveStatus(appointment.cancel());
+
+      expect(
+        (await repository.findById(barbershopA, appointment.id))?.status,
+      ).toBe('cancelled');
+      expect(
+        await repository.listBusyPeriods(barbershopA, [barberId], RANGE),
+      ).toEqual([]);
+    });
+  });
 });

@@ -536,7 +536,7 @@ describe('Attendance (e2e)', () => {
     it('ATD-22: documents the route with the US-11 summary, payload, roles and every response', () => {
       const operation =
         buildApiDocument(app).paths['/appointments/{id}/status'].patch!;
-      const statuses = ['200', '400', '401', '403', '404', '422'];
+      const statuses = ['200', '400', '401', '403', '404', '409', '422'];
 
       expect(operation.summary).toContain('US-11');
       expect(operation.requestBody).toBeDefined();
@@ -548,6 +548,20 @@ describe('Attendance (e2e)', () => {
           (operation.responses[status] as ResponseObject).description,
         ).toEqual(expect.any(String));
       }
+    });
+  });
+
+  describe('US-18', () => {
+    it('AC 24 (C29): marking a cancelled appointment answers 409 and changes nothing', async () => {
+      const cancelled = await insertAppointment({
+        startsAt: utc('12:00'),
+        status: 'cancelled',
+      });
+
+      await mark(cancelled, { status: 'attended' }, ownerToken).expect(409, {
+        message: 'Esse agendamento foi cancelado.',
+      });
+      expect(await statusOf(cancelled)).toBe('cancelled');
     });
   });
 });

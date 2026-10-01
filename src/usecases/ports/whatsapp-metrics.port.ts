@@ -11,7 +11,9 @@ export type ClientReplyKind =
   | 'unavailable'
   | 'handoff'
   | 'booking'
-  | 'booked';
+  | 'booked'
+  | 'cancelled'
+  | 'rescheduled';
 
 export type BotResumeTrigger = 'owner' | 'timeout';
 

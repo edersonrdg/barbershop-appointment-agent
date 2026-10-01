@@ -9,6 +9,18 @@ import { BookAppointmentUseCase } from '../../usecases/book-appointment/book-app
 import { BookViaWhatsAppUseCase } from '../../usecases/book-via-whatsapp/book-via-whatsapp.use-case';
 import { ListAvailableSlotsUseCase } from '../../usecases/list-available-slots/list-available-slots.use-case';
 import {
+  APPOINTMENT_METRICS,
+  AppointmentMetrics,
+} from '../../usecases/ports/appointment-metrics.port';
+import {
+  APPOINTMENT_REPOSITORY,
+  AppointmentRepository,
+} from '../../usecases/ports/appointment.repository.port';
+import {
+  SCHEDULE_QUERY,
+  ScheduleQuery,
+} from '../../usecases/ports/schedule.query.port';
+import {
   BARBER_REPOSITORY,
   BarberRepository,
 } from '../../usecases/ports/barber.repository.port';
@@ -94,6 +106,7 @@ import { AttendanceModule } from './attendance.module';
 import { BarbersModule } from './barbers.module';
 import { BookingRulesModule } from './booking-rules.module';
 import { GeminiModule } from './gemini.module';
+import { ScheduleModule } from './schedule.module';
 import { SchedulingModule } from './scheduling.module';
 import { ServicesModule } from './services.module';
 
@@ -111,6 +124,7 @@ import { ServicesModule } from './services.module';
     BarbersModule,
     BookingRulesModule,
     SchedulingModule,
+    ScheduleModule,
     AttendanceModule,
   ],
   controllers: [
@@ -272,6 +286,9 @@ import { ServicesModule } from './services.module';
         ListAvailableSlotsUseCase,
         BookAppointmentUseCase,
         ID_GENERATOR,
+        SCHEDULE_QUERY,
+        APPOINTMENT_REPOSITORY,
+        APPOINTMENT_METRICS,
       ],
       useFactory: (
         barbers: BarberRepository,
@@ -281,6 +298,9 @@ import { ServicesModule } from './services.module';
         listSlots: ListAvailableSlotsUseCase,
         book: BookAppointmentUseCase,
         ids: IdGenerator,
+        schedule: ScheduleQuery,
+        appointments: AppointmentRepository,
+        appointmentMetrics: AppointmentMetrics,
       ) =>
         new BookViaWhatsAppUseCase(
           barbers,
@@ -290,6 +310,9 @@ import { ServicesModule } from './services.module';
           listSlots,
           book,
           ids,
+          schedule,
+          appointments,
+          appointmentMetrics,
         ),
     },
     {

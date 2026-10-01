@@ -23,6 +23,7 @@ import { InMemoryClientRepository } from '../testing/in-memory-client.repository
 import { InMemoryConversationRepository } from '../testing/in-memory-conversation.repository';
 import { InMemoryInboundMessageRepository } from '../testing/in-memory-inbound-message.repository';
 import { InMemoryNoShowLedger } from '../testing/in-memory-no-show-ledger';
+import { InMemoryScheduleQuery } from '../testing/in-memory-schedule.query';
 import { InMemoryServiceRepository } from '../testing/in-memory-service.repository';
 import { InMemoryWhatsAppConnectionRepository } from '../testing/in-memory-whatsapp-connection.repository';
 import { SequentialIdGenerator } from '../testing/sequential-id-generator';
@@ -67,6 +68,8 @@ function interpretation(
     date: null,
     period: null,
     time: null,
+    cancelRequested: false,
+    rescheduleRequested: false,
     choice: null,
     ...partial,
   };
@@ -113,6 +116,9 @@ function bookingUseCase(
       new CountingAppointmentMetrics(),
     ),
     ids,
+    new InMemoryScheduleQuery(),
+    appointments,
+    new CountingAppointmentMetrics(),
   );
 }
 
@@ -333,6 +339,7 @@ describe('AnswerClientQuestionUseCase', () => {
         today: { date: '2026-09-29', weekday: 'terça-feira' },
         barberNames: [],
         offeredOptions: [],
+        appointmentOptions: [],
       },
     ]);
   });
@@ -781,6 +788,193 @@ describe('AnswerClientQuestionUseCase', () => {
           before.consecutiveFailures,
         );
       });
+    });
+    describe('US-18 cancel and reschedule', () => {
+      const TODAY = '2026-09-29';
+      const CANCEL = { bookingRequested: false, cancelRequested: true };
+      const RESCHEDULE = { bookingRequested: false, rescheduleRequested: true };
+      const LATE =
+        'Só cancelamos ou remarcamos pelo WhatsApp com pelo menos 2h de antecedência.';
+      const FALLBACK_REPLY =
+        'Posso te ajudar com serviços, preços, endereço e horário de funcionamento da Barbearia do Zé. O que você gostaria de saber?';
+
+      async function withA() {
+        const setup = await bookingSetup();
+        await setup.own({ id: 'A', startsAt: local(TODAY, '15:00') });
+        return setup;
+      }
+
+      it('AC 4 (C7): sends the listed appointments to the interpreter', async () => {
+        const setup = await withA();
+        await setup.own({
+          id: 'B',
+          startsAt: local(TOMORROW, '10:00'),
+          serviceIds: ['barba'],
+        });
+
+        await setup.lastText(CANCEL);
+        await setup.lastText({ bookingRequested: false });
+
+        expect(setup.interpreter.inputs[0].appointmentOptions).toEqual([]);
+        expect(setup.interpreter.inputs[1]).toMatchObject({
+          appointmentOptions: [
+            'Corte, terça-feira, 29/09, às 15:00, com João',
+            'Barba, quarta-feira, 30/09, às 10:00, com João',
+          ],
+          offeredOptions: [],
+        });
+      });
+
+      it('AC 10 (C12): a cancellation that cannot be confirmed stays cancelled', async () => {
+        const { execute, connector, statusOf } = await withA();
+        connector.failing.add('sendText');
+
+        const result = await execute(CANCEL);
+
+        expect(result).toMatchObject({ outcome: 'failed', appointmentId: 'A' });
+        expect(await statusOf('A')).toBe('cancelled');
+      });
+
+      it('AC 15 (C17): a rescheduling that cannot be confirmed stays done', async () => {
+        const { execute, own, connector, statusOf, bookedBy, client } =
+          await bookingSetup();
+        await own({ id: 'R', startsAt: local(TODAY, '17:00') });
+        await execute({ ...RESCHEDULE, date: TOMORROW, period: 'morning' });
+        connector.failing.add('sendText');
+
+        const result = await execute({ choice: 1 });
+
+        const created = (await bookedBy(client.id)).filter(
+          (item) => item.id !== 'R',
+        );
+        expect(created).toHaveLength(1);
+        expect(created[0].status).toBe('confirmed');
+        expect(result).toMatchObject({
+          outcome: 'failed',
+          appointmentId: created[0].id,
+        });
+        expect(await statusOf('R')).toBe('cancelled');
+      });
+
+      it.each([
+        ['cancel', CANCEL],
+        ['reschedule', RESCHEDULE],
+      ])(
+        'CA-18.4 (C19): a request to %s past the deadline is handed to the team',
+        async (_action, request) => {
+          const { lastText, own, conversation, statusOf, bookedBy, client } =
+            await bookingSetup();
+          await own({ id: 'L', startsAt: local(TODAY, '13:00') });
+
+          expect(await lastText(request)).toEqual([
+            `${LATE}\n\n${HANDOFF_REPLY}`,
+          ]);
+          expect(conversation()).toMatchObject({
+            pauseReason: 'late_cancellation',
+            bookingDraft: null,
+          });
+          expect(await statusOf('L')).toBe('confirmed');
+          expect(await bookedBy(client.id)).toHaveLength(1);
+        },
+      );
+
+      it('RN-12 (C25): a blocked client may cancel', async () => {
+        const { lastText, noShows, statusOf } = await withA();
+        await noShows(2);
+
+        expect(await lastText(CANCEL)).toEqual([
+          'Agendamento cancelado.\nServiço: Corte\nBarbeiro: João\nData: terça-feira, 29/09\nHorário: 15:00',
+        ]);
+        expect(await statusOf('A')).toBe('cancelled');
+      });
+
+      it('RN-12 (C25): a blocked client asking to reschedule is handed to the team', async () => {
+        const { lastText, noShows, statusOf, conversation, metrics } =
+          await withA();
+        await noShows(2);
+
+        expect(
+          await lastText({ ...RESCHEDULE, date: TOMORROW, period: 'morning' }),
+        ).toEqual([HANDOFF_REPLY]);
+        expect(conversation()).toMatchObject({
+          pauseReason: 'blocked_client',
+          bookingDraft: null,
+        });
+        expect(await statusOf('A')).toBe('confirmed');
+        expect(metrics.handoffs).toEqual(['blocked_client']);
+      });
+
+      it.each([
+        [
+          'a request for a person',
+          { ...CANCEL, humanRequested: true },
+          [HANDOFF_REPLY],
+          'requested',
+        ],
+        [
+          'an off-topic message',
+          { ...CANCEL, offTopic: true },
+          [
+            'Desculpe, só posso ajudar com assuntos da Barbearia do Zé: serviços, preços, endereço e horário de funcionamento.',
+          ],
+          null,
+        ],
+      ])(
+        'AC 22 (C26): a cancellation with %s follows the precedence',
+        async (_case, request, texts, pauseReason) => {
+          const { lastText, statusOf, conversation } = await withA();
+
+          expect(await lastText(request)).toEqual(texts);
+          expect(await statusOf('A')).toBe('confirmed');
+          expect(conversation()?.pauseReason).toBe(pauseReason);
+        },
+      );
+
+      it.each([
+        ['a list of appointments stored 61 min ago', 'list', 61, false],
+        ['a rescheduling offer stored 61 min ago', 'offer', 61, false],
+        ['a list of appointments stored 59 min ago', 'list', 59, true],
+      ] as const)(
+        'AC 23 (C27): a choice with %s acts: %s',
+        async (_case, kind, age, acts) => {
+          const setup = await withA();
+          const { lastText, own, conversation, statusOf } = setup;
+          if (kind === 'list') {
+            await own({
+              id: 'B',
+              startsAt: local(TOMORROW, '10:00'),
+              serviceIds: ['barba'],
+            });
+            await lastText(CANCEL);
+          } else {
+            await lastText({
+              ...RESCHEDULE,
+              date: TOMORROW,
+              period: 'morning',
+            });
+          }
+          const row = conversation();
+          if (row?.bookingDraft) {
+            row.bookingDraft.updatedAt = new Date(
+              BOOKING_NOW.getTime() - age * 60 * 1000,
+            );
+          }
+
+          const texts = await lastText({ choice: 1 });
+
+          if (acts) {
+            expect(texts[0]).toMatch(/^Agendamento cancelado\./);
+            expect(await statusOf('A')).toBe('cancelled');
+            return;
+          }
+          expect(texts).toEqual([FALLBACK_REPLY]);
+          expect(conversation()?.consecutiveFailures).toBe(1);
+          expect(await statusOf('A')).toBe('confirmed');
+          expect(await setup.bookedBy(setup.client.id)).toHaveLength(
+            kind === 'list' ? 2 : 1,
+          );
+        },
+      );
     });
   });
 });

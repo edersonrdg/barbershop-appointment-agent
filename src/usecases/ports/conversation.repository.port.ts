@@ -21,9 +21,28 @@ export interface OfferedSlot {
   startsAt: Date;
 }
 
-/** US-17: what the bot knows of the booking in progress (AD-013). */
+/** US-18: what the client asked to do with the draft. */
+export type DraftAction = 'book' | 'cancel' | 'reschedule';
+
+/** US-18: an appointment of the client listed for them to pick one. */
+export interface AppointmentCandidate {
+  appointmentId: string;
+  barberId: string;
+  startsAt: Date;
+}
+
+/**
+ * US-17: what the bot knows of the booking in progress (AD-013). US-18: also
+ * of a cancellation or rescheduling; the criteria and the offer then search
+ * the new slot of `targetAppointmentId`.
+ */
 export interface BookingDraft {
   id: string;
+  action: DraftAction;
+  /** Listed while the client picks which appointment (CA-18.2). */
+  candidates: AppointmentCandidate[];
+  /** The appointment to reschedule, once known. */
+  targetAppointmentId: string | null;
   serviceIds: string[];
   barberId: string | null;
   anyBarber: boolean;

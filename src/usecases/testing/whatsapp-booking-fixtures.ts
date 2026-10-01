@@ -1,4 +1,7 @@
-import { Appointment } from '../../domain/entities/appointment';
+import {
+  Appointment,
+  AppointmentStatus,
+} from '../../domain/entities/appointment';
 import { Barbershop } from '../../domain/entities/barbershop';
 import { Client } from '../../domain/entities/client';
 import { BarbershopTimezone } from '../../domain/value-objects/barbershop-timezone';
@@ -6,6 +9,7 @@ import { PhoneNumber } from '../../domain/value-objects/phone-number';
 import { BookAppointmentUseCase } from '../book-appointment/book-appointment.use-case';
 import { BookViaWhatsAppUseCase } from '../book-via-whatsapp/book-via-whatsapp.use-case';
 import { ListAvailableSlotsUseCase } from '../list-available-slots/list-available-slots.use-case';
+import { AppointmentBackedScheduleQuery } from './appointment-backed-schedule.query';
 import {
   day,
   seedBarber,
@@ -169,6 +173,12 @@ export async function setupWhatsAppBooking({
     ids,
     appointmentMetrics,
   );
+  const schedule = new AppointmentBackedScheduleQuery(
+    appointments,
+    barbers,
+    services,
+    clients,
+  );
   const booking = new BookViaWhatsAppUseCase(
     barbers,
     bookingRules,
@@ -177,6 +187,9 @@ export async function setupWhatsAppBooking({
     listSlots,
     book,
     ids,
+    schedule,
+    appointments,
+    appointmentMetrics,
   );
 
   const busy = (barberId: string, start: Date, end: Date): void =>
@@ -203,6 +216,42 @@ export async function setupWhatsAppBooking({
       );
     }
   };
+  // US-18: an appointment of a client, stored as the panel or the bot would.
+  const own = async ({
+    id,
+    startsAt,
+    serviceIds = ['corte'],
+    barberId = joao.id,
+    clientId = client.id,
+    barbershopId = barbershop.id,
+    status = 'confirmed',
+  }: {
+    id: string;
+    startsAt: Date;
+    serviceIds?: string[];
+    barberId?: string;
+    clientId?: string;
+    barbershopId?: string;
+    status?: AppointmentStatus;
+  }): Promise<void> => {
+    const minutes = serviceIds.length * 30;
+    await appointments.create(
+      Appointment.restore({
+        id,
+        barbershopId,
+        barberId,
+        clientId,
+        serviceIds,
+        startsAt,
+        endsAt: new Date(startsAt.getTime() + minutes * 60 * 1000),
+        status,
+        origin: 'manual',
+        createdAt: BOOKING_NOW,
+      }),
+    );
+  };
+  const statusOf = async (id: string): Promise<AppointmentStatus | null> =>
+    (await appointments.findById(barbershop.id, id))?.status ?? null;
   const bookedBy = async (clientId: string): Promise<Appointment[]> =>
     (await appointments.list(barbershop.id)).filter(
       (appointment) => appointment.clientId === clientId,
@@ -226,10 +275,13 @@ export async function setupWhatsAppBooking({
     conversations,
     ids,
     appointmentMetrics,
+    listSlots,
     booking,
     busy,
     block,
     noShows,
+    own,
+    statusOf,
     bookedBy,
   };
 }

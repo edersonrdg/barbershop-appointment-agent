@@ -158,7 +158,7 @@ export class AppointmentsController {
   @ApiOperation({
     summary: 'Marca um agendamento como atendido ou falta (US-11)',
     description:
-      'Registra o comparecimento (attended) ou a falta (no_show) de um agendamento que já começou, e corrige a marcação trocando um pelo outro; não volta para confirmed. Marcar o status que o agendamento já tem não muda nada. O contador de faltas do cliente conta as faltas na barbearia desde o último reset (RN-11, RN-13), e o cliente fica bloqueado para autoagendamento enquanto o contador atinge o limite de faltas vigente (RN-12). O Dono marca qualquer agendamento; o Barbeiro, só os próprios. O agendamento marcado continua ocupando o horário.',
+      'Registra o comparecimento (attended) ou a falta (no_show) de um agendamento que já começou, e corrige a marcação trocando um pelo outro; não volta para confirmed. Marcar o status que o agendamento já tem não muda nada, e um agendamento cancelado (US-18) não recebe marcação. O contador de faltas do cliente conta as faltas na barbearia desde o último reset (RN-11, RN-13), e o cliente fica bloqueado para autoagendamento enquanto o contador atinge o limite de faltas vigente (RN-12). O Dono marca qualquer agendamento; o Barbeiro, só os próprios. O agendamento marcado continua ocupando o horário.',
   })
   @ApiZodResponse({
     status: HttpStatus.OK,
@@ -180,6 +180,11 @@ export class AppointmentsController {
     HttpStatus.UNPROCESSABLE_ENTITY,
     'O agendamento ainda não começou (RF-27).',
     'O agendamento ainda não começou.',
+  )
+  @ApiErrorResponse(
+    HttpStatus.CONFLICT,
+    'O cliente cancelou ou remarcou o agendamento pelo WhatsApp (US-18).',
+    'Esse agendamento foi cancelado.',
   )
   async setStatus(
     @CurrentSession() session: AuthenticatedSession,
