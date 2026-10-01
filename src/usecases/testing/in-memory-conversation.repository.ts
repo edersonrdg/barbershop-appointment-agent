@@ -1,5 +1,6 @@
 import type { HandoffReason } from '../../domain/value-objects/handoff-reason';
 import {
+  BookingDraft,
   ConversationEntry,
   ConversationRepository,
   WaitingConversation,
@@ -10,6 +11,7 @@ export interface ConversationRow {
   pausedAt: Date | null;
   pauseReason: HandoffReason | null;
   lastActivityAt: Date;
+  bookingDraft?: BookingDraft | null;
 }
 
 export class InMemoryConversationRepository implements ConversationRepository {
@@ -75,6 +77,41 @@ export class InMemoryConversationRepository implements ConversationRepository {
     return Promise.resolve();
   }
 
+  findDraft(
+    barbershopId: string,
+    clientId: string,
+  ): Promise<BookingDraft | null> {
+    const draft = this.row(barbershopId, clientId)?.bookingDraft;
+    return Promise.resolve(draft ? copyDraft(draft) : null);
+  }
+
+  saveDraft(
+    barbershopId: string,
+    clientId: string,
+    draft: BookingDraft,
+  ): Promise<void> {
+    const row = this.row(barbershopId, clientId);
+    if (row) row.bookingDraft = copyDraft(draft);
+    return Promise.resolve();
+  }
+
+  clearDraft(barbershopId: string, clientId: string): Promise<void> {
+    const row = this.row(barbershopId, clientId);
+    if (row) row.bookingDraft = null;
+    return Promise.resolve();
+  }
+
+  consumeDraft(
+    barbershopId: string,
+    clientId: string,
+    draftId: string,
+  ): Promise<boolean> {
+    const row = this.row(barbershopId, clientId);
+    if (row?.bookingDraft?.id !== draftId) return Promise.resolve(false);
+    row.bookingDraft = null;
+    return Promise.resolve(true);
+  }
+
   pause(
     barbershopId: string,
     clientId: string,
@@ -85,6 +122,7 @@ export class InMemoryConversationRepository implements ConversationRepository {
     if (!row || row.pausedAt) return Promise.resolve(false);
     row.pausedAt = at;
     row.pauseReason = reason;
+    row.bookingDraft = null;
     return Promise.resolve(true);
   }
 
@@ -95,6 +133,7 @@ export class InMemoryConversationRepository implements ConversationRepository {
       pausedAt: null,
       pauseReason: null,
       consecutiveFailures: 0,
+      bookingDraft: null,
     });
     return Promise.resolve(true);
   }
@@ -111,4 +150,12 @@ function pauseInForce(row: ConversationRow, expiredBefore: Date): boolean {
 
 function latest(a: Date, b: Date): Date {
   return a > b ? a : b;
+}
+
+function copyDraft(draft: BookingDraft): BookingDraft {
+  return {
+    ...draft,
+    serviceIds: [...draft.serviceIds],
+    offer: draft.offer.map((slot) => ({ ...slot })),
+  };
 }

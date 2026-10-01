@@ -126,4 +126,23 @@ describe('WhatsApp conversations schema (e2e)', () => {
     );
     expect(rows).toHaveLength(0);
   });
+
+  it('doors 2 and 3 (C38): booking_draft is a nullable jsonb and blocked_client is a pause reason', async () => {
+    const [column] = await dataSource.query<
+      { data_type: string; is_nullable: string }[]
+    >(
+      `SELECT data_type, is_nullable FROM information_schema.columns
+        WHERE table_name = 'whatsapp_conversations'
+          AND column_name = 'booking_draft'`,
+    );
+    expect(column).toEqual({ data_type: 'jsonb', is_nullable: 'YES' });
+
+    await expect(
+      insertConversation({ paused_at: NOW, pause_reason: 'blocked_client' }),
+    ).resolves.toBeDefined();
+    await dataSource.query('DELETE FROM whatsapp_conversations');
+    await expect(
+      insertConversation({ paused_at: NOW, pause_reason: 'bored' }),
+    ).rejects.toMatchObject({ driverError: { code: CHECK_VIOLATION } });
+  });
 });

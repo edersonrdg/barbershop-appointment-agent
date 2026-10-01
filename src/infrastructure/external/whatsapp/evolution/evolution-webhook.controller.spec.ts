@@ -393,4 +393,29 @@ describe('EvolutionWebhookController', () => {
     expect(calls).toHaveLength(1);
     expect(answers).toEqual([]);
   });
+
+  it('AC 40 (C35): logs a bot booking with only the barbershop id and the appointment id', async () => {
+    const { controller } = messageController({
+      outcome: 'sent',
+      kind: 'booked',
+      appointmentId: 'appointment-1',
+    });
+
+    await controller.receive(
+      message({ message: { conversation: 'quero o das 15h, Carlos Souza' } }),
+    );
+
+    const log = spies[0];
+    expect(log).toHaveBeenCalledTimes(1);
+    const [[context, text]] = log.mock.calls as unknown[][];
+    expect(context).toEqual({
+      barbershopId: SHOP,
+      appointmentId: 'appointment-1',
+    });
+    expect(text).toBe('Appointment booked by the bot.');
+    const logged = loggedArguments(spies);
+    expect(logged).not.toContain('5511987654321');
+    expect(logged).not.toContain('Carlos');
+    expect(logged).not.toContain('quero o das');
+  });
 });

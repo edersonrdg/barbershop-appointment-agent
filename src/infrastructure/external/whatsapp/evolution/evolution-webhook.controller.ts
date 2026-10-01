@@ -65,9 +65,10 @@ export class EvolutionWebhookController {
   @Post()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
-    summary: 'Recebe os eventos da Evolution API (US-13, US-14, US-15, US-16)',
+    summary:
+      'Recebe os eventos da Evolution API (US-13, US-14, US-15, US-16, US-17)',
     description:
-      'Chamado só pela Evolution API, com `authorization: Bearer <WHATSAPP_WEBHOOK_SECRET>`. Aplica `connection.update` à conexão da barbearia cujo id é `instance`; uma queda (conectado → desconectado) envia e-mail aos Donos. Em `messages.upsert` (US-14), a mensagem de um cliente cadastra o telefone na primeira vez, com o nome do perfil, e envia uma única vez o aviso de privacidade; são ignoradas as mensagens enviadas pelo próprio número, de grupos e listas, sem telefone brasileiro ou com mais de 5 minutos. Depois do aviso, uma mensagem de texto (US-15) recebe a resposta às dúvidas sobre serviços, preços, durações, endereço e horário de funcionamento, montada só com os dados cadastrados; assuntos fora da barbearia são recusados, e cada mensagem (`key.id`) é respondida uma única vez. Quando o cliente pede um atendente ou o bot não o entende duas vezes seguidas (US-16), o cliente recebe "Vou chamar alguém da equipe para te ajudar." e o bot fica calado naquela conversa até o Dono reativá-lo ou até `WHATSAPP_HANDOFF_RESUME_HOURS` horas (padrão 12) sem mensagens; enquanto isso, as mensagens do cliente e as respostas da equipe pelo app (enviadas pelo próprio número) só contam como atividade da conversa. Outros eventos, estados desconhecidos e barbearias sem conexão são aceitos e ignorados.',
+      'Chamado só pela Evolution API, com `authorization: Bearer <WHATSAPP_WEBHOOK_SECRET>`. Aplica `connection.update` à conexão da barbearia cujo id é `instance`; uma queda (conectado → desconectado) envia e-mail aos Donos. Em `messages.upsert` (US-14), a mensagem de um cliente cadastra o telefone na primeira vez, com o nome do perfil, e envia uma única vez o aviso de privacidade; são ignoradas as mensagens enviadas pelo próprio número, de grupos e listas, sem telefone brasileiro ou com mais de 5 minutos. Depois do aviso, uma mensagem de texto (US-15) recebe a resposta às dúvidas sobre serviços, preços, durações, endereço e horário de funcionamento, montada só com os dados cadastrados; assuntos fora da barbearia são recusados, e cada mensagem (`key.id`) é respondida uma única vez. Quando o cliente pede um atendente ou o bot não o entende duas vezes seguidas (US-16), o cliente recebe "Vou chamar alguém da equipe para te ajudar." e o bot fica calado naquela conversa até o Dono reativá-lo ou até `WHATSAPP_HANDOFF_RESUME_HOURS` horas (padrão 12) sem mensagens; enquanto isso, as mensagens do cliente e as respostas da equipe pelo app (enviadas pelo próprio número) só contam como atividade da conversa. Um pedido de agendamento (US-17) pergunta o serviço e a preferência de barbeiro quando faltam e oferece até 3 horários livres do motor de disponibilidade, a partir de agora mais a antecedência mínima; responder com o número de uma opção agenda o horário como confirmado, com origem `bot`, e envia serviço, barbeiro, data, hora, valor e endereço. Horário ocupado no meio da conversa, antecedência vencida ou período sem horário recebem o aviso e novas opções. Cliente bloqueado por faltas não agenda: a conversa é transferida com o motivo `blocked_client`. Outros eventos, estados desconhecidos e barbearias sem conexão são aceitos e ignorados.',
   })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
@@ -153,6 +154,15 @@ export class EvolutionWebhookController {
       this.logger.log(
         { barbershopId: barbershopId.data, reason: reply.handoff },
         'Conversation handed to a human.',
+      );
+    }
+    if (reply.outcome !== 'none' && reply.appointmentId) {
+      this.logger.log(
+        {
+          barbershopId: barbershopId.data,
+          appointmentId: reply.appointmentId,
+        },
+        'Appointment booked by the bot.',
       );
     }
     if (reply.outcome === 'failed') {

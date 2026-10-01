@@ -1,10 +1,27 @@
 import { DataSource } from 'typeorm';
+import { z } from 'zod';
 import type { HandoffReason } from '../../../domain/value-objects/handoff-reason';
 import {
+  BookingDraft,
   ConversationEntry,
   ConversationRepository,
   WaitingConversation,
 } from '../../../usecases/ports/conversation.repository.port';
+import { BOOKING_PERIODS } from '../../../usecases/ports/message-interpreter.port';
+
+// AD-013: the stored draft is read back through this schema; a value it does
+// not accept is treated as no draft.
+const storedDraftSchema = z.object({
+  id: z.string().min(1),
+  serviceIds: z.array(z.string()),
+  barberId: z.string().nullable(),
+  anyBarber: z.boolean(),
+  date: z.string().nullable(),
+  period: z.enum(BOOKING_PERIODS).nullable(),
+  time: z.string().nullable(),
+  offer: z.array(z.object({ barberId: z.string(), startsAt: z.coerce.date() })),
+  updatedAt: z.coerce.date(),
+});
 
 interface EnteredRow {
   paused_at: Date | null;
@@ -117,6 +134,57 @@ export class TypeOrmConversationRepository implements ConversationRepository {
     );
   }
 
+  async findDraft(
+    barbershopId: string,
+    clientId: string,
+  ): Promise<BookingDraft | null> {
+    const [row] = await this.dataSource.query<{ booking_draft: unknown }[]>(
+      `SELECT booking_draft FROM whatsapp_conversations
+        WHERE barbershop_id = $1 AND client_id = $2`,
+      [barbershopId, clientId],
+    );
+    if (!row?.booking_draft) return null;
+    const parsed = storedDraftSchema.safeParse(row.booking_draft);
+    return parsed.success ? parsed.data : null;
+  }
+
+  async saveDraft(
+    barbershopId: string,
+    clientId: string,
+    draft: BookingDraft,
+  ): Promise<void> {
+    await this.dataSource.query(
+      `UPDATE whatsapp_conversations SET booking_draft = $3
+        WHERE barbershop_id = $1 AND client_id = $2`,
+      [barbershopId, clientId, JSON.stringify(draft)],
+    );
+  }
+
+  async clearDraft(barbershopId: string, clientId: string): Promise<void> {
+    await this.dataSource.query(
+      `UPDATE whatsapp_conversations SET booking_draft = NULL
+        WHERE barbershop_id = $1 AND client_id = $2
+          AND booking_draft IS NOT NULL`,
+      [barbershopId, clientId],
+    );
+  }
+
+  // Only the update that still finds this draft wins (AD-013).
+  async consumeDraft(
+    barbershopId: string,
+    clientId: string,
+    draftId: string,
+  ): Promise<boolean> {
+    const [rows] = await this.dataSource.query<Updated<unknown>>(
+      `UPDATE whatsapp_conversations SET booking_draft = NULL
+        WHERE barbershop_id = $1 AND client_id = $2
+          AND booking_draft->>'id' = $3
+        RETURNING client_id`,
+      [barbershopId, clientId, draftId],
+    );
+    return rows.length === 1;
+  }
+
   // Only the update that finds no pause wins (door 2).
   async pause(
     barbershopId: string,
@@ -126,7 +194,7 @@ export class TypeOrmConversationRepository implements ConversationRepository {
   ): Promise<boolean> {
     const [rows] = await this.dataSource.query<Updated<unknown>>(
       `UPDATE whatsapp_conversations
-          SET paused_at = $4, pause_reason = $3
+          SET paused_at = $4, pause_reason = $3, booking_draft = NULL
         WHERE barbershop_id = $1 AND client_id = $2 AND paused_at IS NULL
         RETURNING client_id`,
       [barbershopId, clientId, reason, at],
@@ -137,7 +205,8 @@ export class TypeOrmConversationRepository implements ConversationRepository {
   async resume(barbershopId: string, clientId: string): Promise<boolean> {
     const [rows] = await this.dataSource.query<Updated<unknown>>(
       `UPDATE whatsapp_conversations
-          SET paused_at = NULL, pause_reason = NULL, consecutive_failures = 0
+          SET paused_at = NULL, pause_reason = NULL, consecutive_failures = 0,
+              booking_draft = NULL
         WHERE barbershop_id = $1 AND client_id = $2 AND paused_at IS NOT NULL
         RETURNING client_id`,
       [barbershopId, clientId],

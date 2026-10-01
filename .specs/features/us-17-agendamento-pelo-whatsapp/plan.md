@@ -13,12 +13,12 @@ Com a entrega, o cliente pede em linguagem natural e recebe até 3 horários liv
 Reaproveita o webhook, a reivindicação da mensagem, a conversa e a transferência da US-15/US-16 (`AnswerClientQuestionUseCase`). Os horários vêm do `ListAvailableSlotsUseCase` e a gravação do `BookAppointmentUseCase` da US-07, com origem `bot` (antecedência mínima, sobreposição e constraint de exclusão incluídas). O bloqueio usa o `clientNoShowStatus` da US-11. Nenhuma regra de agenda é reescrita.
 
 1. `POST /webhooks/whatsapp/evolution` com `messages.upsert` -> `EvolutionWebhookController` (exists) - sem mudança até chamar `AnswerClientQuestionUseCase`
-2. `AnswerClientQuestionUseCase` (exists) - reivindica a mensagem e entra na conversa como hoje; lê o rascunho de agendamento da conversa (door 2) e passa ao intérprete a data de hoje da barbearia, os barbeiros ativos e as opções oferecidas
+2. `AnswerClientQuestionUseCase` (exists) - reivindica a mensagem e entra na conversa como hoje; pede ao `BookViaWhatsAppUseCase` (passo 5) o rascunho em vigor (door 2), a data de hoje da barbearia, os barbeiros ativos e as opções oferecidas, e passa os três últimos ao intérprete
 3. `GeminiMessageInterpreter` (exists) - devolve a interpretação com intenção de agendar, barbeiro, "tanto faz", data, período, hora e número da opção escolhida (door 1)
 4. mesmo use case - pedido de atendente transfere (US-16) e assunto fora de contexto recusa (US-15), como hoje; com intenção de agendar ou escolha de opção, delega a `BookViaWhatsAppUseCase` (new, no door - placement); o resto segue a US-15
 5. `BookViaWhatsAppUseCase` - cliente bloqueado (`clientNoShowStatus`, exists) transfere com motivo `blocked_client` (door 3); falta serviço ou preferência de barbeiro, pergunta; com dados suficientes, busca no `ListAvailableSlotsUseCase` (exists, origem `bot`) e grava a oferta no rascunho (door 2)
 6. mesmo use case - escolha de opção reivindica o rascunho (door 2) e chama `BookAppointmentUseCase` (exists, origem `bot`, cliente existente), que persiste `Appointment` confirmado; conflito ou antecedência vencida volta ao passo 5 com o aviso
-7. out: `WhatsAppConnector.sendText` (exists) com a pergunta, a oferta ou o resumo do agendamento; o webhook responde `204` em todos os casos; o agendamento aparece na agenda do painel (US-08) com origem `bot`
+7. out: `WhatsAppConnector.sendText` (exists) com a pergunta, a oferta ou o resumo do agendamento; o use case devolve o id do agendamento e o `EvolutionWebhookController` (exists) loga o agendamento; o webhook responde `204` em todos os casos; o agendamento aparece na agenda do painel (US-08) com origem `bot`
 
 ## Impact
 

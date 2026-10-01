@@ -1,5 +1,6 @@
 import { MessageInterpreterUnavailableError } from '../../domain/errors/message-interpreter-unavailable.error';
 import type { HandoffReason } from '../../domain/value-objects/handoff-reason';
+import { BookViaWhatsAppUseCase } from '../book-via-whatsapp/book-via-whatsapp.use-case';
 import { BarbershopRepository } from '../ports/barbershop.repository.port';
 import { ClientRepository } from '../ports/client.repository.port';
 import { Clock } from '../ports/clock.port';
@@ -17,6 +18,7 @@ import { handoffExpiredBefore } from '../shared/handoff-expiry';
 import {
   ClientQuestionReply,
   composeReply,
+  fallbackReply,
   UNAVAILABLE_REPLY,
 } from './client-question-reply';
 
@@ -29,11 +31,24 @@ export interface AnswerClientQuestionInput {
   text: string;
 }
 
-/** `handoff` is set when the message paused the conversation (US-16). */
+/**
+ * `handoff` is set when the message paused the conversation (US-16), and
+ * `appointmentId` when it booked (US-17).
+ */
 export type ClientReplyResult =
   | { outcome: 'none' }
-  | { outcome: 'sent'; kind: ClientReplyKind; handoff?: HandoffReason }
-  | { outcome: 'failed'; error: unknown; handoff?: HandoffReason };
+  | {
+      outcome: 'sent';
+      kind: ClientReplyKind;
+      handoff?: HandoffReason;
+      appointmentId?: string;
+    }
+  | {
+      outcome: 'failed';
+      error: unknown;
+      handoff?: HandoffReason;
+      appointmentId?: string;
+    };
 
 export const HANDOFF_REPLY = 'Vou chamar alguém da equipe para te ajudar.';
 
@@ -47,6 +62,8 @@ const FAILURES_BEFORE_HANDOFF = 2;
 // US-15: answers questions about services, prices, address and opening hours
 // with the barbershop's data only (RF-05, RF-08, RF-09). US-16: hands the
 // conversation to a human and stays silent while it is paused (RN-22, RN-23).
+// US-17: a booking request goes to the booking use case, after the request
+// for a person and the off-topic refusal and before the questions.
 export class AnswerClientQuestionUseCase {
   constructor(
     private readonly connections: WhatsAppConnectionRepository,
@@ -60,6 +77,7 @@ export class AnswerClientQuestionUseCase {
     private readonly clients: ClientRepository,
     private readonly conversations: ConversationRepository,
     private readonly resumeAfterHours: number,
+    private readonly booking: BookViaWhatsAppUseCase,
   ) {}
 
   async execute(input: AnswerClientQuestionInput): Promise<ClientReplyResult> {
@@ -98,17 +116,44 @@ export class AnswerClientQuestionUseCase {
     const services = await this.services.listActiveByBarbershop(
       input.barbershopId,
     );
+    const preparation = await this.booking.prepare(barbershop, client.id, now);
     let reply: ClientQuestionReply;
+    let appointmentId: string | undefined;
     try {
       const interpretation = await this.interpreter.interpret({
         barbershopName: barbershop.name,
         serviceNames: services.map((service) => service.name),
         text: truncate(text),
+        ...preparation.interpreterInput,
       });
       if (interpretation.humanRequested) {
         return this.handOff(input, client.id, 'requested', now);
       }
-      reply = composeReply(barbershop, services, interpretation);
+      if (
+        !interpretation.offTopic &&
+        (interpretation.bookingRequested || interpretation.choice !== null)
+      ) {
+        const outcome = await this.booking.handle({
+          barbershop,
+          client,
+          services,
+          preparation,
+          interpretation,
+          now,
+        });
+        if (outcome.type === 'handoff') {
+          return this.handOff(input, client.id, 'blocked_client', now);
+        }
+        if (outcome.type === 'silent') return NO_REPLY;
+        if (outcome.type === 'not_understood') {
+          reply = fallbackReply(barbershop);
+        } else {
+          reply = { kind: outcome.kind, text: outcome.text };
+          if (outcome.kind === 'booked') appointmentId = outcome.appointmentId;
+        }
+      } else {
+        reply = composeReply(barbershop, services, interpretation);
+      }
     } catch (error) {
       if (!(error instanceof MessageInterpreterUnavailableError)) throw error;
       reply = { kind: 'unavailable', text: UNAVAILABLE_REPLY };
@@ -133,10 +178,18 @@ export class AnswerClientQuestionUseCase {
         reply.text,
       );
     } catch (error) {
-      return { outcome: 'failed', error };
+      return {
+        outcome: 'failed',
+        error,
+        ...(appointmentId && { appointmentId }),
+      };
     }
     this.metrics.reply(reply.kind);
-    return { outcome: 'sent', kind: reply.kind };
+    return {
+      outcome: 'sent',
+      kind: reply.kind,
+      ...(appointmentId && { appointmentId }),
+    };
   }
 
   // The pause is stored before the notice goes out, so a failed send still

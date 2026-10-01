@@ -39,6 +39,13 @@ function interpretation(
     unknownServices: [],
     offTopic: false,
     humanRequested: false,
+    bookingRequested: false,
+    barber: null,
+    anyBarber: false,
+    date: null,
+    period: null,
+    time: null,
+    choice: null,
     ...partial,
   };
 }
@@ -216,6 +223,9 @@ describe('WhatsApp questions (e2e)', () => {
           barbershopName: 'Barbearia do Zé',
           serviceNames: ['Barba', 'Corte'],
           text: 'quanto custa corte e barba?',
+          today: { date: '2026-09-29', weekday: 'terça-feira' },
+          barberNames: [],
+          offeredOptions: [],
         },
       ]);
     });

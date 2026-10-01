@@ -16,6 +16,12 @@ const INPUT = {
   barbershopName: 'Barbearia do Zé',
   serviceNames: ['Barba', 'Corte'],
   text: CLIENT_TEXT,
+  today: { date: '2026-09-29', weekday: 'terça-feira' },
+  barberNames: ['João', 'Pedro'],
+  offeredOptions: [
+    'quarta-feira, 30/09, às 12:00, com João',
+    'quarta-feira, 30/09, às 12:30, com Pedro',
+  ],
 };
 const VALID = {
   topics: ['services'],
@@ -23,6 +29,13 @@ const VALID = {
   unknownServices: [],
   offTopic: false,
   humanRequested: false,
+  bookingRequested: false,
+  barber: null,
+  anyBarber: false,
+  date: null,
+  period: null,
+  time: null,
+  choice: null,
 };
 
 class FakeModels implements GeminiModels {
@@ -271,6 +284,78 @@ describe('GeminiMessageInterpreter', () => {
       expect(models.calls[0].config?.systemInstruction).toEqual(
         expect.stringContaining('humanRequested'),
       );
+    });
+  });
+
+  describe('US-17 booking fields (door 1)', () => {
+    const BOOKING = {
+      ...VALID,
+      bookingRequested: true,
+      barber: 'João',
+      anyBarber: false,
+      date: '2026-09-30',
+      period: 'afternoon',
+      time: '15:00',
+      choice: 2,
+    };
+
+    it('door 1 (C37): passes the booking fields through', async () => {
+      const { interpreter, models } = setup();
+      models.result = withText(JSON.stringify(BOOKING));
+
+      await expect(interpreter.interpret(INPUT)).resolves.toEqual(BOOKING);
+    });
+
+    it.each<[string, Record<string, unknown>]>([
+      ['a date in another format', { date: '30/09/2026' }],
+      ['a date the calendar does not have', { date: '2026-02-30' }],
+      ['an hour past 23', { time: '25:00' }],
+      ['a period outside the enum', { period: 'night' }],
+      ['choice 0', { choice: 0 }],
+      ['choice 4', { choice: 4 }],
+      ['a fractional choice', { choice: 1.5 }],
+      ['no bookingRequested', { bookingRequested: undefined }],
+    ])('door 1 (C37): rejects %s', async (_case, override) => {
+      const { interpreter, models } = setup();
+      models.result = withText(JSON.stringify({ ...BOOKING, ...override }));
+
+      await expect(interpreter.interpret(INPUT)).rejects.toBeInstanceOf(
+        MessageInterpreterUnavailableError,
+      );
+    });
+
+    it('door 1 (C37): requires the 7 fields in the response schema and gives the context in the instruction', async () => {
+      const { interpreter, models } = setup();
+
+      await interpreter.interpret(INPUT);
+
+      const schema = models.calls[0].config?.responseJsonSchema as {
+        required: string[];
+        properties: Record<string, unknown>;
+      };
+      for (const field of [
+        'bookingRequested',
+        'barber',
+        'anyBarber',
+        'date',
+        'period',
+        'time',
+        'choice',
+      ]) {
+        expect(schema.required).toContain(field);
+        expect(schema.properties).toHaveProperty(field);
+      }
+      const instruction = models.calls[0].config?.systemInstruction as string;
+      for (const expected of [
+        '2026-09-29',
+        'terça-feira',
+        'João',
+        'Pedro',
+        'quarta-feira, 30/09, às 12:00, com João',
+        'quarta-feira, 30/09, às 12:30, com Pedro',
+      ]) {
+        expect(instruction).toContain(expected);
+      }
     });
   });
 });

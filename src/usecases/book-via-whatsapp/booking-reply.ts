@@ -1,0 +1,148 @@
+import { BarbershopService } from '../../domain/entities/barbershop-service';
+import { BarbershopTimezone } from '../../domain/value-objects/barbershop-timezone';
+import { WEEKDAY_LABELS } from '../../domain/value-objects/weekday';
+import {
+  formatDuration,
+  formatPrice,
+} from '../answer-client-question/client-question-reply';
+import { BookingPeriod } from '../ports/message-interpreter.port';
+
+export interface LabeledSlot {
+  barberName: string;
+  startsAt: Date;
+}
+
+const PERIOD_LABELS: Record<BookingPeriod, string> = {
+  morning: 'de manhã',
+  afternoon: 'à tarde',
+  evening: 'à noite',
+};
+
+export const UNKNOWN_OPTION_NOTICE = 'Não encontrei essa opção.';
+export const SLOT_TAKEN_NOTICE = 'Esse horário acabou de ser ocupado.';
+export const PAST_DATE_NOTICE = 'Essa data já passou.';
+
+/** `quarta-feira, 30/09` for a local date `YYYY-MM-DD`. */
+export function dateLabel(timezone: BarbershopTimezone, date: string): string {
+  const [, month, day] = date.split('-');
+  const weekday = WEEKDAY_LABELS[timezone.weekdayOf(date)];
+  return `${weekday.toLocaleLowerCase('pt-BR')}, ${day}/${month}`;
+}
+
+export function serviceNames(
+  services: readonly BarbershopService[],
+  separator: string,
+): string {
+  return services.map((service) => service.name).join(separator);
+}
+
+/** The option as the client reads it, without its number. */
+export function optionLabel(
+  timezone: BarbershopTimezone,
+  slot: LabeledSlot,
+): string {
+  const date = dateLabel(timezone, timezone.localDateOf(slot.startsAt));
+  return `${date}, às ${timezone.localTimeOf(slot.startsAt)}, com ${slot.barberName}`;
+}
+
+export function offerText(
+  timezone: BarbershopTimezone,
+  services: readonly BarbershopService[],
+  slots: readonly LabeledSlot[],
+): string {
+  const price = services.reduce((sum, service) => sum + service.priceCents, 0);
+  const minutes = services.reduce(
+    (sum, service) => sum + service.durationMinutes,
+    0,
+  );
+  return [
+    `Horários para ${serviceNames(services, ' + ')} (${formatPrice(price)}, ${formatDuration(minutes)}):`,
+    ...slots.map(
+      (slot, index) => `${index + 1}. ${optionLabel(timezone, slot)}`,
+    ),
+    'Responda com o número do horário que você quer.',
+  ].join('\n');
+}
+
+export function bookedText({
+  timezone,
+  services,
+  barberName,
+  startsAt,
+  address,
+}: {
+  timezone: BarbershopTimezone;
+  services: readonly BarbershopService[];
+  barberName: string;
+  startsAt: Date;
+  address: string | null;
+}): string {
+  const price = services.reduce((sum, service) => sum + service.priceCents, 0);
+  const serviceLabel = services.length > 1 ? 'Serviços' : 'Serviço';
+  return [
+    'Agendamento confirmado!',
+    `${serviceLabel}: ${serviceNames(services, ', ')}`,
+    `Barbeiro: ${barberName}`,
+    `Data: ${dateLabel(timezone, timezone.localDateOf(startsAt))}`,
+    `Horário: ${timezone.localTimeOf(startsAt)}`,
+    `Valor: ${formatPrice(price)}`,
+    `Endereço: ${address ?? 'ainda não informado'}`,
+  ].join('\n');
+}
+
+export function askServiceText(services: readonly BarbershopService[]): string {
+  return `Qual serviço você quer agendar? Temos: ${serviceNames(services, ', ')}.`;
+}
+
+export function noServicesText(barbershopName: string): string {
+  return `A ${barbershopName} ainda não tem serviços cadastrados.`;
+}
+
+export function askBarberText(
+  services: readonly BarbershopService[],
+  barberNames: readonly string[],
+): string {
+  return `Tem preferência de barbeiro? Fazem ${serviceNames(services, ' + ')}: ${barberNames.join(', ')}. Se não tiver, responda "tanto faz".`;
+}
+
+export function barberNotAptText(
+  barberName: string,
+  services: readonly BarbershopService[],
+  barberNames: readonly string[],
+): string {
+  const names = serviceNames(services, ' + ');
+  return `${barberName} não faz ${names}. Fazem ${names}: ${barberNames.join(', ')}. Se não tiver preferência, responda "tanto faz".`;
+}
+
+export function noBarberText(services: readonly BarbershopService[]): string {
+  return `Nenhum barbeiro faz ${serviceNames(services, ' + ')} no momento.`;
+}
+
+export function minimumAdvanceText(minutes: number): string {
+  return `Só agendamos pelo WhatsApp com pelo menos ${formatDuration(minutes)} de antecedência.`;
+}
+
+export function timeTakenText(
+  timezone: BarbershopTimezone,
+  date: string,
+  time: string,
+): string {
+  return `O horário das ${time} de ${dateLabel(timezone, date)} não está livre.`;
+}
+
+export function emptyDateText(
+  timezone: BarbershopTimezone,
+  date: string,
+  period: BookingPeriod | null,
+): string {
+  const when = period ? `${PERIOD_LABELS[period]} ` : '';
+  return `Não há horário livre ${when}em ${dateLabel(timezone, date)}.`;
+}
+
+export function nothingFreeText(
+  timezone: BarbershopTimezone,
+  services: readonly BarbershopService[],
+  lastDate: string,
+): string {
+  return `Não encontrei horário livre para ${serviceNames(services, ' + ')} até ${dateLabel(timezone, lastDate)}.`;
+}

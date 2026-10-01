@@ -61,6 +61,13 @@ export class BarbershopTimezone {
     return `${pad(part('year'), 4)}-${pad(part('month'), 2)}-${pad(part('day'), 2)}`;
   }
 
+  /** Wall-clock time of the instant, `HH:MM`. */
+  localTimeOf(instant: Date): string {
+    const part = this.partsAt(instant.getTime());
+    const pad = (value: number): string => String(value).padStart(2, '0');
+    return `${pad(part('hour'))}:${pad(part('minute'))}`;
+  }
+
   private offsetAt(instant: number): number {
     const part = this.partsAt(instant);
     const localAsUtc = Date.UTC(
