@@ -22,7 +22,14 @@ export class AppointmentRemindersJob {
   })
   async run(): Promise<void> {
     try {
-      const { sent, failed, failures } = await this.sendReminders.execute();
+      const { sent, failed, failures, sendFailures } =
+        await this.sendReminders.execute();
+      for (const { barbershopId, appointmentId, kind, error } of sendFailures) {
+        this.logger.error(
+          { barbershopId, appointmentId, kind, err: errorIdentity(error) },
+          'Appointment reminder could not be sent.',
+        );
+      }
       for (const { barbershopId, error } of failures) {
         this.logger.error(
           { barbershopId, err: errorIdentity(error) },

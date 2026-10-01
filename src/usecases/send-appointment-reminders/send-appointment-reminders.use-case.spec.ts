@@ -172,6 +172,7 @@ async function setup({
 
   return {
     useCase,
+    schedule,
     store,
     shops,
     appointments,
@@ -264,7 +265,19 @@ describe('US-19 SendAppointmentRemindersUseCase', () => {
 
       const result = await useCase.execute();
 
-      expect(result).toEqual({ sent: 1, failed: 1, failures: [] });
+      expect(result).toEqual({
+        sent: 1,
+        failed: 1,
+        failures: [],
+        sendFailures: [
+          {
+            barbershopId: 'barbershop-a',
+            appointmentId: 'x',
+            kind: '24h',
+            error: new Error('vendor down'),
+          },
+        ],
+      });
       expect(marks('x').reminder24hSentAt).toEqual(NOW);
       expect(marks('y').reminder24hSentAt).toEqual(NOW);
       expect(metrics.reminders).toEqual([
@@ -321,7 +334,14 @@ describe('US-19 SendAppointmentRemindersUseCase', () => {
 
       const result = await useCase.execute();
 
-      expect(result).toEqual({ sent: 0, failed: 1, failures: [] });
+      expect(result).toMatchObject({
+        sent: 0,
+        failed: 1,
+        failures: [],
+        sendFailures: [
+          { barbershopId: 'barbershop-a', appointmentId: 'z', kind: '1h' },
+        ],
+      });
       expect(marks('z').reminder1hSentAt).toEqual(NOW);
       expect(metrics.reminders).toEqual([{ kind: '1h', outcome: 'failed' }]);
 
@@ -422,8 +442,16 @@ describe('US-19 SendAppointmentRemindersUseCase', () => {
     );
 
     it('AD-009, RN-26 (C15): each barbershop reminds its own clients, and a failing one does not stop the next', async () => {
-      const { useCase, connector, seed, store, shops, connect, appointments } =
-        await setup();
+      const {
+        useCase,
+        connector,
+        seed,
+        store,
+        shops,
+        connect,
+        appointments,
+        schedule,
+      } = await setup();
       store.barbershops.push(shops[1]);
       await connect('barbershop-b', 'connected');
       await seed({ id: 'x', startsAt: X_STARTS });
@@ -451,16 +479,16 @@ describe('US-19 SendAppointmentRemindersUseCase', () => {
       connector.sentTexts.length = 0;
       appointments.setMarks('barbershop-a', 'x', { reminder24hSentAt: null });
       appointments.setMarks('barbershop-b', 'bx', { reminder24hSentAt: null });
-      const claim = appointments.claimReminder.bind(appointments);
-      appointments.claimReminder = (
+      const listPending = schedule.listPendingReminders.bind(schedule);
+      schedule.listPendingReminders = (
         barbershopId: string,
-        id: string,
         kind: ReminderKind,
-        now: Date,
+        after: Date,
+        until: Date,
       ) =>
         barbershopId === 'barbershop-a'
           ? Promise.reject(failure)
-          : claim(barbershopId, id, kind, now);
+          : listPending(barbershopId, kind, after, until);
 
       const result = await useCase.execute();
 

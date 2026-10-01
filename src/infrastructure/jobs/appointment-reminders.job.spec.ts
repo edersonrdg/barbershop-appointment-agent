@@ -36,7 +36,7 @@ describe('US-19 AppointmentRemindersJob', () => {
     jest.restoreAllMocks();
   });
 
-  it('AC 3 (C5): logs each failing barbershop without the phone or the text, and the totals of the run', async () => {
+  it('AC 3 (C5): logs each failing barbershop and each failed send without the phone or the text, and the totals of the run', async () => {
     const job = jobReturning({
       sent: 2,
       failed: 1,
@@ -48,11 +48,28 @@ describe('US-19 AppointmentRemindersJob', () => {
           ),
         },
       ],
+      sendFailures: [
+        {
+          barbershopId: 'barbershop-b',
+          appointmentId: 'appointment-1',
+          kind: '24h',
+          error: new DatabaseError('+5511987654321 Lembrete do seu horário'),
+        },
+      ],
     });
 
     await job.run();
 
-    expect(errorSpy).toHaveBeenCalledTimes(1);
+    expect(errorSpy).toHaveBeenCalledTimes(2);
+    expect(errorSpy).toHaveBeenCalledWith(
+      {
+        barbershopId: 'barbershop-b',
+        appointmentId: 'appointment-1',
+        kind: '24h',
+        err: { name: 'QueryFailedError', code: '57014' },
+      },
+      'Appointment reminder could not be sent.',
+    );
     expect(errorSpy).toHaveBeenCalledWith(
       {
         barbershopId: 'barbershop-a',
@@ -71,7 +88,12 @@ describe('US-19 AppointmentRemindersJob', () => {
   });
 
   it('AC 3 (C5): a run without failures logs no error', async () => {
-    await jobReturning({ sent: 0, failed: 0, failures: [] }).run();
+    await jobReturning({
+      sent: 0,
+      failed: 0,
+      failures: [],
+      sendFailures: [],
+    }).run();
 
     expect(errorSpy).not.toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledWith(

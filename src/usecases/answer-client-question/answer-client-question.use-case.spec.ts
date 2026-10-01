@@ -1083,6 +1083,19 @@ describe('AnswerClientQuestionUseCase', () => {
         expect(confirmedAt(setup, 'other-shop', 'barbershop-b')).toBeNull();
       });
 
+      it('AC 13 (C18): a reminded confirmed appointment that already started is neither confirmed nor listed', async () => {
+        const setup = await withX();
+        await setup.own({
+          id: 'started',
+          startsAt: local('2026-09-29', '11:30'),
+        });
+        remind(setup, 'started');
+
+        expect(await setup.lastText(CONFIRM)).toEqual([X_CONFIRMED]);
+        expect(confirmedAt(setup, 'started')).toBeNull();
+        expect(await setup.statusOf('started')).toBe('confirmed');
+      });
+
       it('AC 14 (C19): without a reminded appointment answers that there is nothing to confirm', async () => {
         const setup = await withX({ reminded: false });
 
@@ -1115,25 +1128,33 @@ describe('AnswerClientQuestionUseCase', () => {
         },
       );
 
-      it.each<[string, Partial<MessageInterpretation>, (text: string) => void]>(
+      type Setup = Awaited<ReturnType<typeof bookingSetup>>;
+      it.each<
         [
-          [
-            'a request for a person',
-            { humanRequested: true },
-            (text) => expect(text).toBe(HANDOFF_REPLY),
-          ],
-          [
-            'an off-topic message',
-            { offTopic: true },
-            (text) => expect(text).toBe(REFUSAL),
-          ],
-          [
-            'a booking request',
-            { bookingRequested: true },
-            (text) => expect(text).toMatch(/^Qual serviço você quer agendar\?/),
-          ],
+          string,
+          Partial<MessageInterpretation>,
+          (text: string, setup: Setup) => void,
+        ]
+      >([
+        [
+          'a request for a person',
+          { humanRequested: true },
+          (text, setup) => {
+            expect(text).toBe(HANDOFF_REPLY);
+            expect(setup.conversation()?.pauseReason).toBe('requested');
+          },
         ],
-      )(
+        [
+          'an off-topic message',
+          { offTopic: true },
+          (text) => expect(text).toBe(REFUSAL),
+        ],
+        [
+          'a booking request',
+          { bookingRequested: true },
+          (text) => expect(text).toMatch(/^Qual serviço você quer agendar\?/),
+        ],
+      ])(
         'AC 16 (C21): confirm with %s follows the earlier flow',
         async (_case, partial, check) => {
           const setup = await withX();
@@ -1141,7 +1162,7 @@ describe('AnswerClientQuestionUseCase', () => {
           const texts = await setup.lastText({ ...CONFIRM, ...partial });
 
           expect(texts).toHaveLength(1);
-          check(texts[0]);
+          check(texts[0], setup);
           expect(confirmedAt(setup, 'X')).toBeNull();
         },
       );

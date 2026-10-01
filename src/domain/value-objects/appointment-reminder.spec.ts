@@ -46,7 +46,7 @@ describe('US-19 appointment reminders', () => {
         false,
       ],
     ])(
-      'AC 1, AC 4, AC 7 (C1): %s reminder with %s is due: %s',
+      'AC 1, AC 4, AC 7 (C1): %s reminder with %s, due: %s',
       (kind, _case, now, createdAt, due) => {
         expect(isReminderDue(kind, { startsAt: T, createdAt }, now)).toBe(due);
       },
@@ -92,7 +92,7 @@ describe('US-19 appointment reminders', () => {
         ] => [`status ${status}`, { status }, 120, minutesBefore(60), false],
       ),
     ])(
-      'CA-19.5, AC 21, AC 22 (C28): %s is unconfirmed: %s',
+      'CA-19.5, AC 21, AC 22 (C28): %s, unconfirmed: %s',
       (_case, override, deadline, now, expected) => {
         expect(isUnconfirmed({ ...REMINDED, ...override }, deadline, now)).toBe(
           expected,

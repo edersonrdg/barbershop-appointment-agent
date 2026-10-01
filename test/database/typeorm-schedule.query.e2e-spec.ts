@@ -582,7 +582,10 @@ describe('TypeOrmScheduleQuery (e2e)', () => {
       const joao = await insertClient(barbershopA, 'João', '+5511987654321');
       const appointment = async (
         startsAt: string,
-        { clientId = joao, barbershopId = barbershopA } = {},
+        {
+          clientId = joao,
+          barbershopId = barbershopA,
+        }: { clientId?: string | null; barbershopId?: string } = {},
       ) => {
         const barberId =
           barbershopId === barbershopA

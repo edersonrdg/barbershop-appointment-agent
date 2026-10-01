@@ -304,6 +304,7 @@ describe('API docs (e2e)', () => {
 
       expect(item.unconfirmed).toMatchObject({
         type: 'boolean',
+        example: false,
         description: expect.stringContaining('CA-19.5') as string,
       });
       for (const confirmedAt of [
@@ -314,6 +315,7 @@ describe('API docs (e2e)', () => {
           type: 'string',
           format: 'date-time',
           nullable: true,
+          example: '2026-09-29T15:00:00.000Z',
           description: expect.stringContaining('CA-19.2') as string,
         });
       }

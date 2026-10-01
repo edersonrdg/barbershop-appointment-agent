@@ -1,6 +1,7 @@
 import {
   isReminderDue,
   REMINDER_KINDS,
+  ReminderKind,
   reminderLeadMinutes,
 } from '../../domain/value-objects/appointment-reminder';
 import { AppointmentRepository } from '../ports/appointment.repository.port';
@@ -19,10 +20,18 @@ export interface ReminderBarbershopFailure {
   error: unknown;
 }
 
+export interface ReminderSendFailure {
+  barbershopId: string;
+  appointmentId: string;
+  kind: ReminderKind;
+  error: unknown;
+}
+
 export interface SendAppointmentRemindersResult {
   sent: number;
   failed: number;
   failures: ReminderBarbershopFailure[];
+  sendFailures: ReminderSendFailure[];
 }
 
 // US-19 (RF-16, RF-17, RN-18) and AD-009: barbershop by barbershop, every
@@ -45,6 +54,7 @@ export class SendAppointmentRemindersUseCase {
       sent: 0,
       failed: 0,
       failures: [],
+      sendFailures: [],
     };
     for (const barbershopId of await this.barbershops.listIds()) {
       try {
@@ -92,9 +102,15 @@ export class SendAppointmentRemindersUseCase {
             entry.client.phone,
             reminderText(kind, barbershop, entry),
           );
-        } catch {
+        } catch (error) {
           this.metrics.reminder(kind, 'failed');
           result.failed += 1;
+          result.sendFailures.push({
+            barbershopId,
+            appointmentId: entry.id,
+            kind,
+            error,
+          });
           continue;
         }
         this.metrics.reminder(kind, 'sent');
