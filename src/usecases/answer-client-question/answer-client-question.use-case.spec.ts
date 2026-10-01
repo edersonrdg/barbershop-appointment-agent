@@ -831,7 +831,11 @@ describe('AnswerClientQuestionUseCase', () => {
 
         const result = await execute(CANCEL);
 
-        expect(result).toMatchObject({ outcome: 'failed', appointmentId: 'A' });
+        expect(result).toMatchObject({
+          outcome: 'failed',
+          kind: 'cancelled',
+          appointmentId: 'A',
+        });
         expect(await statusOf('A')).toBe('cancelled');
       });
 
@@ -851,6 +855,7 @@ describe('AnswerClientQuestionUseCase', () => {
         expect(created[0].status).toBe('confirmed');
         expect(result).toMatchObject({
           outcome: 'failed',
+          kind: 'rescheduled',
           appointmentId: created[0].id,
         });
         expect(await statusOf('R')).toBe('cancelled');
