@@ -122,5 +122,13 @@
 - **Date**: 2026-10-01
 - **Status**: active
 
+### AD-016
+- **Decision**: A cobrança passa só pelo port `PaymentGateway` (`src/usecases/ports/payment-gateway.port.ts`), com tipos neutros; o único adaptador é o do Asaas, em `src/infrastructure/external/payments/asaas/`, junto com o webhook (`POST /webhooks/payments/asaas`, `@Public()`, autenticado pelo header `asaas-access-token` igual a `ASAAS_WEBHOOK_TOKEN`). O webhook responde `200` a todo evento autenticado, aplicado ou não, e `500` só quando a aplicação falha no meio, para o Asaas reenviar. Cada evento é gravado em `payment_gateway_events` (PK `(gateway, event_id)`) na mesma transação da mudança, e o tenant sai do id da assinatura no gateway guardado em `barbershop_subscriptions` ou, se ainda não ligado, da consulta ao gateway (`externalReference` = id da barbearia, ou o checkout que criou a assinatura). Toda escrita na assinatura trava a linha de `barbershops` (`FOR UPDATE`). O status fica em `barbershops.subscription_status` (`trialing`, `active`, `past_due`, com `CHECK`); cancelar não é status, a assinatura cancelada continua `active` até `paid_until`.
+- **Reason**: US-20 (RF-41, RF-42, CA-20.1 a CA-20.4). O Asaas entrega webhooks pelo menos uma vez e pausa a fila depois de erros repetidos; a assinatura criada pelo checkout de cartão só aparece para nós no primeiro pagamento. A US-21 vai ler `past_due`, `payment_failed_at` e `paid_until` para suspender.
+- **Trade-off**: Nova exceção ao AD-004, no molde do AD-011: o webhook acha o tenant fora da sessão, confiando no token compartilhado e na consulta autenticada ao gateway. A US-21 precisa ampliar o `CHECK` do status para o estado suspenso.
+- **Scope**: Assinatura e cobrança, US-20 em diante (US-21).
+- **Date**: 2026-10-02
+- **Status**: active
+
 ## Handoff
 

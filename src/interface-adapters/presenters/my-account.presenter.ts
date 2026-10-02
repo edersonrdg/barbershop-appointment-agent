@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SUBSCRIPTION_STATUSES } from '../../domain/entities/barbershop';
 import { MyAccount } from '../../usecases/get-my-account/get-my-account.use-case';
 
 export const myAccountResponseSchema = z.object({
@@ -16,7 +17,11 @@ export const myAccountResponseSchema = z.object({
     id: z.uuid(),
     name: z.string().meta({ example: 'Barbearia do Zé' }),
     timezone: z.string().meta({ example: 'America/Sao_Paulo' }),
-    subscriptionStatus: z.enum(['trialing']),
+    subscriptionStatus: z.enum(SUBSCRIPTION_STATUSES).meta({
+      description:
+        '`trialing` no teste gratuito, `active` com a assinatura paga (também depois de pedir o cancelamento, até o fim do período pago) e `past_due` depois de uma cobrança recusada (US-20).',
+      example: 'trialing',
+    }),
     trialEndsAt: z.iso.datetime().meta({
       description: 'Fim do período de teste, em UTC (ISO 8601).',
     }),

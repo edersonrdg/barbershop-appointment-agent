@@ -35,6 +35,9 @@ import { ServiceNotFoundError } from '../../domain/errors/service-not-found.erro
 import { ServiceNotPerformedError } from '../../domain/errors/service-not-performed.error';
 import { SlotInPastError } from '../../domain/errors/slot-in-past.error';
 import { InvalidWorkingHoursError } from '../../domain/errors/invalid-working-hours.error';
+import { NoActiveSubscriptionError } from '../../domain/errors/no-active-subscription.error';
+import { PaymentGatewayUnavailableError } from '../../domain/errors/payment-gateway-unavailable.error';
+import { SubscriptionAlreadyExistsError } from '../../domain/errors/subscription-already-exists.error';
 import { UserNotFoundError } from '../../domain/errors/user-not-found.error';
 import { WhatsAppAlreadyConnectedError } from '../../domain/errors/whatsapp-already-connected.error';
 import { WhatsAppConnectorUnavailableError } from '../../domain/errors/whatsapp-connector-unavailable.error';
@@ -71,6 +74,9 @@ const STATUS_BY_ERROR = new Map<unknown, HttpStatus>([
   [ClientNotFoundError, HttpStatus.NOT_FOUND],
   [WhatsAppAlreadyConnectedError, HttpStatus.CONFLICT],
   [WhatsAppConnectorUnavailableError, HttpStatus.BAD_GATEWAY],
+  [SubscriptionAlreadyExistsError, HttpStatus.CONFLICT],
+  [NoActiveSubscriptionError, HttpStatus.CONFLICT],
+  [PaymentGatewayUnavailableError, HttpStatus.BAD_GATEWAY],
 ]);
 
 @Catch(DomainError)

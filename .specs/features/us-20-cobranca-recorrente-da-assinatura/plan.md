@@ -12,7 +12,7 @@ Reaproveita o padrão de integração do WhatsApp (port neutro em `usecases/port
 
 ```mermaid
 flowchart TD
-    CK["POST /subscription/checkout (door 5)"] --> LOCK["trava a linha da assinatura da barbearia (door 1)"]
+    CK["POST /subscription/checkout (door 5)"] --> LOCK["trava a linha da barbearia (door 8)"]
     LOCK --> M{método}
     M -- credit_card --> CARD["PaymentGateway.createCardCheckout (door 4) -> Asaas POST /v3/checkouts RECURRENT"]
     M -- pix --> PIX["PaymentGateway.createPixSubscription (door 4) -> Asaas customer + subscription MONTHLY + fatura"]
@@ -33,7 +33,7 @@ flowchart TD
     CANCEL["POST /subscription/cancel (door 5)"] --> DEL["PaymentGateway.cancelSubscription (door 4) -> Asaas DELETE"] --> KEEP["continua active até paidUntil"]
 ```
 
-1. **Assinar:** a rota trava a linha de assinatura da barbearia (criada na primeira vez) para que dois cliques simultâneos não criem duas assinaturas no Asaas. Cartão cria um Checkout recorrente do Asaas (só cartão, cobrança mensal começando hoje) e devolve o link. Pix cria o cliente no Asaas com o CPF/CNPJ informado, cancela uma assinatura Pix anterior ainda não paga e cria uma assinatura mensal com vencimento hoje, devolvendo o link da primeira fatura, que mostra o QR Code Pix. Nada vira `active` aqui.
+1. **Assinar:** a rota trava a linha da barbearia em `barbershops` (door 8) para que dois cliques simultâneos não criem duas assinaturas no Asaas. Cartão cria um Checkout recorrente do Asaas (só cartão, cobrança mensal começando hoje) e devolve o link. Pix cria o cliente no Asaas com o CPF/CNPJ informado, cancela uma assinatura Pix anterior ainda não paga e cria uma assinatura mensal com vencimento hoje, devolvendo o link da primeira fatura, que mostra o QR Code Pix. Nada vira `active` aqui.
 2. **Webhook:** o Asaas avisa o pagamento. O id do evento é gravado na mesma transação da mudança, então uma reentrega não faz nada. A barbearia sai do id da assinatura no Asaas que guardamos; se ainda não guardamos (assinatura criada pelo checkout de cartão), o adaptador consulta a assinatura no Asaas e liga pelo checkout ou pela `externalReference`.
 3. **Aviso do teste:** um job de hora em hora, barbearia por barbearia, reivindica o aviso com um `UPDATE` condicional e manda o e-mail aos Donos. O aviso no painel é calculado na leitura, independente do e-mail.
 4. **Cancelar:** apaga a assinatura no Asaas (não há mais cobranças) e grava o pedido de cancelamento; o status continua `active` e a resposta traz até quando.
@@ -85,6 +85,7 @@ One-way constraints: `BarbershopSubscription` tem chave = `barbershop_id` (no m�
 | 5. Contrato das rotas | as quatro rotas de `## Surface`, com os nomes de campo de lá; o webhook autentica por `asaas-access-token` igual a `ASAAS_WEBHOOK_TOKEN` (comparação em tempo constante) e responde `200` para todo evento válido, aplicado ou ignorado | Responder `4xx` para evento desconhecido ou payload estranho: o Asaas trata como falha e, depois de várias, pausa a fila de webhooks da conta |
 | 6. Tenant do webhook | o tenant sai do `payment.subscription` comparado com `gateway_subscription_id`; sem correspondência, o adaptador faz `GET /v3/subscriptions/{id}` e liga pela sessão de checkout guardada (cartão) ou pela `externalReference = barbershopId` (Pix). Nunca do corpo do webhook sozinho | Confiar em `payment.externalReference`: não está documentado que a assinatura repassa esse campo às cobranças, e um corpo forjado com o token vazado escolheria o tenant. Exceção nova ao AD-004, no mesmo molde do AD-011 |
 | 7. Aviso de fim do teste | `barbershops.trial_warning_sent_at timestamptz null`, reivindicado com `UPDATE ... SET trial_warning_sent_at = now WHERE id = $1 AND trial_warning_sent_at IS NULL AND subscription_status = 'trialing'` por um `@Cron('0 * * * *')`; envio que falha mantém a reivindicação (AD-015) | Calcular "já avisado" pelo log de e-mails: não existe log, e duas instâncias mandariam duas vezes |
+| 8. Alvo do lock (achado no build) | `SELECT 1 FROM barbershops WHERE id = $1 FOR UPDATE` na transação do checkout, do cancelamento e da aplicação de um evento do webhook; a linha de `barbershop_subscriptions` é gravada por upsert dentro dela | Travar a linha de `barbershop_subscriptions` (door 1): ela não existe antes do primeiro checkout, então dois primeiros checkouts simultâneos não teriam o que travar e criariam duas assinaturas Pix |
 
 - Nothing else in this change is hard to reverse
 

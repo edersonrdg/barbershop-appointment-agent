@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { parseEnv } from 'node:util';
 import { validateEnv } from './env.schema';
 
 const validEnv = {
@@ -16,6 +19,10 @@ const validEnv = {
   PRIVACY_POLICY_URL: 'https://barberbot.example/privacidade',
   GEMINI_API_KEY: 'gemini-key',
   GEMINI_MODEL: 'gemini-2.5-flash',
+  ASAAS_API_URL: 'https://api-sandbox.asaas.com/v3',
+  ASAAS_API_KEY: 'asaas-key',
+  ASAAS_WEBHOOK_TOKEN: 'a'.repeat(32),
+  SUBSCRIPTION_PRICE_CENTS: '9900',
 };
 
 describe('validateEnv', () => {
@@ -209,6 +216,45 @@ describe('validateEnv', () => {
       expect(() =>
         validateEnv({ ...validEnv, WHATSAPP_HANDOFF_RESUME_HOURS: value }),
       ).toThrow(/WHATSAPP_HANDOFF_RESUME_HOURS/);
+    });
+  });
+
+  describe('US-20 subscription variables', () => {
+    it.each([
+      'SUBSCRIPTION_PRICE_CENTS',
+      'ASAAS_API_URL',
+      'ASAAS_API_KEY',
+      'ASAAS_WEBHOOK_TOKEN',
+    ])('rejects a missing %s (C45)', (name) => {
+      const env: Record<string, unknown> = { ...validEnv };
+      delete env[name];
+
+      expect(() => validateEnv(env)).toThrow(new RegExp(name));
+    });
+
+    it('rejects a zero price and a short webhook token (C45)', () => {
+      expect(() =>
+        validateEnv({ ...validEnv, SUBSCRIPTION_PRICE_CENTS: '0' }),
+      ).toThrow(/SUBSCRIPTION_PRICE_CENTS/);
+      expect(() =>
+        validateEnv({ ...validEnv, ASAAS_WEBHOOK_TOKEN: 'a'.repeat(31) }),
+      ).toThrow(/ASAAS_WEBHOOK_TOKEN/);
+    });
+
+    it('applies the timeout and warning-days defaults (C45)', () => {
+      expect(validateEnv(validEnv)).toMatchObject({
+        SUBSCRIPTION_PRICE_CENTS: 9900,
+        ASAAS_TIMEOUT_MS: 10000,
+        SUBSCRIPTION_TRIAL_WARNING_DAYS: 3,
+      });
+    });
+
+    it('accepts the .env.example (C45)', () => {
+      const example = parseEnv(
+        readFileSync(join(__dirname, '../../../.env.example'), 'utf8'),
+      );
+
+      expect(() => validateEnv(example)).not.toThrow();
     });
   });
 });

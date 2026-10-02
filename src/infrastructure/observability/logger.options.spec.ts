@@ -46,4 +46,31 @@ describe('buildLoggerOptions redact', () => {
     expect(payload.token).toBe('[REDACTED]');
     expect(payload.accessToken).toBe('[REDACTED]');
   });
+
+  it('US-20 AC 33: redacts the payer document and the Asaas webhook token (C41)', () => {
+    const log = logWithRedact({ cpfCnpj: '52998224725' });
+    expect((log.payload as Record<string, unknown>).cpfCnpj).toBe('[REDACTED]');
+
+    const chunks: string[] = [];
+    const { pinoHttp } = buildLoggerOptions({
+      NODE_ENV: 'test',
+      LOG_LEVEL: 'info',
+    });
+    const logger = pino(
+      { redact: (pinoHttp as Options).redact },
+      {
+        write: (msg: string) => {
+          chunks.push(msg);
+        },
+      },
+    );
+    logger.info(
+      { req: { headers: { 'asaas-access-token': 'webhook-token' } } },
+      'webhook',
+    );
+    const req = (
+      JSON.parse(chunks[0]) as { req: { headers: Record<string, string> } }
+    ).req;
+    expect(req.headers['asaas-access-token']).toBe('[REDACTED]');
+  });
 });

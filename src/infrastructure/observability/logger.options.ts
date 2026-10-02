@@ -36,6 +36,8 @@ export function buildLoggerOptions(
       redact: {
         paths: [
           'req.headers.authorization',
+          // US-20: the Asaas webhook token.
+          'req.headers["asaas-access-token"]',
           'req.headers.cookie',
           '*.password',
           '*.newPassword',
@@ -44,6 +46,8 @@ export function buildLoggerOptions(
           '*.email',
           '*.token',
           '*.accessToken',
+          // US-20: the payer's CPF or CNPJ.
+          '*.cpfCnpj',
         ],
         censor: '[REDACTED]',
       },

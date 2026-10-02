@@ -736,7 +736,7 @@ Cada história é uma unidade de entrega que pode ser testada. O agente cria as 
 - **CA-20.3** Dado uma cobrança recusada, quando o gateway notifica a falha, então o Dono é avisado com um link para atualizar o pagamento.
 - **CA-20.4** Dado o Dono, quando ele cancela a assinatura, então ela continua ativa até o fim do período já pago.
 
-**Pendências:** **bloqueante:** preço da assinatura e escolha do gateway (seção 19). CA-20.2 (3 dias) e CA-20.4 são sugestões a validar.
+**Pendências:** gateway definido: Asaas (D-23). O preço da assinatura (seção 19) bloqueia só o lançamento: entra como valor configurável. CA-20.2 (3 dias) e CA-20.4 são sugestões a validar.
 
 ---
 
@@ -942,7 +942,7 @@ flowchart LR
 |---|---|---|
 | WhatsApp (API não oficial, ex.: Evolution API, Z-API) | Envio e recebimento de mensagens no número da barbearia | Conexão por QR code; convive com o app WhatsApp Business. Migração para a Cloud API oficial na fase 2 |
 | Google Gemini (`@google/genai`) | Compreensão e geração de respostas do bot | Decidido em D-22. Modelo configurável por variável de ambiente |
-| Gateway de pagamento (ex.: Asaas, Stripe, Iugu) | Cobrança recorrente da assinatura | Deve suportar cartão e Pix recorrente |
+| Gateway de pagamento: Asaas | Cobrança recorrente da assinatura | Decidido em D-23. Cartão pelo Checkout recorrente; Pix como fatura mensal |
 
 ## 17. Riscos e mitigação
 
@@ -981,6 +981,7 @@ flowchart LR
 | D-20 | Reset de faltas | Zera após 90 dias sem faltas | Só desbloqueio manual; ambos | O cliente recupera o acesso com o tempo |
 | D-21 | Métricas de sucesso | % sem humano; conversão do teste; churn mensal | Taxa de no-show | Escolha do usuário |
 | D-22 | Provedor de IA (LLM) | Google Gemini | — | Escolha do usuário |
+| D-23 | Gateway de pagamento e Pix recorrente | Asaas; cartão pelo Checkout recorrente e Pix como uma fatura por mês | Stripe; Iugu; Pix Automático; só cartão | Escolha do usuário. O Checkout recorrente do Asaas só aceita cartão; o Pix Automático exige conta elegível |
 
 > **Observação:** a RNF-05 (conector isolado) é uma boa prática de arquitetura e não uma mitigação obrigatória. Ela pode ser removida se contrariar a decisão D-15.
 
@@ -998,7 +999,7 @@ flowchart LR
 - [ ] **Metas numéricas** de conversão do teste e de churn.
 - [ ] **Data e critério para migrar para a API oficial.**
 - [ ] **Fornecedor da API não oficial do WhatsApp** (ex.: Evolution API, Z-API). Bloqueia a US-13.
-- [ ] **Gateway de pagamento** (ex.: Asaas, Stripe, Iugu). Bloqueia a US-20.
+- [x] **Gateway de pagamento:** Asaas, com o Pix como fatura mensal (D-23).
 - [ ] **Texto e URL da política de privacidade.** Bloqueia a US-14.
 - [ ] **Forçar horário no painel (exceção do RN-05).** O RN-05 permite que o Dono force no painel, com aviso, um agendamento fora do funcionamento, da jornada ou sobre folga e bloqueio, mas nenhuma história implementa o forçar. A US-10 recusa toda violação, inclusive para o Dono. Falta decidir se o forçar entra e em qual história.
 - [ ] **Critérios sugeridos nas histórias**, a confirmar:
