@@ -7,7 +7,13 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 export const TRIAL_DURATION_DAYS = 14;
 export const DEFAULT_TIMEZONE = 'America/Sao_Paulo';
 
-export type SubscriptionStatus = 'trialing';
+// US-20: a cancelled subscription is still `active` until the paid month ends.
+export const SUBSCRIPTION_STATUSES = [
+  'trialing',
+  'active',
+  'past_due',
+] as const;
+export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
 
 export interface BarbershopProps {
   id: string;

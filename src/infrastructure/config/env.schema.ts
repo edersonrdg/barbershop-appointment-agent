@@ -61,6 +61,22 @@ export const envSchema = z
     GEMINI_MODEL: z.string().min(1),
     // Keeps the bot's reply within RNF-01 (10 s), with room for the WhatsApp send.
     GEMINI_TIMEOUT_MS: z.coerce.number().int().positive().default(8000),
+    // Assinatura (US-20): Asaas, reached only by the adapter in
+    // infrastructure/external/payments/asaas. The base includes `/v3`.
+    ASAAS_API_URL: z.string().url(),
+    ASAAS_API_KEY: z.string().min(1),
+    ASAAS_TIMEOUT_MS: z.coerce.number().int().positive().default(10000),
+    // Sent by the Asaas in the `asaas-access-token` header of every webhook.
+    ASAAS_WEBHOOK_TOKEN: z.string().min(32),
+    // The price is still open (PRD section 19), so it has no default.
+    SUBSCRIPTION_PRICE_CENTS: z.coerce.number().int().positive(),
+    // CA-20.2: days before the trial ends to warn the Owner; 3 is a suggestion
+    // still to be validated.
+    SUBSCRIPTION_TRIAL_WARNING_DAYS: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(3),
     // A documentação expõe o mapa da API; fica desligada salvo opt-in explícito.
     API_DOCS_ENABLED: z
       .enum(['true', 'false'])

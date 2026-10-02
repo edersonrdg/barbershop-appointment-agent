@@ -138,6 +138,24 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: confirm-presence-via-whatsapp.use-case.ts:39 (> vs >=) (checks)
 - last seen: 2026-10-01T15:19:48Z
 
+### L-022 - When a migration adds constraints, write one schema assertion per constraint (each CHECK, UNIQUE, partial index and FK with its 23503/23505/23514 code), not only those named in the check claim.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `schema` · harmful: 0
+- features: us-20-cobranca-recorrente-da-assinatura
+- evidence: C43 round 1: gateway_checkout_id UNIQUE and FKs (schema)
+- last seen: 2026-10-02T16:19:16Z
+
+### L-023 - A metric check over a label set must assert each label value by name; a regex that merely allows a value proves nothing about it.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `metrics` · harmful: 0
+- features: us-20-cobranca-recorrente-da-assinatura
+- evidence: C42 round 1: event_group payment_failed (metrics)
+- last seen: 2026-10-02T16:19:16Z
+
+### L-024 - When a check claims an order (A before B) or an independence (X does not depend on Y), assert it directly: capture state at the moment of B, or flip Y and re-read X.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `usecase` · harmful: 0
+- features: us-20-cobranca-recorrente-da-assinatura
+- evidence: C6 and C29 round 1 (usecase)
+- last seen: 2026-10-02T16:19:16Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
