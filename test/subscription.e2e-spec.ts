@@ -241,6 +241,13 @@ describe('US-20 subscription (e2e)', () => {
     expect((await show().expect(200)).body).toMatchObject({
       trialEndingSoon: true,
     });
+    await t.dataSource.query(
+      'UPDATE barbershops SET trial_warning_sent_at = $2 WHERE id = $1',
+      [shop, SUBSCRIPTION_NOW],
+    );
+    expect((await show().expect(200)).body).toMatchObject({
+      trialEndingSoon: true,
+    });
 
     await setTrialEnd(shop, new Date('2026-10-06T15:00:00.000Z'));
     expect((await show().expect(200)).body).toMatchObject({

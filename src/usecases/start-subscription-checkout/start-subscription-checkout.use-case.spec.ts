@@ -134,8 +134,18 @@ describe('US-20 start subscription checkout', () => {
       gatewaySubscriptionId: 'sub_0',
     });
 
+    const create = gateway.createPixSubscription.bind(gateway);
+    const cancelledBeforeCreate: string[][] = [];
+    jest
+      .spyOn(gateway, 'createPixSubscription')
+      .mockImplementation((request) => {
+        cancelledBeforeCreate.push([...gateway.cancelled]);
+        return create(request);
+      });
+
     await useCase.execute(pix);
 
+    expect(cancelledBeforeCreate).toEqual([['sub_0']]);
     expect(gateway.cancelled).toEqual(['sub_0']);
     expect(gateway.pixSubscriptions).toHaveLength(1);
     expect(scenario.subscriptions.get(SHOP_ID).gatewaySubscriptionId).toBe(

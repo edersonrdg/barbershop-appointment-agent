@@ -6,6 +6,7 @@ import { truncateAccountTables } from '../support/truncate-account-tables';
 
 const UNIQUE_VIOLATION = '23505';
 const CHECK_VIOLATION = '23514';
+const FOREIGN_KEY_VIOLATION = '23503';
 
 interface PostgresError {
   driverError?: { code?: string };
@@ -114,6 +115,35 @@ describe('US-20 subscription schema (e2e)', () => {
         ),
       ),
     ).toBe(UNIQUE_VIOLATION);
+  });
+
+  it('door 1: a checkout belongs to one barbershop; nulls do not clash (C43)', async () => {
+    await insertSubscription(shopA, { gateway_checkout_id: 'chk_1' });
+    await insertSubscription(shopB);
+
+    expect(
+      await violation(
+        dataSource.query(
+          `UPDATE barbershop_subscriptions SET gateway_checkout_id = 'chk_1' WHERE barbershop_id = $1`,
+          [shopB],
+        ),
+      ),
+    ).toBe(UNIQUE_VIOLATION);
+  });
+
+  it('doors 1 and 2: a subscription and an event need an existing barbershop (C43)', async () => {
+    expect(await violation(insertSubscription(randomUUID()))).toBe(
+      FOREIGN_KEY_VIOLATION,
+    );
+    expect(
+      await violation(
+        dataSource.query(
+          `INSERT INTO payment_gateway_events (gateway, event_id, barbershop_id, received_at)
+           VALUES ('asaas', 'evt_fk', $1, now())`,
+          [randomUUID()],
+        ),
+      ),
+    ).toBe(FOREIGN_KEY_VIOLATION);
   });
 
   it('door 1: a barbershop has at most one subscription (C43)', async () => {

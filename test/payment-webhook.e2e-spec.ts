@@ -221,6 +221,7 @@ describe('US-20 Asaas payment webhook (e2e)', () => {
     await post(confirmed).expect(200);
     await post(confirmed).expect(200);
     await post(paymentEvent('PAYMENT_CREATED', '2026-10-02')).expect(200);
+    await post(paymentEvent('PAYMENT_OVERDUE', '2026-11-02')).expect(200);
     await rejectSubscriptionWrites();
     await post(paymentEvent('PAYMENT_RECEIVED', '2026-11-02')).expect(500);
     await allowSubscriptionWrites();
@@ -242,6 +243,9 @@ describe('US-20 Asaas payment webhook (e2e)', () => {
     ).toBeGreaterThanOrEqual(1);
     expect(
       value('event_group="other",outcome="ignored"'),
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      value('event_group="payment_failed",outcome="applied"'),
     ).toBeGreaterThanOrEqual(1);
     expect(
       value('event_group="payment_confirmed",outcome="failed"'),
