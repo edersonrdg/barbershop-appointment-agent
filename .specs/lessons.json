@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 22,
+  "next_id": 25,
   "lessons": [
     {
       "id": "L-001",
@@ -390,6 +390,60 @@
       ],
       "created": "2026-10-01T15:19:48Z",
       "last_seen": "2026-10-01T15:19:48Z"
+    },
+    {
+      "id": "L-022",
+      "key": "ac_gap::when a migration adds constraints write one schema assertion per constraint each check unique partial index and fk with its 23503 23505 23514 code not only those named in the check claim",
+      "text": "When a migration adds constraints, write one schema assertion per constraint (each CHECK, UNIQUE, partial index and FK with its 23503/23505/23514 code), not only those named in the check claim.",
+      "signal": "ac_gap",
+      "scope": "schema",
+      "status": "candidate",
+      "features": [
+        "us-20-cobranca-recorrente-da-assinatura"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "C43 round 1: gateway_checkout_id UNIQUE and FKs (schema)"
+      ],
+      "created": "2026-10-02T16:19:16Z",
+      "last_seen": "2026-10-02T16:19:16Z"
+    },
+    {
+      "id": "L-023",
+      "key": "ac_gap::a metric check over a label set must assert each label value by name a regex that merely allows a value proves nothing about it",
+      "text": "A metric check over a label set must assert each label value by name; a regex that merely allows a value proves nothing about it.",
+      "signal": "ac_gap",
+      "scope": "metrics",
+      "status": "candidate",
+      "features": [
+        "us-20-cobranca-recorrente-da-assinatura"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "C42 round 1: event_group payment_failed (metrics)"
+      ],
+      "created": "2026-10-02T16:19:16Z",
+      "last_seen": "2026-10-02T16:19:16Z"
+    },
+    {
+      "id": "L-024",
+      "key": "spec_precision_gap::when a check claims an order a before b or an independence x does not depend on y assert it directly capture state at the moment of b or flip y and re read x",
+      "text": "When a check claims an order (A before B) or an independence (X does not depend on Y), assert it directly: capture state at the moment of B, or flip Y and re-read X.",
+      "signal": "spec_precision_gap",
+      "scope": "usecase",
+      "status": "candidate",
+      "features": [
+        "us-20-cobranca-recorrente-da-assinatura"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "C6 and C29 round 1 (usecase)"
+      ],
+      "created": "2026-10-02T16:19:16Z",
+      "last_seen": "2026-10-02T16:19:16Z"
     }
   ]
 }

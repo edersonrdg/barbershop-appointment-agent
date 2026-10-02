@@ -211,7 +211,7 @@ Proof: `npx jest src/infrastructure/config/env.schema.spec.ts -t "US-20.*\(C45\)
 | `GET /subscription` campos (9) | `status` C19, C20 · `trialEndsAt` C19 · `trialEndingSoon` C19, C29 · `priceCents` C19 · `paymentMethod` C19, C20 · `paidUntil` C19, C20 · `nextChargeDate` C19, C20, C38 · `cancelsAt` C19, C20, C38 · `paymentIssueUrl` C19, C35 | - |
 | métricas (2 labels) | `outcome` 4 valores C42 · `event_group` `payment_confirmed` C42 · `event_group` `payment_failed` C42 · `event_group` `other` C42 | - |
 | doors do plano (7) | 1 tabela e lock C43, C44, C11 · 2 deduplicação C17, C18, C43 · 3 estados C43, C22 · 4 port C39, C40 · 5 contrato das rotas C9, C16, C21 · 6 tenant C13, C40, C44 · 7 aviso do teste C26, C27, C28, C44 | - |
-| constraints das doors 1 e 2 (6, achadas pelo Verifier na rodada 1) | `CHECK` do método C43 · PK por barbearia C43 · `UNIQUE` parcial da assinatura C43 · `UNIQUE` parcial do checkout C43 · FK de `barbershop_subscriptions` C43 · FK de `payment_gateway_events` C43 | - |
+| constraints das doors 1 e 2, achadas pelo Verifier na rodada 1 (6) | `CHECK` do método C43 · PK por barbearia C43 · `UNIQUE` parcial da assinatura C43 · `UNIQUE` parcial do checkout C43 · FK de `barbershop_subscriptions` C43 · FK de `payment_gateway_events` C43 | - |
 | `GET /subscription` statuses (3) | 200 C19 · 401 C21 · 403 C21 | - |
 | `POST /subscription/checkout` statuses (6) | 201 C9 · 400 C9 · 401 C21 · 403 C21 · 409 C10 · 502 C10 | - |
 | `POST /subscription/cancel` statuses (5) | 200 C38 · 401 C21 · 403 C21 · 409 C38 · 502 C38 | - |
