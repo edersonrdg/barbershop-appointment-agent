@@ -146,8 +146,8 @@ describe('Manual booking (e2e)', () => {
     const id = randomUUID();
     await dataSource.query(
       `INSERT INTO clients (id, barbershop_id, name, phone, created_at)
-       VALUES ($1, $2, 'Cliente', $3, now())`,
-      [id, barbershopId, phone],
+       VALUES ($1, $2, 'Cliente', $3, $4)`,
+      [id, barbershopId, phone, new Date(NOW.getTime() - 60 * 1000)],
     );
     return id;
   }
