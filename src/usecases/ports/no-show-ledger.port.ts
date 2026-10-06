@@ -14,4 +14,6 @@ export interface NoShowLedger {
    * returns how many clients were reset.
    */
   resetExpired(barbershopId: string, cutoff: Date, now: Date): Promise<number>;
+  /** Marks `now` as the reset of the client of the barbershop (RN-14). */
+  resetClient(barbershopId: string, clientId: string, now: Date): Promise<void>;
 }

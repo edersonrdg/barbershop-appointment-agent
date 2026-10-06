@@ -1,7 +1,16 @@
-import { Controller, Get, HttpStatus, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { GetClientProfileUseCase } from '../../usecases/get-client-profile/get-client-profile.use-case';
 import { SearchClientsUseCase } from '../../usecases/search-clients/search-clients.use-case';
+import { UnblockClientUseCase } from '../../usecases/unblock-client/unblock-client.use-case';
 import {
   ClientListResponse,
   clientListResponseSchema,
@@ -20,14 +29,16 @@ import type { ClientSearchQueryParams } from './schemas/client-search.query.sche
 import { clientSearchQuerySchema } from './schemas/client-search.query.schema';
 import { ZodValidationPipe } from './zod-validation.pipe';
 
-// Open to barbers; the use cases limit them to the clients and appointments of
-// their own barber (CA-12.3). RN-26: the tenant comes only from the session.
+// The reads are open to barbers; the use cases limit them to the clients and
+// appointments of their own barber (CA-12.3). Unblocking is Owner-only
+// (CA-22.2). RN-26: the tenant comes only from the session.
 @ApiTags('Clientes')
 @Controller('clients')
 export class ClientsController {
   constructor(
     private readonly searchClients: SearchClientsUseCase,
     private readonly getClientProfile: GetClientProfileUseCase,
+    private readonly unblockClient: UnblockClientUseCase,
   ) {}
 
   @Get()
@@ -86,5 +97,31 @@ export class ClientsController {
         clientId: params.id,
       }),
     );
+  }
+
+  @Post(':id/unblock')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Desbloqueia um cliente bloqueado por faltas (US-22)',
+    description:
+      'Zera as faltas do cliente: só contam as faltas em agendamentos que começarem depois do desbloqueio, e o bot volta a agendar para ele. Desbloquear um cliente que não está bloqueado não muda nada. Não reativa a conversa pausada no WhatsApp.',
+  })
+  @ApiZodResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Cliente desbloqueado, ou já não estava bloqueado.',
+  })
+  @ApiErrorResponse(
+    HttpStatus.NOT_FOUND,
+    'Não há cliente com esse id nesta barbearia (RN-26).',
+    'Cliente não encontrado.',
+  )
+  async unblock(
+    @CurrentSession() session: AuthenticatedSession,
+    @Param(new ZodValidationPipe(clientIdParamsSchema)) params: ClientIdParams,
+  ): Promise<void> {
+    await this.unblockClient.execute({
+      barbershopId: session.barbershopId,
+      clientId: params.id,
+    });
   }
 }

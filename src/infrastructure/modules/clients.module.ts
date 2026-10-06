@@ -28,6 +28,7 @@ import {
   ScheduleQuery,
 } from '../../usecases/ports/schedule.query.port';
 import { SearchClientsUseCase } from '../../usecases/search-clients/search-clients.use-case';
+import { UnblockClientUseCase } from '../../usecases/unblock-client/unblock-client.use-case';
 import { TypeOrmClientRepository } from '../database/repositories/typeorm-client.repository';
 import { SystemClock } from '../security/system-clock';
 import { AccountModule } from './account.module';
@@ -36,7 +37,7 @@ import { BarbersModule } from './barbers.module';
 import { BookingRulesModule } from './booking-rules.module';
 import { ScheduleModule } from './schedule.module';
 
-// US-12: client search and profile in the panel.
+// US-12 and US-22: client search, profile and unblocking in the panel.
 @Module({
   imports: [
     AccountModule,
@@ -89,6 +90,21 @@ import { ScheduleModule } from './schedule.module';
           bookingRules,
           clock,
         ),
+    },
+    {
+      provide: UnblockClientUseCase,
+      inject: [
+        CLIENT_REPOSITORY,
+        NO_SHOW_LEDGER,
+        BOOKING_RULES_REPOSITORY,
+        CLOCK,
+      ],
+      useFactory: (
+        clients: ClientRepository,
+        ledger: NoShowLedger,
+        bookingRules: BookingRulesRepository,
+        clock: Clock,
+      ) => new UnblockClientUseCase(clients, ledger, bookingRules, clock),
     },
   ],
 })
