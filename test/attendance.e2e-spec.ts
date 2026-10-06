@@ -539,7 +539,8 @@ describe('Attendance (e2e)', () => {
     it('ATD-22: documents the route with the US-11 summary, payload, roles and every response', () => {
       const operation =
         buildApiDocument(app).paths['/appointments/{id}/status'].patch!;
-      const statuses = ['200', '400', '401', '403', '404', '409', '422'];
+      // US-21: a write also answers 402 while the barbershop is suspended.
+      const statuses = ['200', '400', '401', '402', '403', '404', '409', '422'];
 
       expect(operation.summary).toContain('US-11');
       expect(operation.requestBody).toBeDefined();

@@ -16,7 +16,8 @@ export type ClientReplyKind =
   | 'cancelled'
   | 'rescheduled'
   | 'presence_confirmed'
-  | 'nothing_to_confirm';
+  | 'nothing_to_confirm'
+  | 'suspended';
 
 export type BotResumeTrigger = 'owner' | 'timeout';
 

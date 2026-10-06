@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { SUBSCRIPTION_STATUSES } from '../../domain/entities/barbershop';
+import { suspensionReasonSchema } from './suspension-reason.schema';
 import { MyAccount } from '../../usecases/get-my-account/get-my-account.use-case';
 
 export const myAccountResponseSchema = z.object({
@@ -25,13 +26,18 @@ export const myAccountResponseSchema = z.object({
     trialEndsAt: z.iso.datetime().meta({
       description: 'Fim do período de teste, em UTC (ISO 8601).',
     }),
+    suspensionReason: suspensionReasonSchema,
   }),
 });
 
 export type MyAccountResponse = z.infer<typeof myAccountResponseSchema>;
 
 export class MyAccountPresenter {
-  static toResponse({ user, barbershop }: MyAccount): MyAccountResponse {
+  static toResponse({
+    user,
+    barbershop,
+    suspensionReason,
+  }: MyAccount): MyAccountResponse {
     return {
       user: {
         id: user.id,
@@ -46,6 +52,7 @@ export class MyAccountPresenter {
         timezone: barbershop.timezone,
         subscriptionStatus: barbershop.subscriptionStatus,
         trialEndsAt: barbershop.trialEndsAt.toISOString(),
+        suspensionReason,
       },
     };
   }

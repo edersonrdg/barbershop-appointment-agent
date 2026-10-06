@@ -8,6 +8,7 @@ import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
 import { MetadataScanner, ModulesContainer, Reflector } from '@nestjs/core';
 import { z, type ZodType } from 'zod';
 import type { UserRole } from '../../../domain/entities/user';
+import { ALLOW_WHILE_SUSPENDED_KEY } from '../../../interface-adapters/controllers/allow-while-suspended.decorator';
 import { IS_PUBLIC_KEY } from '../../../interface-adapters/controllers/public.decorator';
 import {
   DEFAULT_ROLES,
@@ -19,6 +20,8 @@ export interface CatalogedRoute {
   path: string;
   method: string;
   isPublic: boolean;
+  /** US-21: the write still runs while the barbershop is suspended. */
+  allowWhileSuspended: boolean;
   roles: readonly UserRole[];
   body?: ZodType;
   params?: ZodType;
@@ -32,7 +35,8 @@ interface RouteArgument {
 
 type Handler = (...args: unknown[]) => unknown;
 
-// Reads the same metadata the SessionGuard and the ZodValidationPipe act on,
+// Reads the same metadata the SessionGuard, the SubscriptionAccessGuard and
+// the ZodValidationPipe act on,
 // so the API docs cannot drift from what a route actually enforces.
 export function listRoutes(app: INestApplication): CatalogedRoute[] {
   const reflector = new Reflector();
@@ -61,6 +65,11 @@ export function listRoutes(app: INestApplication): CatalogedRoute[] {
           isPublic:
             reflector.getAllAndOverride<boolean | undefined>(
               IS_PUBLIC_KEY,
+              targets,
+            ) ?? false,
+          allowWhileSuspended:
+            reflector.getAllAndOverride<boolean | undefined>(
+              ALLOW_WHILE_SUSPENDED_KEY,
               targets,
             ) ?? false,
           roles:

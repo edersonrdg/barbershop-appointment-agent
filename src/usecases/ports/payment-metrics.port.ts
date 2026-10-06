@@ -1,3 +1,5 @@
+import type { SuspensionReason } from '../../domain/entities/barbershop-subscription';
+
 export const PAYMENT_METRICS = Symbol('PaymentMetrics');
 
 export type PaymentEventGroup =
@@ -8,4 +10,5 @@ export type PaymentEventOutcome =
 
 export interface PaymentMetrics {
   webhookEvent(group: PaymentEventGroup, outcome: PaymentEventOutcome): void;
+  blockedWrite(reason: SuspensionReason): void;
 }

@@ -77,6 +77,9 @@ export const envSchema = z
       .int()
       .positive()
       .default(3),
+    // RN-25 and CA-21.3: days a failed payment is tolerated before the
+    // barbershop is suspended; 5 is a suggestion still to be validated.
+    SUBSCRIPTION_GRACE_DAYS: z.coerce.number().int().min(0).default(5),
     // A documentação expõe o mapa da API; fica desligada salvo opt-in explícito.
     API_DOCS_ENABLED: z
       .enum(['true', 'false'])

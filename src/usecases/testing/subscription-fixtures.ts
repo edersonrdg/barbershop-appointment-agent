@@ -35,6 +35,7 @@ export function subscriptionOf(
 ): BarbershopSubscription {
   return BarbershopSubscription.restore({
     barbershopId: SHOP_ID,
+    timezone: BarbershopTimezone.create('America/Sao_Paulo'),
     status: 'trialing',
     trialEndsAt: TRIAL_ENDS_AT,
     paymentMethod: null,
@@ -114,6 +115,11 @@ export function subscriptionScenario(
     barberOf(SHOP_ID, BARBER_USER_ID),
   );
   const subscriptions = new InMemorySubscriptionRepository();
-  subscriptions.add(subscriptionOf(overrides));
+  subscriptions.add(
+    subscriptionOf({
+      timezone: BarbershopTimezone.create(timezone),
+      ...overrides,
+    }),
+  );
   return { store, subscriptions };
 }

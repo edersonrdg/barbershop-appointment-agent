@@ -4,6 +4,7 @@ import { PAYMENT_METHODS } from '../../domain/entities/barbershop-subscription';
 import { CancelSubscriptionResult } from '../../usecases/cancel-subscription/cancel-subscription.use-case';
 import { SubscriptionOverview } from '../../usecases/get-subscription/get-subscription.use-case';
 import { StartSubscriptionCheckoutResult } from '../../usecases/start-subscription-checkout/start-subscription-checkout.use-case';
+import { suspensionReasonSchema } from './suspension-reason.schema';
 
 const localDate = (description: string) =>
   z.iso.date().nullable().meta({ description, example: '2026-11-02' });
@@ -44,6 +45,7 @@ export const subscriptionResponseSchema = z.object({
       'Fatura da cobrança recusada, para o Dono pagar de novo; preenchida enquanto `past_due`.',
     example: null,
   }),
+  suspensionReason: suspensionReasonSchema,
 });
 
 export type SubscriptionResponse = z.infer<typeof subscriptionResponseSchema>;
@@ -75,6 +77,7 @@ export class SubscriptionPresenter {
     subscription,
     trialEndingSoon,
     priceCents,
+    suspensionReason,
   }: SubscriptionOverview): SubscriptionResponse {
     return {
       status: subscription.status,
@@ -86,6 +89,7 @@ export class SubscriptionPresenter {
       nextChargeDate: subscription.nextChargeDate,
       cancelsAt: subscription.cancelsAt,
       paymentIssueUrl: subscription.paymentIssueUrl,
+      suspensionReason,
     };
   }
 

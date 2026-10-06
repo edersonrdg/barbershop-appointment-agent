@@ -2,6 +2,7 @@ import { MessageInterpreterUnavailableError } from '../../domain/errors/message-
 import type { HandoffReason } from '../../domain/value-objects/handoff-reason';
 import { BookViaWhatsAppUseCase } from '../book-via-whatsapp/book-via-whatsapp.use-case';
 import { ConfirmPresenceViaWhatsAppUseCase } from '../confirm-presence-via-whatsapp/confirm-presence-via-whatsapp.use-case';
+import { GetSuspensionReasonUseCase } from '../get-suspension-reason/get-suspension-reason.use-case';
 import { BarbershopRepository } from '../ports/barbershop.repository.port';
 import { ClientRepository } from '../ports/client.repository.port';
 import { Clock } from '../ports/clock.port';
@@ -55,6 +56,10 @@ export type ClientReplyResult =
 
 export const HANDOFF_REPLY = 'Vou chamar alguém da equipe para te ajudar.';
 
+export function suspendedReplyText(barbershopName: string): string {
+  return `Olá! No momento o atendimento automático da ${barbershopName} está indisponível. Para agendar ou tirar dúvidas, fale direto com a barbearia.`;
+}
+
 // Bounds the cost of a single message sent to the model (AC 19).
 const MAX_TEXT_LENGTH = 1000;
 const TRAILING_HIGH_SURROGATE_PATTERN = /[\uD800-\uDBFF]$/;
@@ -68,7 +73,8 @@ const FAILURES_BEFORE_HANDOFF = 2;
 // US-17: a booking request goes to the booking use case, after the request
 // for a person and the off-topic refusal and before the questions. US-18: so
 // does a request to cancel or reschedule. US-19: a confirmation of presence
-// comes after those, before the questions.
+// comes after those, before the questions. US-21: a suspended barbershop gets
+// a fixed reply, without the model, once a paused conversation stayed silent.
 export class AnswerClientQuestionUseCase {
   constructor(
     private readonly connections: WhatsAppConnectionRepository,
@@ -84,6 +90,7 @@ export class AnswerClientQuestionUseCase {
     private readonly resumeAfterHours: number,
     private readonly booking: BookViaWhatsAppUseCase,
     private readonly presence: ConfirmPresenceViaWhatsAppUseCase,
+    private readonly suspension: GetSuspensionReasonUseCase,
   ) {}
 
   async execute(input: AnswerClientQuestionInput): Promise<ClientReplyResult> {
@@ -118,6 +125,9 @@ export class AnswerClientQuestionUseCase {
     );
     if (entry === 'paused') return NO_REPLY;
     if (entry === 'resumed') this.metrics.botResumed('timeout');
+    if (await this.suspension.execute(input.barbershopId)) {
+      return this.sendSuspendedReply(input, barbershop.name);
+    }
 
     const services = await this.services.listActiveByBarbershop(
       input.barbershopId,
@@ -215,6 +225,25 @@ export class AnswerClientQuestionUseCase {
       kind: reply.kind,
       ...(appointmentId && { appointmentId }),
     };
+  }
+
+  // RN-25: the bot stops booking and sends the client to the barbershop; the
+  // platform does not pay the model for a barbershop that does not pay.
+  private async sendSuspendedReply(
+    input: AnswerClientQuestionInput,
+    barbershopName: string,
+  ): Promise<ClientReplyResult> {
+    try {
+      await this.connector.sendText(
+        input.barbershopId,
+        input.phone,
+        suspendedReplyText(barbershopName),
+      );
+    } catch (error) {
+      return { outcome: 'failed', error };
+    }
+    this.metrics.reply('suspended');
+    return { outcome: 'sent', kind: 'suspended' };
   }
 
   // The pause is stored before the notice goes out, so a failed send still

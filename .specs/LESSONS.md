@@ -156,6 +156,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: C6 and C29 round 1 (usecase)
 - last seen: 2026-10-02T16:19:16Z
 
+### L-025 - A rule decided mid-build (a strict vs non-strict comparison) needs a test exactly on its boundary in the same commit that changes it, or a flipped operator survives.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `domain` · harmful: 0
+- features: us-21-suspensao-por-assinatura-inativa
+- evidence: verification.md F2 / src/domain/entities/barbershop-subscription.ts:183 (C35) (domain)
+- last seen: 2026-10-06T16:08:27Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

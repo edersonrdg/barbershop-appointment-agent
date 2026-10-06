@@ -106,6 +106,7 @@ function eventKey({ gateway, eventId }: PaymentEventKey): string {
 function copy(subscription: BarbershopSubscription): BarbershopSubscription {
   return BarbershopSubscription.restore({
     barbershopId: subscription.barbershopId,
+    timezone: subscription.timezone,
     status: subscription.status,
     trialEndsAt: subscription.trialEndsAt,
     paymentMethod: subscription.paymentMethod,

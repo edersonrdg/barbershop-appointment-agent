@@ -1,3 +1,4 @@
+import type { SuspensionReason } from '../../domain/entities/barbershop-subscription';
 import {
   PaymentEventGroup,
   PaymentEventOutcome,
@@ -9,8 +10,13 @@ export class CountingPaymentMetrics implements PaymentMetrics {
     group: PaymentEventGroup;
     outcome: PaymentEventOutcome;
   }[] = [];
+  readonly blockedWrites: SuspensionReason[] = [];
 
   webhookEvent(group: PaymentEventGroup, outcome: PaymentEventOutcome): void {
     this.webhookEvents.push({ group, outcome });
+  }
+
+  blockedWrite(reason: SuspensionReason): void {
+    this.blockedWrites.push(reason);
   }
 }

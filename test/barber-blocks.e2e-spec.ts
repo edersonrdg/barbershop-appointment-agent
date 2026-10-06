@@ -883,7 +883,8 @@ describe('Barber blocks (e2e)', () => {
       const operations = [
         {
           operation: paths['/blocks'].post!,
-          statuses: ['201', '400', '401', '403', '404', '409'],
+          // US-21: a write also answers 402 while the barbershop is suspended.
+          statuses: ['201', '400', '401', '402', '403', '404', '409'],
         },
         {
           operation: paths['/blocks'].get!,
@@ -891,7 +892,7 @@ describe('Barber blocks (e2e)', () => {
         },
         {
           operation: paths['/blocks/{blockId}'].delete!,
-          statuses: ['204', '400', '401', '403', '404'],
+          statuses: ['204', '400', '401', '402', '403', '404'],
         },
       ];
 
