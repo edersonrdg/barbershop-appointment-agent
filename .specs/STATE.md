@@ -130,5 +130,13 @@
 - **Date**: 2026-10-02
 - **Status**: active
 
+### AD-017
+- **Decision**: A suspensão por assinatura inativa (US-21) é calculada na leitura por `BarbershopSubscription.suspensionReason(now, graceDays)` (`trial_ended`, `payment_overdue` ou `subscription_ended`), sem coluna, status ou job; todos os consumidores perguntam ao `GetSuspensionReasonUseCase`. O painel fica em modo leitura pelo `SubscriptionAccessGuard`, segundo `APP_GUARD` registrado depois do `SessionGuard`: toda rota autenticada `POST`/`PUT`/`PATCH`/`DELETE` responde `402` com `{ message }` enquanto a barbearia está suspensa, salvo as marcadas com `@AllowWhileSuspended()` (hoje só o `SubscriptionController`). O `402` é documentado automaticamente no OpenAPI a partir do mesmo metadado. O repositório de assinatura e as métricas de pagamento vivem no `SubscriptionAccessModule`.
+- **Reason**: US-21 (CA-21.1 a CA-21.4, RF-43, RN-25). Calcular na leitura faz um pagamento confirmado reativar tudo na requisição seguinte, sem transição de volta nem atraso de cron. Negar por padrão faz toda rota de escrita nova nascer barrada, no espírito do AD-007.
+- **Trade-off**: Uma leitura da assinatura por escrita autenticada e por mensagem do bot. A previsão do AD-016 de ampliar o `CHECK` de `subscription_status` com um estado suspenso deixa de valer. Toda rota de escrita nova que precise funcionar durante a suspensão precisa do decorator.
+- **Scope**: Painel, bot e jobs que falam com o cliente, US-21 em diante.
+- **Date**: 2026-10-06
+- **Status**: active
+
 ## Handoff
 

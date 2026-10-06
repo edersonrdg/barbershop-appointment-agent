@@ -21,9 +21,12 @@ import { InMemoryBarberRepository } from '../testing/in-memory-barber.repository
 import { InMemoryBarbershopRepository } from '../testing/in-memory-barbershop.repository';
 import { InMemoryClientRepository } from '../testing/in-memory-client.repository';
 import { InMemoryServiceRepository } from '../testing/in-memory-service.repository';
+import { InMemorySubscriptionRepository } from '../testing/in-memory-subscription.repository';
 import { InMemoryWhatsAppConnectionRepository } from '../testing/in-memory-whatsapp-connection.repository';
 import { seedService } from '../testing/service-fixtures';
 import { SettableClock } from '../testing/settable-clock';
+import { subscriptionOf } from '../testing/subscription-fixtures';
+import { GetSuspensionReasonUseCase } from '../get-suspension-reason/get-suspension-reason.use-case';
 import { SendAppointmentRemindersUseCase } from './send-appointment-reminders.use-case';
 
 /** Tuesday, 29/09, 12:00 in America/Sao_Paulo. */
@@ -117,6 +120,7 @@ async function setup({
   const metrics = new CountingWhatsAppMetrics();
   const clock = new SettableClock(NOW);
   const barbershops = new InMemoryBarbershopRepository(store);
+  const subscriptions = new InMemorySubscriptionRepository();
   const useCase = new SendAppointmentRemindersUseCase(
     barbershops,
     connections,
@@ -125,6 +129,7 @@ async function setup({
     connector,
     metrics,
     clock,
+    new GetSuspensionReasonUseCase(subscriptions, clock, 5),
   );
 
   const seed = async ({
@@ -182,6 +187,7 @@ async function setup({
     clock,
     seed,
     marks,
+    subscriptions,
   };
 }
 
@@ -498,6 +504,46 @@ describe('US-19 SendAppointmentRemindersUseCase', () => {
       expect(
         connector.sentTexts.map(({ barbershopId }) => barbershopId),
       ).toEqual(['barbershop-b']);
+    });
+  });
+
+  describe('US-21', () => {
+    it('AC 12 (C13): skips a suspended barbershop without claiming its reminders, and goes on to the next', async () => {
+      const {
+        useCase,
+        store,
+        shops,
+        connect,
+        seed,
+        marks,
+        connector,
+        subscriptions,
+      } = await setup();
+      store.barbershops.push(shops[1]);
+      await connect('barbershop-b', 'connected');
+      subscriptions.add(
+        subscriptionOf({ barbershopId: 'barbershop-a', trialEndsAt: NOW }),
+      );
+      await seed({ id: 'x', startsAt: X_STARTS });
+      await seed({ id: 'z', startsAt: Z_STARTS });
+      await seed({
+        id: 'bx',
+        startsAt: X_STARTS,
+        barbershopId: 'barbershop-b',
+        barberId: 'marcos',
+        clientId: 'bia',
+      });
+
+      await useCase.execute();
+
+      expect(
+        connector.sentTexts.map(({ barbershopId }) => barbershopId),
+      ).toEqual(['barbershop-b']);
+      for (const id of ['x', 'z']) {
+        expect(marks(id).reminder24hSentAt).toBeNull();
+        expect(marks(id).reminder1hSentAt).toBeNull();
+      }
+      expect(marks('bx', 'barbershop-b').reminder24hSentAt).toEqual(NOW);
     });
   });
 });

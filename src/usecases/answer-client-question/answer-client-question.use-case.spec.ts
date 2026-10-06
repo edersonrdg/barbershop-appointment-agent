@@ -7,6 +7,7 @@ import { WeeklyOpeningHours } from '../../domain/value-objects/weekly-opening-ho
 import { BookAppointmentUseCase } from '../book-appointment/book-appointment.use-case';
 import { BookViaWhatsAppUseCase } from '../book-via-whatsapp/book-via-whatsapp.use-case';
 import { ConfirmPresenceViaWhatsAppUseCase } from '../confirm-presence-via-whatsapp/confirm-presence-via-whatsapp.use-case';
+import { GetSuspensionReasonUseCase } from '../get-suspension-reason/get-suspension-reason.use-case';
 import { ListAvailableSlotsUseCase } from '../list-available-slots/list-available-slots.use-case';
 import { MessageInterpretation } from '../ports/message-interpreter.port';
 import { CountingAppointmentMetrics } from '../testing/counting-appointment-metrics';
@@ -26,9 +27,11 @@ import { InMemoryInboundMessageRepository } from '../testing/in-memory-inbound-m
 import { InMemoryNoShowLedger } from '../testing/in-memory-no-show-ledger';
 import { InMemoryScheduleQuery } from '../testing/in-memory-schedule.query';
 import { InMemoryServiceRepository } from '../testing/in-memory-service.repository';
+import { InMemorySubscriptionRepository } from '../testing/in-memory-subscription.repository';
 import { InMemoryWhatsAppConnectionRepository } from '../testing/in-memory-whatsapp-connection.repository';
 import { SequentialIdGenerator } from '../testing/sequential-id-generator';
 import { seedService } from '../testing/service-fixtures';
+import { subscriptionOf } from '../testing/subscription-fixtures';
 import {
   BOOKING_NOW,
   CLIENT_PHONE,
@@ -78,6 +81,8 @@ function interpretation(
 }
 
 const HOUR_MS = 60 * 60 * 1000;
+const SUSPENDED_REPLY =
+  'Olá! No momento o atendimento automático da Barbearia do Zé está indisponível. Para agendar ou tirar dúvidas, fale direto com a barbearia.';
 
 // US-15/US-16 cases run with a barbershop without barbers: nothing is booked.
 function bookingUseCase(
@@ -197,6 +202,7 @@ async function setup({
   const metrics = new CountingWhatsAppMetrics();
   const barbershops = new InMemoryBarbershopRepository(store);
   const clock = new FixedClock(NOW);
+  const subscriptions = new InMemorySubscriptionRepository();
   const booking = bookingUseCase(
     barbershops,
     services,
@@ -221,6 +227,7 @@ async function setup({
       new InMemoryScheduleQuery(),
       new InMemoryAppointmentRepository(),
     ),
+    new GetSuspensionReasonUseCase(subscriptions, clock, 5),
   );
   let nextId = 0;
   const reply = async (
@@ -256,6 +263,7 @@ async function setup({
     conversations,
     conversation,
     metrics,
+    subscriptions,
   };
 }
 
@@ -567,6 +575,7 @@ describe('AnswerClientQuestionUseCase', () => {
       const interpreter = new FakeMessageInterpreter();
       const connector = new FakeWhatsAppConnector();
       const metrics = new CountingWhatsAppMetrics();
+      const subscriptions = new InMemorySubscriptionRepository();
       const useCase = new AnswerClientQuestionUseCase(
         connections,
         barbershops,
@@ -581,6 +590,7 @@ describe('AnswerClientQuestionUseCase', () => {
         12,
         scenario.booking,
         scenario.presence,
+        new GetSuspensionReasonUseCase(subscriptions, scenario.clock, 5),
       );
       let nextId = 0;
       const execute = (partial: Partial<MessageInterpretation>) => {
@@ -609,6 +619,7 @@ describe('AnswerClientQuestionUseCase', () => {
         execute,
         lastText,
         conversation,
+        subscriptions,
       };
     }
 
@@ -988,6 +999,36 @@ describe('AnswerClientQuestionUseCase', () => {
         },
       );
     });
+    describe('US-21 suspended barbershop', () => {
+      it('CA-21.1, AC 9 (C9): with an offer in force, a choice, a cancellation and a confirmation act on nothing', async () => {
+        const setup = await bookingSetup();
+        await setup.own({ id: 'X', startsAt: local(TOMORROW, '11:00') });
+        expect(await setup.lastText(C1_REQUEST)).toEqual([OFFER_C1]);
+        const draft = setup.conversation()?.bookingDraft;
+        const booked = (await setup.bookedBy(setup.client.id)).length;
+        const asked = setup.interpreter.inputs.length;
+        setup.subscriptions.add(
+          subscriptionOf({
+            barbershopId: setup.barbershop.id,
+            trialEndsAt: BOOKING_NOW,
+          }),
+        );
+
+        const texts = [
+          ...(await setup.lastText({ choice: 1 })),
+          ...(await setup.lastText({ cancelRequested: true })),
+          ...(await setup.lastText({ rescheduleRequested: true })),
+          ...(await setup.lastText({ confirmRequested: true })),
+        ];
+
+        expect(texts).toEqual(Array(4).fill(SUSPENDED_REPLY));
+        expect(setup.interpreter.inputs).toHaveLength(asked);
+        expect(await setup.bookedBy(setup.client.id)).toHaveLength(booked);
+        expect(await setup.statusOf('X')).toBe('confirmed');
+        expect(setup.conversation()?.bookingDraft).toEqual(draft);
+      });
+    });
+
     describe('US-19 confirm presence', () => {
       const REMINDED_AT = new Date('2026-09-29T14:00:00.000Z');
       const CONFIRM = { confirmRequested: true };
@@ -1195,6 +1236,66 @@ describe('AnswerClientQuestionUseCase', () => {
         expect(empty.metrics.presenceConfirmations).toBe(0);
         expect(empty.metrics.replies).toEqual(['nothing_to_confirm']);
       });
+    });
+  });
+
+  describe('US-21 suspended barbershop', () => {
+    function suspend(subscriptions: InMemorySubscriptionRepository): void {
+      subscriptions.add(
+        subscriptionOf({ barbershopId: 'barbershop-a', trialEndsAt: NOW }),
+      );
+    }
+
+    it('CA-21.1, AC 8, AC 13 (C8): answers with the fixed text and never asks the interpreter', async () => {
+      const { execute, connector, interpreter, metrics, subscriptions } =
+        await setup();
+      suspend(subscriptions);
+
+      const result = await execute(interpretation({ topics: ['services'] }));
+
+      expect(connector.sentTexts).toEqual([
+        { barbershopId: 'barbershop-a', phone: PHONE, text: SUSPENDED_REPLY },
+      ]);
+      expect(interpreter.inputs).toEqual([]);
+      expect(result).toEqual({ outcome: 'sent', kind: 'suspended' });
+      expect(metrics.replies).toEqual(['suspended']);
+    });
+
+    it('AC 10 (C10): stays silent in a conversation paused for a human', async () => {
+      const { execute, connector, conversations, subscriptions } =
+        await setup();
+      suspend(subscriptions);
+      const pausedAt = new Date(NOW.getTime() - HOUR_MS);
+      conversations.rows.set('barbershop-a:client-1', {
+        consecutiveFailures: 0,
+        pausedAt,
+        pauseReason: 'requested',
+        lastActivityAt: pausedAt,
+      });
+
+      const result = await execute(interpretation({ topics: ['services'] }));
+
+      expect(result).toEqual({ outcome: 'none' });
+      expect(connector.sentTexts).toEqual([]);
+    });
+
+    it('AC 6: a barbershop in good standing gets the usual answer', async () => {
+      const { reply, subscriptions } = await setup();
+      subscriptions.add(
+        subscriptionOf({
+          barbershopId: 'barbershop-a',
+          trialEndsAt: new Date(NOW.getTime() + HOUR_MS),
+        }),
+      );
+
+      expect(
+        await reply(
+          interpretation({
+            topics: ['services'],
+            services: ['Corte', 'Barba'],
+          }),
+        ),
+      ).toEqual([SERVICES_REPLY]);
     });
   });
 });

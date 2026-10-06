@@ -8,6 +8,7 @@ import { AnswerClientQuestionUseCase } from '../../usecases/answer-client-questi
 import { BookAppointmentUseCase } from '../../usecases/book-appointment/book-appointment.use-case';
 import { BookViaWhatsAppUseCase } from '../../usecases/book-via-whatsapp/book-via-whatsapp.use-case';
 import { ConfirmPresenceViaWhatsAppUseCase } from '../../usecases/confirm-presence-via-whatsapp/confirm-presence-via-whatsapp.use-case';
+import { GetSuspensionReasonUseCase } from '../../usecases/get-suspension-reason/get-suspension-reason.use-case';
 import { ListAvailableSlotsUseCase } from '../../usecases/list-available-slots/list-available-slots.use-case';
 import {
   APPOINTMENT_METRICS,
@@ -108,6 +109,7 @@ import { AccountModule } from './account.module';
 import { AttendanceModule } from './attendance.module';
 import { BarbersModule } from './barbers.module';
 import { BookingRulesModule } from './booking-rules.module';
+import { SubscriptionAccessModule } from './subscription-access.module';
 import { GeminiModule } from './gemini.module';
 import { ScheduleModule } from './schedule.module';
 import { SchedulingModule } from './scheduling.module';
@@ -130,6 +132,7 @@ import { ServicesModule } from './services.module';
     SchedulingModule,
     ScheduleModule,
     AttendanceModule,
+    SubscriptionAccessModule,
   ],
   controllers: [
     WhatsAppConnectionController,
@@ -335,6 +338,7 @@ import { ServicesModule } from './services.module';
         ConfigService,
         BookViaWhatsAppUseCase,
         ConfirmPresenceViaWhatsAppUseCase,
+        GetSuspensionReasonUseCase,
       ],
       useFactory: (
         connections: WhatsAppConnectionRepository,
@@ -350,6 +354,7 @@ import { ServicesModule } from './services.module';
         config: ConfigService<Env, true>,
         booking: BookViaWhatsAppUseCase,
         presence: ConfirmPresenceViaWhatsAppUseCase,
+        suspension: GetSuspensionReasonUseCase,
       ) =>
         new AnswerClientQuestionUseCase(
           connections,
@@ -365,6 +370,7 @@ import { ServicesModule } from './services.module';
           config.get('WHATSAPP_HANDOFF_RESUME_HOURS', { infer: true }),
           booking,
           presence,
+          suspension,
         ),
     },
     {
@@ -385,6 +391,7 @@ import { ServicesModule } from './services.module';
         WHATSAPP_CONNECTOR,
         WHATSAPP_METRICS,
         CLOCK,
+        GetSuspensionReasonUseCase,
       ],
       useFactory: (
         barbershops: BarbershopRepository,
@@ -394,6 +401,7 @@ import { ServicesModule } from './services.module';
         connector: WhatsAppConnector,
         metrics: WhatsAppMetrics,
         clock: Clock,
+        suspension: GetSuspensionReasonUseCase,
       ) =>
         new SendAppointmentRemindersUseCase(
           barbershops,
@@ -403,6 +411,7 @@ import { ServicesModule } from './services.module';
           connector,
           metrics,
           clock,
+          suspension,
         ),
     },
     AppointmentRemindersJob,

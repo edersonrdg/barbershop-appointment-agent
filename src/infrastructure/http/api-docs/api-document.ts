@@ -15,6 +15,10 @@ import {
   validationErrorResponseSchema,
 } from '../../../interface-adapters/controllers/api-docs/message-response.schema';
 import { toOpenApiSchema } from '../../../interface-adapters/controllers/api-docs/openapi-schema';
+import {
+  READ_ONLY_WRITE_METHODS,
+  SUSPENDED_WRITE_MESSAGE,
+} from '../subscription-access.guard';
 import { CatalogedRoute, listRoutes } from './route-catalog';
 
 export const API_DOCS_PATH = 'docs';
@@ -30,6 +34,7 @@ const API_DESCRIPTION = [
   '',
   '- **Autenticação:** envie o `accessToken` de `/auth/login` no header `Authorization: Bearer <token>`. A barbearia (tenant) vem sempre da sessão, nunca do payload (RN-26).',
   '- **Perfis:** cada operação diz em **Acesso** quais perfis a usam; os demais recebem 403.',
+  '- **Assinatura inativa (US-21):** com a barbearia suspensa, toda operação autenticada de escrita responde 402 e o painel fica em modo leitura; as rotas de `/subscription` continuam abertas para regularizar.',
   '- **Diagnóstico:** toda resposta traz o header `x-request-id`; envie o seu para correlacionar logs.',
   '- **Datas** em UTC (ISO 8601) e **dinheiro** em centavos (inteiro).',
 ].join('\n');
@@ -130,6 +135,17 @@ function describeAccess(
     description: 'Sem token, token inválido ou expirado, ou usuário removido.',
     schema: messageSchema('Sessão inválida ou expirada.'),
   });
+
+  if (
+    READ_ONLY_WRITE_METHODS.includes(route.method.toUpperCase()) &&
+    !route.allowWhileSuspended
+  ) {
+    addResponse(operation, HttpStatus.PAYMENT_REQUIRED, {
+      description:
+        'A barbearia está suspensa por assinatura inativa (`suspensionReason` em `GET /me`); o painel está em modo leitura (US-21).',
+      schema: messageSchema(SUSPENDED_WRITE_MESSAGE),
+    });
+  }
 
   const deniedRoles = Object.keys(ROLE_LABELS).filter(
     (role) => !route.roles.includes(role as UserRole),

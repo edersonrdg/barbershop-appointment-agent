@@ -93,6 +93,7 @@ describe('GET /me (e2e)', () => {
         timezone: 'America/Sao_Paulo',
         subscriptionStatus: 'trialing',
         trialEndsAt,
+        suspensionReason: null,
       },
     });
   }

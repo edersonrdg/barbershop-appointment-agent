@@ -49,16 +49,17 @@ export class StartSubscriptionCheckoutUseCase {
     }
     const cpfCnpj =
       input.method === 'pix' ? CpfCnpj.create(input.cpfCnpj).value : null;
+    const now = this.clock.now();
     const firstDueDate = BarbershopTimezone.create(
       barbershop.timezone,
-    ).localDateOf(this.clock.now());
+    ).localDateOf(now);
 
     // Door 8: the barbershop stays locked while the gateway is called, so two
     // clicks never leave two live subscriptions charging the same Owner.
     return this.subscriptions.withLock(
       input.barbershopId,
       async (subscription) => {
-        if (!subscription.canStartCheckout()) {
+        if (!subscription.canStartCheckout(now)) {
           throw new SubscriptionAlreadyExistsError();
         }
         await this.cancelUnpaid(subscription);
@@ -87,11 +88,13 @@ export class StartSubscriptionCheckoutUseCase {
   }
 
   // AC 3: in trial, a recorded gateway subscription is a Pix one never paid;
-  // left alive it would keep issuing invoices next to the new one.
+  // left alive it would keep issuing invoices next to the new one. US-21: an
+  // ended one was already cancelled at the gateway when the Owner asked.
   private async cancelUnpaid(
     subscription: BarbershopSubscription,
   ): Promise<void> {
     if (subscription.gatewaySubscriptionId === null) return;
+    if (subscription.cancelRequestedAt !== null) return;
     await this.gateway.cancelSubscription(subscription.gatewaySubscriptionId);
   }
 }

@@ -1,6 +1,7 @@
 import { DataSource, EntityManager } from 'typeorm';
 import { SubscriptionStatus } from '../../../domain/entities/barbershop';
 import { BarbershopSubscription } from '../../../domain/entities/barbershop-subscription';
+import { BarbershopTimezone } from '../../../domain/value-objects/barbershop-timezone';
 import {
   PaymentEventKey,
   RecordedEvent,
@@ -114,6 +115,7 @@ async function load(
   });
   return BarbershopSubscription.restore({
     barbershopId,
+    timezone: BarbershopTimezone.create(barbershop.timezone),
     status: barbershop.subscriptionStatus as SubscriptionStatus,
     trialEndsAt: barbershop.trialEndsAt,
     paymentMethod: row?.paymentMethod ?? null,

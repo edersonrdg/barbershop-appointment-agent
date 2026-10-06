@@ -257,4 +257,24 @@ describe('validateEnv', () => {
       expect(() => validateEnv(example)).not.toThrow();
     });
   });
+
+  describe('US-21', () => {
+    it('AC 7 (C6): SUBSCRIPTION_GRACE_DAYS defaults to 5 and accepts 0', () => {
+      expect(validateEnv(validEnv)).toMatchObject({
+        SUBSCRIPTION_GRACE_DAYS: 5,
+      });
+      expect(
+        validateEnv({ ...validEnv, SUBSCRIPTION_GRACE_DAYS: '0' }),
+      ).toMatchObject({ SUBSCRIPTION_GRACE_DAYS: 0 });
+    });
+
+    it.each(['-1', '1.5', 'abc'])(
+      'AC 7 (C6): SUBSCRIPTION_GRACE_DAYS=%s fails the startup validation',
+      (value) => {
+        expect(() =>
+          validateEnv({ ...validEnv, SUBSCRIPTION_GRACE_DAYS: value }),
+        ).toThrow();
+      },
+    );
+  });
 });

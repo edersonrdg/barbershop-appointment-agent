@@ -167,6 +167,7 @@ describe('US-20 subscription (e2e)', () => {
       nextChargeDate: null,
       cancelsAt: null,
       paymentIssueUrl: null,
+      suspensionReason: null,
     });
   });
 

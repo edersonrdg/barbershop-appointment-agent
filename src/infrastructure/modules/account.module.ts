@@ -10,6 +10,7 @@ import { AuthController } from '../../interface-adapters/controllers/auth.contro
 import { MeController } from '../../interface-adapters/controllers/me.controller';
 import { UsersController } from '../../interface-adapters/controllers/users.controller';
 import { GetMyAccountUseCase } from '../../usecases/get-my-account/get-my-account.use-case';
+import { GetSuspensionReasonUseCase } from '../../usecases/get-suspension-reason/get-suspension-reason.use-case';
 import { InviteBarberUseCase } from '../../usecases/invite-barber/invite-barber.use-case';
 import { ListUsersUseCase } from '../../usecases/list-users/list-users.use-case';
 import {
@@ -68,6 +69,7 @@ import {
 } from '../external/email/smtp-email-sender';
 import { DomainErrorFilter } from '../http/domain-error.filter';
 import { SessionGuard } from '../http/session.guard';
+import { SubscriptionAccessGuard } from '../http/subscription-access.guard';
 import { METRICS_REGISTRY } from '../observability/metrics.registry';
 import { ObservabilityModule } from '../observability/observability.module';
 import { PrometheusAccountMetrics } from '../observability/prometheus-account-metrics';
@@ -76,6 +78,7 @@ import { JwtAccessTokenIssuer } from '../security/jwt-access-token-issuer';
 import { ScryptPasswordHasher } from '../security/scrypt-password-hasher';
 import { SystemClock } from '../security/system-clock';
 import { UuidIdGenerator } from '../security/uuid-id-generator';
+import { SubscriptionAccessModule } from './subscription-access.module';
 
 @Module({
   imports: [
@@ -88,6 +91,7 @@ import { UuidIdGenerator } from '../security/uuid-id-generator';
       }),
     }),
     ObservabilityModule,
+    SubscriptionAccessModule,
   ],
   controllers: [AuthController, MeController, UsersController],
   providers: [
@@ -188,9 +192,16 @@ import { UuidIdGenerator } from '../security/uuid-id-generator';
     },
     {
       provide: GetMyAccountUseCase,
-      inject: [USER_REPOSITORY, BARBERSHOP_REPOSITORY],
-      useFactory: (users: UserRepository, barbershops: BarbershopRepository) =>
-        new GetMyAccountUseCase(users, barbershops),
+      inject: [
+        USER_REPOSITORY,
+        BARBERSHOP_REPOSITORY,
+        GetSuspensionReasonUseCase,
+      ],
+      useFactory: (
+        users: UserRepository,
+        barbershops: BarbershopRepository,
+        suspension: GetSuspensionReasonUseCase,
+      ) => new GetMyAccountUseCase(users, barbershops, suspension),
     },
     {
       provide: RequestPasswordResetUseCase,
@@ -317,6 +328,8 @@ import { UuidIdGenerator } from '../security/uuid-id-generator';
       useFactory: (users: UserRepository) => new RemoveBarberUseCase(users),
     },
     { provide: APP_GUARD, useClass: SessionGuard },
+    // US-21: needs the session the SessionGuard sets, so it is registered after it.
+    { provide: APP_GUARD, useClass: SubscriptionAccessGuard },
     { provide: APP_FILTER, useClass: DomainErrorFilter },
   ],
   exports: [BARBERSHOP_REPOSITORY, USER_REPOSITORY, EMAIL_SENDER],

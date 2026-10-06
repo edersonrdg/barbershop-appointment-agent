@@ -215,4 +215,47 @@ describe('US-20 start subscription checkout', () => {
       expect(stored.gatewaySubscriptionId).toBeNull();
     },
   );
+
+  describe('US-21', () => {
+    const ENDED = {
+      status: 'active',
+      paymentMethod: 'credit_card',
+      gatewaySubscriptionId: 'sub_1',
+      gatewayCheckoutId: 'chk_1',
+      paidUntil: '2026-10-01',
+      cancelRequestedAt: new Date('2026-09-10T12:00:00.000Z'),
+    } as const;
+
+    it('CA-21.4, AC 22 (C30): an ended subscription starts a card checkout without cancelling sub_1 again', async () => {
+      const useCase = setup(ENDED);
+
+      await useCase.execute(card);
+
+      expect(gateway.cardCheckouts).toHaveLength(1);
+      expect(gateway.cancelled).toEqual([]);
+    });
+
+    it('CA-21.4, AC 22 (C30): an ended subscription starts a Pix subscription without cancelling sub_1 again', async () => {
+      const useCase = setup(ENDED);
+
+      await useCase.execute(pix);
+
+      expect(gateway.pixSubscriptions).toHaveLength(1);
+      expect(gateway.cancelled).toEqual([]);
+    });
+
+    it('AC 24 (C34): a cancelled subscription still in its paid period gets a 409 without reaching the gateway', async () => {
+      const useCase = setup({ ...ENDED, paidUntil: '2026-10-02' });
+
+      const error: unknown = await useCase
+        .execute(card)
+        .catch((e: unknown) => e);
+
+      expect(error).toBeInstanceOf(SubscriptionAlreadyExistsError);
+      expect((error as Error).message).toBe(
+        'Esta barbearia já tem uma assinatura.',
+      );
+      expect(gateway.calls).toBe(0);
+    });
+  });
 });

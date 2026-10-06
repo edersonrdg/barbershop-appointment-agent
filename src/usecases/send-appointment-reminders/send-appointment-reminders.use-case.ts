@@ -4,6 +4,7 @@ import {
   ReminderKind,
   reminderLeadMinutes,
 } from '../../domain/value-objects/appointment-reminder';
+import { GetSuspensionReasonUseCase } from '../get-suspension-reason/get-suspension-reason.use-case';
 import { AppointmentRepository } from '../ports/appointment.repository.port';
 import { BarbershopRepository } from '../ports/barbershop.repository.port';
 import { Clock } from '../ports/clock.port';
@@ -46,6 +47,7 @@ export class SendAppointmentRemindersUseCase {
     private readonly connector: WhatsAppConnector,
     private readonly metrics: WhatsAppMetrics,
     private readonly clock: Clock,
+    private readonly suspension: GetSuspensionReasonUseCase,
   ) {}
 
   async execute(): Promise<SendAppointmentRemindersResult> {
@@ -67,7 +69,8 @@ export class SendAppointmentRemindersUseCase {
   }
 
   // While the WhatsApp is not connected nothing is claimed, so the reminders
-  // still in their window go out once it connects again (AC 11).
+  // still in their window go out once it connects again (AC 11). US-21: the
+  // same holds while the barbershop is suspended, since RF-43 stops the bot.
   private async sendFor(
     barbershopId: string,
     now: Date,
@@ -75,6 +78,7 @@ export class SendAppointmentRemindersUseCase {
   ): Promise<void> {
     const connection = await this.connections.findByBarbershopId(barbershopId);
     if (connection?.status !== 'connected') return;
+    if (await this.suspension.execute(barbershopId)) return;
     const barbershop = await this.barbershops.findById(barbershopId);
     if (!barbershop) return;
     for (const kind of REMINDER_KINDS) {

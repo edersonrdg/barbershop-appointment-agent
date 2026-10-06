@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Post,
 } from '@nestjs/common';
+import { AllowWhileSuspended } from './allow-while-suspended.decorator';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CancelSubscriptionUseCase } from '../../usecases/cancel-subscription/cancel-subscription.use-case';
 import { GetSubscriptionUseCase } from '../../usecases/get-subscription/get-subscription.use-case';
@@ -33,6 +34,7 @@ const GATEWAY_DOWN =
 // Owner only: no @Roles, so the session guard denies barbers (AD-007,
 // CA-02.2). RN-26: the tenant comes only from the session.
 @ApiTags('Assinatura')
+@AllowWhileSuspended()
 @Controller('subscription')
 export class SubscriptionController {
   constructor(

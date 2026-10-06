@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { Registry } from 'prom-client';
-import { DataSource } from 'typeorm';
 import { SubscriptionController } from '../../interface-adapters/controllers/subscription.controller';
 import { ApplyPaymentEventUseCase } from '../../usecases/apply-payment-event/apply-payment-event.use-case';
 import { CancelSubscriptionUseCase } from '../../usecases/cancel-subscription/cancel-subscription.use-case';
@@ -34,31 +32,23 @@ import {
 import { SendTrialEndingWarningsUseCase } from '../../usecases/send-trial-ending-warnings/send-trial-ending-warnings.use-case';
 import { StartSubscriptionCheckoutUseCase } from '../../usecases/start-subscription-checkout/start-subscription-checkout.use-case';
 import type { Env } from '../config/env.schema';
-import { TypeOrmSubscriptionRepository } from '../database/repositories/typeorm-subscription.repository';
 import { AsaasPaymentGateway } from '../external/payments/asaas/asaas-payment-gateway';
 import { AsaasWebhookController } from '../external/payments/asaas/asaas-webhook.controller';
 import { AsaasWebhookGuard } from '../external/payments/asaas/asaas-webhook.guard';
 import { TrialEndingWarningJob } from '../jobs/trial-ending-warning.job';
-import { METRICS_REGISTRY } from '../observability/metrics.registry';
 import { ObservabilityModule } from '../observability/observability.module';
-import { PrometheusPaymentMetrics } from '../observability/prometheus-payment-metrics';
 import { SystemClock } from '../security/system-clock';
 import { AccountModule } from './account.module';
+import { SubscriptionAccessModule } from './subscription-access.module';
 
 // US-20: subscription billing through the payment gateway (door 4), its
 // webhook and the trial-ending warning.
 @Module({
-  imports: [AccountModule, ObservabilityModule],
+  imports: [AccountModule, ObservabilityModule, SubscriptionAccessModule],
   controllers: [SubscriptionController, AsaasWebhookController],
   providers: [
     { provide: CLOCK, useClass: SystemClock },
     AsaasWebhookGuard,
-    {
-      provide: SUBSCRIPTION_REPOSITORY,
-      inject: [DataSource],
-      useFactory: (dataSource: DataSource) =>
-        new TypeOrmSubscriptionRepository(dataSource),
-    },
     {
       provide: PAYMENT_GATEWAY,
       inject: [ConfigService],
@@ -68,12 +58,6 @@ import { AccountModule } from './account.module';
           apiKey: config.get('ASAAS_API_KEY', { infer: true }),
           timeoutMs: config.get('ASAAS_TIMEOUT_MS', { infer: true }),
         }),
-    },
-    {
-      provide: PAYMENT_METRICS,
-      inject: [METRICS_REGISTRY],
-      useFactory: (registry: Registry) =>
-        new PrometheusPaymentMetrics(registry),
     },
     {
       provide: GetSubscriptionUseCase,
@@ -88,6 +72,7 @@ import { AccountModule } from './account.module';
           warningDays: config.get('SUBSCRIPTION_TRIAL_WARNING_DAYS', {
             infer: true,
           }),
+          graceDays: config.get('SUBSCRIPTION_GRACE_DAYS', { infer: true }),
         }),
     },
     {

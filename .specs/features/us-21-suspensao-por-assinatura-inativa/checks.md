@@ -32,118 +32,118 @@ Textos esperados:
 
 ### S1 - A regra de suspensão · 5 arquivos · ~40 KB · ~10k
 
-**C1** - `trialing` com `trialEndsAt` igual ao instante atual devolve `trial_ended`; com `trialEndsAt` 1 ms depois do instante atual devolve `null` (AC 1, AC 6, CA-21.1)
+**C1** - `trialing` com `trialEndsAt` igual ao instante atual devolve `trial_ended`; com `trialEndsAt` 1 ms depois do instante atual devolve `null` (AC 1, AC 6, CA-21.1) ✅
 Proof: `npx jest src/domain/entities/barbershop-subscription.spec.ts -t "US-21.*\(C1\)"`
 
-**C2** - `past_due` com `paymentFailedAt` exatamente 5 × 24 h antes do instante atual devolve `payment_overdue`; com `paymentFailedAt` 5 × 24 h − 1 ms antes devolve `null` (AC 2, AC 3, CA-21.3)
+**C2** - `past_due` com `paymentFailedAt` exatamente 5 × 24 h antes do instante atual devolve `payment_overdue`; com `paymentFailedAt` 5 × 24 h − 1 ms antes devolve `null` (AC 2, AC 3, CA-21.3) ✅
 Proof: `npx jest src/domain/entities/barbershop-subscription.spec.ts -t "US-21.*\(C2\)"`
 
-**C3** - Com `graceDays = 2`, `past_due` com `paymentFailedAt` 2 × 24 h antes devolve `payment_overdue` e 47 h antes devolve `null`; com `graceDays = 0`, `past_due` falhado no instante atual devolve `payment_overdue` (AC 2, AC 3; o valor da configuração é o que decide, não o 5 fixo)
+**C3** - Com `graceDays = 2`, `past_due` com `paymentFailedAt` 2 × 24 h antes devolve `payment_overdue` e 47 h antes devolve `null`; com `graceDays = 0`, `past_due` falhado no instante atual devolve `payment_overdue` (AC 2, AC 3; o valor da configuração é o que decide, não o 5 fixo) ✅
 Proof: `npx jest src/domain/entities/barbershop-subscription.spec.ts -t "US-21.*\(C3\)"`
 
-**C4** - `active` com pedido de cancelamento e `paidUntil = 2026-11-02` no fuso `America/Sao_Paulo`: em `2026-11-03T02:59:59.999Z` (02/11, 23:59 local) devolve `null`; em `2026-11-03T03:00:00Z` (03/11, 00:00 local) devolve `subscription_ended`. No fuso `America/Manaus`, em `2026-11-03T03:30:00Z` (02/11, 23:30 local) devolve `null` (AC 4, AC 5, RNF-04)
+**C4** - `active` com pedido de cancelamento e `paidUntil = 2026-11-02` no fuso `America/Sao_Paulo`: em `2026-11-03T02:59:59.999Z` (02/11, 23:59 local) devolve `null`; em `2026-11-03T03:00:00Z` (03/11, 00:00 local) devolve `subscription_ended`. No fuso `America/Manaus`, em `2026-11-03T03:30:00Z` (02/11, 23:30 local) devolve `null` (AC 4, AC 5, RNF-04) ✅
 Proof: `npx jest src/domain/entities/barbershop-subscription.spec.ts -t "US-21.*\(C4\)"`
 
-**C5** - `active` sem pedido de cancelamento com `paidUntil = 2026-01-01` (meses no passado) devolve `null`; `trialing` com `trialEndsAt` 10 dias no futuro devolve `null` (AC 6)
+**C5** - `active` sem pedido de cancelamento com `paidUntil = 2026-01-01` (meses no passado) devolve `null`; `trialing` com `trialEndsAt` 10 dias no futuro devolve `null` (AC 6) ✅
 Proof: `npx jest src/domain/entities/barbershop-subscription.spec.ts -t "US-21.*\(C5\)"`
 
-**C6** - `SUBSCRIPTION_GRACE_DAYS` ausente vira `5`; `0` é aceito; `-1`, `1.5` e `abc` reprovam a validação do ambiente (AC 7)
+**C6** - `SUBSCRIPTION_GRACE_DAYS` ausente vira `5`; `0` é aceito; `-1`, `1.5` e `abc` reprovam a validação do ambiente (AC 7) ✅
 Proof: `npx jest src/infrastructure/config/env.schema.spec.ts -t "US-21.*\(C6\)"`
 
-**C7** - `.env.example` declara `SUBSCRIPTION_GRACE_DAYS=5` (AC 7, Impact: configuração)
+**C7** - `.env.example` declara `SUBSCRIPTION_GRACE_DAYS=5` (AC 7, Impact: configuração) ✅
 Proof: `grep -qx 'SUBSCRIPTION_GRACE_DAYS=5' .env.example`
 
 ### S2 - O bot suspenso · 8 arquivos · ~110 KB · ~28k
 
-**C8** - Com a barbearia do **teste vencido**, conectada, e um cliente já avisado com a conversa não pausada, uma mensagem de texto faz o conector enviar exatamente o texto do bot suspenso a esse telefone, o interpretador não recebe nenhuma chamada e o resultado tem `kind: 'suspended'` (CA-21.1, AC 8)
+**C8** - Com a barbearia do **teste vencido**, conectada, e um cliente já avisado com a conversa não pausada, uma mensagem de texto faz o conector enviar exatamente o texto do bot suspenso a esse telefone, o interpretador não recebe nenhuma chamada e o resultado tem `kind: 'suspended'` (CA-21.1, AC 8) ✅
 Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "US-21.*\(C8\)"`
 
-**C9** - Com a barbearia suspensa e um rascunho de agendamento com uma oferta na conversa, a mensagem `1` não cria agendamento, não muda o rascunho gravado, não cancela nem confirma presença de agendamento nenhum e recebe o texto do bot suspenso (AC 9)
+**C9** - Com a barbearia suspensa e um rascunho de agendamento com uma oferta na conversa, a mensagem `1` não cria agendamento, não muda o rascunho gravado, não cancela nem confirma presença de agendamento nenhum e recebe o texto do bot suspenso (AC 9) ✅
 Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "US-21.*\(C9\)"`
 
-**C10** - Com a barbearia suspensa e a conversa pausada para atendimento humano (dentro de `WHATSAPP_HANDOFF_RESUME_HOURS`), uma mensagem não gera envio nenhum e o resultado é `outcome: 'none'` (AC 10)
+**C10** - Com a barbearia suspensa e a conversa pausada para atendimento humano (dentro de `WHATSAPP_HANDOFF_RESUME_HOURS`), uma mensagem não gera envio nenhum e o resultado é `outcome: 'none'` (AC 10) ✅
 Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "US-21.*\(C10\)"`
 
-**C11** - Com a barbearia suspensa (`whatsapp_connections` conectada), a primeira mensagem de um telefone novo pelo webhook `POST /webhooks/whatsapp/evolution` responde `204`, cria a linha em `clients`, e o conector envia, nesta ordem, o aviso de privacidade da US-14 e o texto do bot suspenso; o interpretador falso não recebe chamada (CA-21.1, AC 8, AC 11)
+**C11** - Com a barbearia suspensa (`whatsapp_connections` conectada), a primeira mensagem de um telefone novo pelo webhook `POST /webhooks/whatsapp/evolution` responde `204`, cria a linha em `clients`, e o conector envia, nesta ordem, o aviso de privacidade da US-14 e o texto do bot suspenso; o interpretador falso não recebe chamada (CA-21.1, AC 8, AC 11) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/subscription-suspension.e2e-spec.ts -t "US-21.*\(C11\)"`
 
-**C12** - Depois da mensagem do C11, `GET /metrics` mostra `whatsapp_replies_total{kind="suspended"}` com valor 1 maior que antes da mensagem (AC 13)
+**C12** - Depois da mensagem do C11, `GET /metrics` mostra `whatsapp_replies_total{kind="suspended"}` com valor 1 maior que antes da mensagem (AC 13) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/subscription-suspension.e2e-spec.ts -t "US-21.*\(C12\)"`
 
-**C13** - O job de lembretes, com duas barbearias conectadas e cada uma com um agendamento confirmado a 24 h, envia o lembrete só da barbearia não suspensa; o agendamento da suspensa continua sem reivindicação de 24 h nem de 1 h (AC 12)
+**C13** - O job de lembretes, com duas barbearias conectadas e cada uma com um agendamento confirmado a 24 h, envia o lembrete só da barbearia não suspensa; o agendamento da suspensa continua sem reivindicação de 24 h nem de 1 h (AC 12) ✅
 Proof: `npx jest src/usecases/send-appointment-reminders/send-appointment-reminders.use-case.spec.ts -t "US-21.*\(C13\)"`
 
-**C14** - Com a barbearia suspensa, `run()` do `AppointmentRemindersJob` deixa `reminder_24h_sent_at` e `reminder_1h_sent_at` nulos no agendamento dela e não envia texto pelo conector (AC 12, através do repositório real)
+**C14** - Com a barbearia suspensa, `run()` do `AppointmentRemindersJob` deixa `reminder_24h_sent_at` e `reminder_1h_sent_at` nulos no agendamento dela e não envia texto pelo conector (AC 12, através do repositório real) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/subscription-suspension.e2e-spec.ts -t "US-21.*\(C14\)"`
 
 ### S3 - O painel em modo leitura · ~12 arquivos · ~150 KB · ~38k
 
-**C15** - Com a barbearia do **teste vencido**, o Dono faz `POST /services` com um serviço válido e recebe `402` com `{ message }` igual ao texto do `402`; a contagem de `services` da barbearia não muda. Com a mesma barbearia de volta a `trialEndsAt` no futuro, o mesmo `POST /services` responde `201` (CA-21.2, AC 14, AC 6)
+**C15** - Com a barbearia do **teste vencido**, o Dono faz `POST /settings/services` com um serviço válido e recebe `402` com `{ message }` igual ao texto do `402`; a contagem de `services` da barbearia não muda. Com a mesma barbearia de volta a `trialEndsAt` no futuro, o mesmo `POST /settings/services` responde `201` (CA-21.2, AC 14, AC 6) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/subscription-suspension.e2e-spec.ts -t "US-21.*\(C15\)"`
 
-**C16** - Com a barbearia suspensa, por tabela de método e perfil: `PUT /booking-rules` do Dono, `PATCH /appointments/:id/attendance` do Dono, `DELETE /users/:id` do Dono e `POST /barber-blocks` do Barbeiro respondem `402` com o texto do `402`, e o registro alvo de cada uma não muda (AC 14)
+**C16** - Com a barbearia suspensa, por tabela de método e perfil: `PUT /settings/rules` do Dono, `PATCH /appointments/:id/status` do Dono, `DELETE /users/:id` do Dono e `POST /blocks` do Barbeiro respondem `402` com o texto do `402`, e o registro alvo de cada uma não muda (AC 14) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/subscription-suspension.e2e-spec.ts -t "US-21.*\(C16\)"`
 
-**C17** - Com a barbearia suspensa, `GET /services`, `GET /schedule`, `GET /clients` e `GET /subscription` do Dono respondem `200` (AC 15)
+**C17** - Com a barbearia suspensa, `GET /settings/services`, `GET /appointments` (agenda), `GET /clients` e `GET /subscription` do Dono respondem `200` (AC 15) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/subscription-suspension.e2e-spec.ts -t "US-21.*\(C17\)"`
 
-**C18** - Com a barbearia suspensa, toda rota `@Public()` de escrita do catálogo (`listRoutes`) recebe a chamada sem `402`: por tabela sobre o catálogo, cada uma responde com status diferente de `402`; e `POST /auth/login` do Dono dessa barbearia responde `200` com token (AC 16)
+**C18** - Com a barbearia suspensa, toda rota `@Public()` de escrita do catálogo (`listRoutes`) recebe a chamada sem `402`: por tabela sobre o catálogo, cada uma responde com status diferente de `402`; e `POST /auth/login` do Dono dessa barbearia responde `200` com token (AC 16) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/subscription-suspension.e2e-spec.ts -t "US-21.*\(C18\)"`
 
-**C19** - Com a barbearia do **teste vencido**, `POST /subscription/checkout` com `method: 'credit_card'` responde `201 { paymentUrl }`, e `POST /subscription/cancel` responde `409` com `Não há assinatura ativa para cancelar.`, nunca `402` (AC 14, door 2: exceção `@AllowWhileSuspended()`)
+**C19** - Com a barbearia do **teste vencido**, `POST /subscription/checkout` com `method: 'credit_card'` responde `201 { paymentUrl }`, e `POST /subscription/cancel` responde `409` com `Não há assinatura ativa para cancelar.`, nunca `402` (AC 14, door 2: exceção `@AllowWhileSuspended()`) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/subscription-suspension.e2e-spec.ts -t "US-21.*\(C19\)"`
 
-**C20** - `GET /me` devolve `barbershop.suspensionReason: 'trial_ended'` ao Dono e ao Barbeiro da barbearia do teste vencido, e `null` ao Dono de uma barbearia em dia; sem token responde `401` (AC 17)
+**C20** - `GET /me` devolve `barbershop.suspensionReason: 'trial_ended'` ao Dono e ao Barbeiro da barbearia do teste vencido, e `null` ao Dono de uma barbearia em dia; sem token responde `401` (AC 17) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/subscription-suspension.e2e-spec.ts -t "US-21.*\(C20\)"`
 
-**C21** - `GET /subscription` devolve `suspensionReason: 'payment_overdue'` à barbearia **atrasada** (falha há 6 dias) e `null` quando `paymentFailedAt` é de 4 dias antes; o Barbeiro recebe `403` com `Acesso negado.`; sem token, `401` (AC 18, AC 2, AC 3)
+**C21** - `GET /subscription` devolve `suspensionReason: 'payment_overdue'` à barbearia **atrasada** (falha há 6 dias) e `null` quando `paymentFailedAt` é de 4 dias antes; o Barbeiro recebe `403` com `Acesso negado.`; sem token, `401` (AC 18, AC 2, AC 3) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/subscription-suspension.e2e-spec.ts -t "US-21.*\(C21\)"`
 
-**C22** - Com a barbearia **encerrada** (`paidUntil = 2026-10-01`, hoje 02/10 local), `GET /subscription` devolve `suspensionReason: 'subscription_ended'` e `POST /services` responde `402`; com `paidUntil = 2026-10-02`, `suspensionReason: null` e `POST /services` responde `201` (AC 4, AC 5, AC 14)
+**C22** - Com a barbearia **encerrada** (`paidUntil = 2026-10-01`, hoje 02/10 local), `GET /subscription` devolve `suspensionReason: 'subscription_ended'` e `POST /settings/services` responde `402`; com `paidUntil = 2026-10-02`, `suspensionReason: null` e `POST /settings/services` responde `201` (AC 4, AC 5, AC 14) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/subscription-suspension.e2e-spec.ts -t "US-21.*\(C22\)"`
 
-**C23** - No documento OpenAPI, por tabela sobre o catálogo de rotas: toda operação autenticada `post`, `put`, `patch` ou `delete`, exceto `post /subscription/checkout` e `post /subscription/cancel`, tem a resposta `402` com o exemplo `{ message: <texto do 402> }`; nenhuma operação `get`, nenhuma pública e nenhuma das duas exceções tem `402` (AC 19)
+**C23** - No documento OpenAPI, por tabela sobre o catálogo de rotas: toda operação autenticada `post`, `put`, `patch` ou `delete`, exceto `post /subscription/checkout` e `post /subscription/cancel`, tem a resposta `402` com o exemplo `{ message: <texto do 402> }`; nenhuma operação `get`, nenhuma pública e nenhuma das duas exceções tem `402` (AC 19) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/api-docs.e2e-spec.ts -t "US-21.*\(C23\)"`
 
-**C24** - O guard, com um contador falso de métricas, por tabela dos três motivos: uma escrita barrada de uma barbearia com o motivo `trial_ended`, `payment_overdue` e `subscription_ended` incrementa o contador uma vez com esse motivo; uma escrita liberada e uma leitura não incrementam nada (AC 20)
+**C24** - O guard, com um contador falso de métricas, por tabela dos três motivos: uma escrita barrada de uma barbearia com o motivo `trial_ended`, `payment_overdue` e `subscription_ended` incrementa o contador uma vez com esse motivo; uma escrita liberada e uma leitura não incrementam nada (AC 20) ✅
 Proof: `npx jest src/infrastructure/http/subscription-access.guard.spec.ts -t "US-21.*\(C24\)"`
 
-**C25** - Depois de um `402` da barbearia do teste vencido, `GET /metrics` mostra `subscription_blocked_writes_total{reason="trial_ended"}` com valor 1 maior que antes (AC 20)
+**C25** - Depois de um `402` da barbearia do teste vencido, `GET /metrics` mostra `subscription_blocked_writes_total{reason="trial_ended"}` com valor 1 maior que antes (AC 20) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/subscription-suspension.e2e-spec.ts -t "US-21.*\(C25\)"`
 
-**C26** - Um controller de teste com `@Post()` sem decorator nenhum, montado no `AppModule` só para a prova, responde `402` à barbearia suspensa e `201` à em dia: uma rota de escrita nova nasce barrada (door 2)
+**C26** - Um controller de teste com `@Post()` sem decorator nenhum, montado no `AppModule` só para a prova, responde `402` à barbearia suspensa e `201` à em dia: uma rota de escrita nova nasce barrada (door 2) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/subscription-suspension.e2e-spec.ts -t "US-21.*\(C26\)"`
 
-**C27** - O schema da resposta de `GET /me` e o de `GET /subscription` aceitam em `suspensionReason` exatamente `trial_ended`, `payment_overdue`, `subscription_ended` e `null`, e recusam `suspended` e a ausência do campo (door 3)
+**C27** - O schema da resposta de `GET /me` e o de `GET /subscription` aceitam em `suspensionReason` exatamente `trial_ended`, `payment_overdue`, `subscription_ended` e `null`, e recusam `suspended` e a ausência do campo (door 3) ✅
 Proof: `npx jest src/interface-adapters/presenters/subscription-suspension.presenter.spec.ts -t "US-21.*\(C27\)"`
 
 ### S4 - A regularização reativa na hora · 6 arquivos · ~70 KB · ~18k
 
-**C28** - Com a barbearia **atrasada**, `POST /services` responde `402`; depois de `POST /webhooks/payments/asaas` com `PAYMENT_RECEIVED` de `sub_1` (vencimento `2026-10-02`), o mesmo `POST /services` responde `201` e `GET /me` traz `suspensionReason: null`, sem avançar o relógio (CA-21.4, AC 21)
+**C28** - Com a barbearia **atrasada**, `POST /settings/services` responde `402`; depois de `POST /webhooks/payments/asaas` com `PAYMENT_RECEIVED` de `sub_1` (vencimento `2026-10-02`), o mesmo `POST /settings/services` responde `201` e `GET /me` traz `suspensionReason: null`, sem avançar o relógio (CA-21.4, AC 21) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/subscription-suspension.e2e-spec.ts -t "US-21.*\(C28\)"`
 
-**C29** - Com a barbearia do **teste vencido** e uma assinatura Pix `sub_1` gravada, depois do webhook `PAYMENT_CONFIRMED` de `sub_1` uma mensagem de texto pelo WhatsApp chega ao interpretador falso e a resposta enviada não é o texto do bot suspenso (CA-21.4, AC 21)
+**C29** - Com a barbearia do **teste vencido** e uma assinatura Pix `sub_1` gravada, depois do webhook `PAYMENT_CONFIRMED` de `sub_1` uma mensagem de texto pelo WhatsApp chega ao interpretador falso e a resposta enviada não é o texto do bot suspenso (CA-21.4, AC 21) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/subscription-suspension.e2e-spec.ts -t "US-21.*\(C29\)"`
 
-**C30** - Com a assinatura **encerrada**, o use case de checkout aceita `credit_card` (chama `createCardCheckout` uma vez) e, noutra execução, `pix` com CPF válido (chama `createPixSubscription` uma vez); em nenhum dos dois chama `cancelSubscription` para a `sub_1` já cancelada (AC 22)
+**C30** - Com a assinatura **encerrada**, o use case de checkout aceita `credit_card` (chama `createCardCheckout` uma vez) e, noutra execução, `pix` com CPF válido (chama `createPixSubscription` uma vez); em nenhum dos dois chama `cancelSubscription` para a `sub_1` já cancelada (AC 22) ✅
 Proof: `npx jest src/usecases/start-subscription-checkout/start-subscription-checkout.use-case.spec.ts -t "US-21.*\(C30\)"`
 
-**C31** - Com a barbearia **encerrada**, `POST /subscription/checkout` com `method: 'credit_card'` responde `201 { paymentUrl }` (AC 22)
+**C31** - Com a barbearia **encerrada**, `POST /subscription/checkout` com `method: 'credit_card'` responde `201 { paymentUrl }` (AC 22) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/subscription-suspension.e2e-spec.ts -t "US-21.*\(C31\)"`
 
-**C32** - `confirmPayment('2026-10-02')` sobre uma assinatura cancelada com `paidUntil = 2026-10-01` deixa `status: 'active'`, `cancelRequestedAt: null`, `cancelsAt: null`, `paidUntil: '2026-11-02'`, `nextChargeDate: '2026-11-02'` e motivo de suspensão `null` (AC 23)
+**C32** - `confirmPayment('2026-10-02')` sobre uma assinatura cancelada com `paidUntil = 2026-10-01` deixa `status: 'active'`, `cancelRequestedAt: null`, `cancelsAt: null`, `paidUntil: '2026-11-02'`, `nextChargeDate: '2026-11-02'` e motivo de suspensão `null` (AC 23) ✅
 Proof: `npx jest src/domain/entities/barbershop-subscription.spec.ts -t "US-21.*\(C32\)"`
 
-**C33** - Ponta a ponta: barbearia **encerrada** → `POST /subscription/checkout` de cartão (checkout `chk_2`) → webhook `PAYMENT_CONFIRMED` da assinatura `sub_2`, que o gateway falso liga ao `chk_2` → `GET /subscription` devolve `status: 'active'`, `cancelsAt: null`, `nextChargeDate: '2026-11-02'` e `suspensionReason: null` (CA-21.4, AC 23)
+**C33** - Ponta a ponta: barbearia **encerrada** → `POST /subscription/checkout` de cartão (checkout `chk_2`) → webhook `PAYMENT_CONFIRMED` da assinatura `sub_2`, que o gateway falso liga ao `chk_2` → `GET /subscription` devolve `status: 'active'`, `cancelsAt: null`, `nextChargeDate: '2026-11-02'` e `suspensionReason: null` (CA-21.4, AC 23) ✅
 Proof: `npx jest --config ./test/jest-e2e.json test/subscription-suspension.e2e-spec.ts -t "US-21.*\(C33\)"`
 
-**C34** - `active` com pedido de cancelamento e `paidUntil` igual à data local de hoje: `canStartCheckout()` é `false` e o use case de checkout lança `SubscriptionAlreadyExistsError` com `Esta barbearia já tem uma assinatura.` sem chamar o gateway (AC 24)
+**C34** - `active` com pedido de cancelamento e `paidUntil` igual à data local de hoje: `canStartCheckout()` é `false` e o use case de checkout lança `SubscriptionAlreadyExistsError` com `Esta barbearia já tem uma assinatura.` sem chamar o gateway (AC 24) ✅
 Proof: `npx jest src/usecases/start-subscription-checkout/start-subscription-checkout.use-case.spec.ts -t "US-21.*\(C34\)"`
 
-**C35** - `confirmPayment('2026-09-01')` sobre uma assinatura cancelada com `paidUntil = 2026-10-01` mantém `cancelRequestedAt`, `paidUntil: '2026-10-01'` e, no relógio de 02/10, o motivo `subscription_ended` (AC 25)
+**C35** - `confirmPayment('2026-09-01')` sobre uma assinatura cancelada com `paidUntil = 2026-10-01` mantém `cancelRequestedAt`, `paidUntil: '2026-10-01'` e, no relógio de 02/10, o motivo `subscription_ended` (AC 25) ✅
 Proof: `npx jest src/domain/entities/barbershop-subscription.spec.ts -t "US-21.*\(C35\)"`
 
-**C36** - A história não acrescenta migration nem altera as existentes (door 1: nenhuma coluna, status ou `CHECK` novo)
+**C36** - A história não acrescenta migration nem altera as existentes (door 1: nenhuma coluna, status ou `CHECK` novo) ✅
 Proof: `test -z "$(git diff --name-only main...HEAD -- src/infrastructure/database/migrations)"`
 
 ## Coverage
@@ -215,3 +215,6 @@ Custo: 15 provas na própria camada em 6 arquivos. Sem essas linhas, os limites 
 
 - Arquivos existentes que a história toca (entidade da assinatura, repositório TypeORM e o em memória, fixtures de assinatura, bot, lembretes, checkout, `GetSubscription`, `GetMyAccount`, os dois presenters, `api-document.ts`, `route-catalog.ts`, `account.module.ts`, `whatsapp.module.ts`, `subscriptions.module.ts`, `env.schema.ts`, métricas do WhatsApp, `api-docs.e2e-spec.ts`, `subscription-test-app.ts`, `subscription.controller.ts`, `.env.example`): `wc -c` = 175.527 bytes ≈ 44k tokens. As 18+ suítes com `trial_ends_at = now()` (221.118 bytes) só têm a linha do `INSERT` trocada, sem leitura integral: ≈ 6k. Arquivos novos (guard e spec, decorator, métrica, presenter spec, entidade spec, suíte `subscription-suspension.e2e-spec.ts`) ≈ 70 KB ≈ 18k. Total ≈ 68k, abaixo do orçamento de 150k → one builder
 - Mechanism: one builder (cabe no orçamento, sem pergunta)
+- **Boundary:** C1-C36 fechados no commit `feat(US-21): suspend barbershops without an active subscription`
+- **Abandoned:** nada. Fora do escopo, num commit à parte (`test(US-10): ...`): o AGM-07 da US-10 falhava também na `main`, porque ordenava clientes por `created_at` misturando o `now()` real do banco com o `FixedClock` da suíte; a fixture passou a usar o relógio da suíte. Numa das três rodadas completas o `scheduling.e2e-spec.ts` falhou uma vez e não se repetiu (passou isolado duas vezes e na rodada completa seguinte)
+- **Settled mid-build:** (1) Os caminhos citados em C15, C16, C17, C22, C28 e no teste C23 foram corrigidos para as rotas reais (`/settings/services`, `/settings/rules`, `/appointments/:id/status`, `/blocks`, `GET /appointments`); método, perfil e valor de cada claim não mudaram. (2) `confirmPayment` limpa o cancelamento só com vencimento estritamente posterior ao `paidUntil` (o `Impact` do plano foi corrigido no mesmo commit): com `>=`, pagar a cobrança já gerada para o dia `paidUntil` desfaria o cancelamento de uma assinatura apagada no gateway. (3) O teste da US-13 que fixa o conjunto exato de status de `POST /whatsapp/connection` passa a incluir o `402`, como o `Impact` do plano prevê para toda rota de escrita. (4) O repositório de assinatura e as métricas de pagamento saíram do `SubscriptionsModule` para o novo `SubscriptionAccessModule`, que o `AccountModule` (guard e `/me`), o `WhatsAppModule` e o `SubscriptionsModule` importam, evitando import circular

@@ -143,8 +143,9 @@ describe('API docs (e2e)', () => {
     for (const operation of [connect, show, hook]) {
       expect(operation.summary).toContain('US-13');
     }
+    // US-21: every authenticated write also answers 402 while suspended.
     expect(Object.keys(connect.responses).sort()).toEqual(
-      ['200', '401', '403', '409', '502'].sort(),
+      ['200', '401', '402', '403', '409', '502'].sort(),
     );
     expect(Object.keys(show.responses).sort()).toEqual(['200', '401', '403']);
     expect(Object.keys(hook.responses).sort()).toEqual(['204', '400', '401']);
@@ -320,6 +321,40 @@ describe('API docs (e2e)', () => {
         });
       }
       expect(profileItem.unconfirmed).toBeUndefined();
+    });
+  });
+
+  describe('US-21', () => {
+    const SUSPENDED_WRITE =
+      'A assinatura desta barbearia está inativa. O painel está em modo leitura até a assinatura ser regularizada.';
+    const WRITES = ['POST', 'PUT', 'PATCH', 'DELETE'];
+    const EXEMPT = ['POST /subscription/checkout', 'POST /subscription/cancel'];
+
+    it('AC 19 (C23): documents the 402 on every authenticated write but the subscription routes, and nowhere else', () => {
+      const expected: string[] = [];
+      const documented: string[] = [];
+      for (const { id, operation } of operations(document)) {
+        const method = id.split(' ')[0];
+        const authenticated = (operation.security ?? []).length > 0;
+        if (authenticated && WRITES.includes(method) && !EXEMPT.includes(id)) {
+          expected.push(id);
+        }
+        const response = operation.responses[402] as ResponseObject | undefined;
+        if (!response) continue;
+        documented.push(id);
+        expect(response.content?.['application/json']?.schema).toMatchObject({
+          example: { message: SUSPENDED_WRITE },
+        });
+      }
+
+      expect(expected).toEqual(
+        expect.arrayContaining([
+          'POST /settings/services',
+          'DELETE /users/{id}',
+        ]),
+      );
+      expect(documented.sort()).toEqual(expected.sort());
+      for (const id of EXEMPT) expect(documented).not.toContain(id);
     });
   });
 

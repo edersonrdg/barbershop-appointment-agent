@@ -626,7 +626,8 @@ describe('Manual booking (e2e)', () => {
       const operations = [
         {
           operation: paths['/appointments'].post!,
-          statuses: ['201', '400', '401', '403', '404', '409', '422'],
+          // US-21: a write also answers 402 while the barbershop is suspended.
+          statuses: ['201', '400', '401', '402', '403', '404', '409', '422'],
         },
         {
           operation: paths['/appointments/available-slots'].get!,
