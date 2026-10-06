@@ -39,4 +39,16 @@ export class TypeOrmNoShowLedger implements NoShowLedger {
     );
     return affected;
   }
+
+  async resetClient(
+    barbershopId: string,
+    clientId: string,
+    now: Date,
+  ): Promise<void> {
+    await this.dataSource.query(
+      `UPDATE clients SET no_show_reset_at = $3
+        WHERE barbershop_id = $1 AND id = $2`,
+      [barbershopId, clientId, now],
+    );
+  }
 }

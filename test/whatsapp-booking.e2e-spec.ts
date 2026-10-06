@@ -335,6 +335,32 @@ describe('WhatsApp booking (e2e)', () => {
     });
   });
 
+  it('US-22 CA-22.1 (C3): a client unblocked by the owner books through the bot again', async () => {
+    await insertNoShow('2026-09-01');
+    await insertNoShow('2026-09-02');
+
+    await request(app.getHttpServer())
+      .post(`/clients/${client}/unblock`)
+      .set('Authorization', `Bearer ${owner}`)
+      .expect(204);
+    await send(REQUEST, 'tem horário amanhã à tarde com o João para corte?');
+    expect(texts()).toEqual([OFFER]);
+    await send({ choice: 1 }, 'o primeiro');
+
+    const rows = await botAppointments();
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      client_id: client,
+      origin: 'bot',
+      status: 'confirmed',
+    });
+    const waiting = await request(app.getHttpServer())
+      .get('/whatsapp/conversations/waiting-human')
+      .set('Authorization', `Bearer ${owner}`)
+      .expect(200);
+    expect(waiting.body).toEqual({ conversations: [] });
+  });
+
   it('AC 39 (C34): counts the offer, the summary and the bot booking', async () => {
     const booking = 'whatsapp_replies_total{kind="booking"}';
     const booked = 'whatsapp_replies_total{kind="booked"}';

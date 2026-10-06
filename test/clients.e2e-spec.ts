@@ -20,6 +20,9 @@ const UNAUTHORIZED = { message: 'Sessão inválida ou expirada.' };
 const CLIENT_NOT_FOUND = { message: 'Cliente não encontrado.' };
 const SEARCH_MESSAGE = 'Informe de 2 a 80 caracteres para buscar.';
 const CLIENT_ID_MESSAGE = 'Informe um id de cliente válido.';
+const FORBIDDEN = { message: 'Acesso negado.' };
+const SUSPENDED_WRITE =
+  'A assinatura desta barbearia está inativa. O painel está em modo leitura até a assinatura ser regularizada.';
 
 // Saturday 2026-10-10, 12:00 in São Paulo (UTC-3).
 const NOW = new Date('2026-10-10T15:00:00.000Z');
@@ -658,6 +661,192 @@ describe('Clients (e2e)', () => {
     it('CA-12.3 (C25): both routes answer 401 without a session', async () => {
       await search({}).expect(401, UNAUTHORIZED);
       await getProfile(joao).expect(401, UNAUTHORIZED);
+    });
+  });
+
+  describe('US-22: unblocking a client', () => {
+    function unblock(id: string, token?: string) {
+      const call = request(app.getHttpServer()).post(`/clients/${id}/unblock`);
+      return token ? call.set('Authorization', `Bearer ${token}`) : call;
+    }
+
+    async function resetAtOf(id: string): Promise<Date | null> {
+      const [row] = await dataSource.query<{ no_show_reset_at: Date | null }[]>(
+        'SELECT no_show_reset_at FROM clients WHERE id = $1',
+        [id],
+      );
+      return row.no_show_reset_at;
+    }
+
+    // Default limit of 2 no-shows (AD-008): João is blocked.
+    async function blockJoao(): Promise<void> {
+      await insertAppointment({
+        startsAt: '2026-09-01T13:00:00.000Z',
+        status: 'no_show',
+      });
+      await insertAppointment({
+        startsAt: '2026-09-08T13:00:00.000Z',
+        status: 'no_show',
+      });
+      expect(await profileOf(joao)).toMatchObject({
+        noShowCount: 2,
+        selfBookingBlocked: true,
+      });
+    }
+
+    it('CA-22.1 (C1): the owner unblocks a blocked client with 204 and the reset is now', async () => {
+      await blockJoao();
+
+      const response = await unblock(joao, ownerToken).expect(204);
+
+      expect(response.body).toEqual({});
+      expect(response.text).toBe('');
+      expect(await resetAtOf(joao)).toEqual(NOW);
+    });
+
+    it('CA-22.1 (C2): the profile of an unblocked client shows no no-shows and no block', async () => {
+      await blockJoao();
+
+      await unblock(joao, ownerToken).expect(204);
+
+      expect(await profileOf(joao)).toMatchObject({
+        noShowCount: 0,
+        selfBookingBlocked: false,
+      });
+    });
+
+    it('CA-22.1 (C4): only no-shows of appointments starting after the unblock count', async () => {
+      await blockJoao();
+      await unblock(joao, ownerToken).expect(204);
+
+      await insertAppointment({
+        startsAt: '2026-10-10T13:00:00.000Z',
+        status: 'no_show',
+      });
+      expect((await profileOf(joao)).noShowCount).toBe(0);
+
+      await insertAppointment({
+        startsAt: '2026-10-10T16:00:00.000Z',
+        status: 'no_show',
+      });
+      expect((await profileOf(joao)).noShowCount).toBe(1);
+    });
+
+    it('AC 5 (C5): a client below the limit is answered 204 and keeps the no-shows', async () => {
+      await insertAppointment({
+        startsAt: '2026-09-01T13:00:00.000Z',
+        clientId: maria,
+        status: 'no_show',
+      });
+
+      await unblock(maria, ownerToken).expect(204);
+
+      expect(await profileOf(maria)).toMatchObject({
+        noShowCount: 1,
+        selfBookingBlocked: false,
+      });
+      expect(await resetAtOf(maria)).toBeNull();
+    });
+
+    it('AC 5 (C5): unblocking twice answers 204 both times and keeps the first reset', async () => {
+      await blockJoao();
+
+      await unblock(joao, ownerToken).expect(204);
+      await unblock(joao, ownerToken).expect(204);
+
+      expect(await resetAtOf(joao)).toEqual(NOW);
+      expect((await profileOf(joao)).noShowCount).toBe(0);
+    });
+
+    it('AC 6 (C6): an id that is not a UUID answers 400 with the message', async () => {
+      const response = await unblock('abc', ownerToken).expect(400);
+
+      expect(response.body).toEqual({
+        message: 'Dados inválidos.',
+        errors: [{ field: 'id', message: CLIENT_ID_MESSAGE }],
+      });
+    });
+
+    it('AC 7 (C7): an unknown id or a client of another barbershop answers 404 and resets nothing (RN-26)', async () => {
+      const foreign = await insertClient('Pedro', JOAO_PHONE, shopB);
+      const barberB = randomUUID();
+      await dataSource.query(
+        `INSERT INTO barbers (id, barbershop_id, name, user_id, active, created_at)
+         VALUES ($1, $2, 'Barbeiro B', NULL, true, now())`,
+        [barberB, shopB],
+      );
+      for (const startsAt of [
+        '2026-09-01T13:00:00.000Z',
+        '2026-09-08T13:00:00.000Z',
+      ]) {
+        await dataSource.query(
+          `INSERT INTO appointments (id, barbershop_id, barber_id, client_id, starts_at, ends_at, status, origin, created_at)
+           VALUES ($1, $2, $3, $4, $5, $5::timestamptz + interval '30 minutes', 'no_show', 'manual', now())`,
+          [randomUUID(), shopB, barberB, foreign, startsAt],
+        );
+      }
+      const [{ count }] = await dataSource.query<{ count: number }[]>(
+        `SELECT COUNT(*)::int AS count FROM appointments
+          WHERE client_id = $1 AND status = 'no_show'`,
+        [foreign],
+      );
+      expect(count).toBe(2);
+
+      await unblock(randomUUID(), ownerToken).expect(404, CLIENT_NOT_FOUND);
+      await unblock(foreign, ownerToken).expect(404, CLIENT_NOT_FOUND);
+
+      expect(await resetAtOf(foreign)).toBeNull();
+    });
+
+    it('CA-22.2 (C8): a barber gets 403 and the client stays blocked', async () => {
+      await blockJoao();
+
+      await unblock(joao, brunoToken).expect(403, FORBIDDEN);
+
+      expect(await profileOf(joao)).toMatchObject({
+        noShowCount: 2,
+        selfBookingBlocked: true,
+      });
+    });
+
+    it('AC 9 (C9): answers 401 without a session', async () => {
+      await unblock(joao).expect(401, UNAUTHORIZED);
+    });
+
+    it('AC 10 (C10): a suspended barbershop gets 402 and the client stays blocked', async () => {
+      await blockJoao();
+      await dataSource.query(
+        'UPDATE barbershops SET trial_ends_at = $2 WHERE id = $1',
+        [shopA, new Date('2026-10-01T00:00:00.000Z')],
+      );
+
+      await unblock(joao, ownerToken).expect(402, {
+        message: SUSPENDED_WRITE,
+      });
+
+      expect(await profileOf(joao)).toMatchObject({
+        noShowCount: 2,
+        selfBookingBlocked: true,
+      });
+    });
+
+    it('AC 11 (C11): documents the route with the US-22 summary, 204, 404 and owner-only access', () => {
+      const operation =
+        buildApiDocument(app).paths['/clients/{id}/unblock'].post!;
+
+      expect(operation.summary).toContain('US-22');
+      expect(operation).toMatchObject({ 'x-roles': ['owner'] });
+      expect(operation.parameters).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'id', in: 'path' }),
+        ]),
+      );
+      expect(
+        (operation.responses['204'] as ResponseObject).description,
+      ).toEqual(expect.any(String));
+      expect(JSON.stringify(operation.responses['404'])).toContain(
+        CLIENT_NOT_FOUND.message,
+      );
     });
   });
 

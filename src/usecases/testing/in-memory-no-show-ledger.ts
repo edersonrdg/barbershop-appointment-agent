@@ -46,6 +46,15 @@ export class InMemoryNoShowLedger implements NoShowLedger {
     return reset;
   }
 
+  resetClient(
+    barbershopId: string,
+    clientId: string,
+    now: Date,
+  ): Promise<void> {
+    this.resets.set(key(barbershopId, clientId), now);
+    return Promise.resolve();
+  }
+
   private async countedNoShows(barbershopId: string): Promise<CountedNoShow[]> {
     const stored = await this.appointments.list(barbershopId);
     return stored.flatMap(({ status, clientId, startsAt }) => {
