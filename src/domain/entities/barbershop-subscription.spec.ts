@@ -136,6 +136,20 @@ describe('US-21 BarbershopSubscription suspension', () => {
     expect(ended.suspensionReason(NOW, 5)).toBe('subscription_ended');
   });
 
+  it('AC 25 (C35): a charge due on paidUntil itself, issued before the cancellation, extends the period and keeps it cancelled', () => {
+    const ended = cancelled('2026-10-01');
+    const requestedAt = ended.cancelRequestedAt;
+
+    ended.confirmPayment('2026-10-01');
+
+    expect(ended.cancelRequestedAt).toEqual(requestedAt);
+    expect(ended.paidUntil).toBe('2026-11-01');
+    expect(ended.cancelsAt).toBe('2026-11-01');
+    expect(
+      ended.suspensionReason(new Date('2026-11-02T03:00:00.000Z'), 5),
+    ).toBe('subscription_ended');
+  });
+
   it('AC 24 (C34): a cancelled subscription still in its paid period cannot start a checkout', () => {
     expect(cancelled('2026-10-02').canStartCheckout(NOW)).toBe(false);
   });
