@@ -86,7 +86,7 @@ O cliente que aceita recebe horários com a duração somada e o agendamento com
 13. WHEN a mensagem que aceita traz também barbeiro, data, período ou hora THEN o sistema SHALL combiná-los com o rascunho como na US-17 (AC 9 da US-17)
 14. WHEN a interpretação traz `addOnAccepted: true` sem `bookingRequested` THEN o sistema SHALL encaminhar a mensagem ao agendamento, com a mesma precedência do pedido de agendamento (atendente > fora de contexto > agendamento)
 
-**Independent test:** unitário com repositórios em memória: rascunho com Barba pendente, `addOnAccepted: true` -> oferta "Horários para Corte + Barba (R$ 65,00, 1h):" e o fake do motor recebe os dois ids.
+**Independent test:** unitário com repositórios em memória: rascunho com Barba pendente, `addOnAccepted: true` -> oferta "Horários para Corte + Barba (R$ 75,00, 50 min):" e o fake do motor recebe os dois ids.
 
 ### S3: Recusar não insiste (P1)
 

@@ -162,6 +162,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: verification.md F2 / src/domain/entities/barbershop-subscription.ts:183 (C35) (domain)
 - last seen: 2026-10-06T16:08:27Z
 
+### L-026 - A docs check for a behaviour change must assert a phrase that describes that behaviour, not only the story id, which any mention satisfies.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `api-docs` · harmful: 0
+- features: us-23-sugestao-de-servicos-adicionais
+- evidence: C17 test/api-docs.e2e-spec.ts:214 (api-docs)
+- last seen: 2026-10-07T13:56:30Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
