@@ -138,5 +138,13 @@
 - **Date**: 2026-10-06
 - **Status**: active
 
+### AD-018
+- **Decision**: A lista de espera (US-24) fica em `waitlist_entries` (uma inscrição por cliente por barbearia, `UNIQUE (barbershop_id, client_id)`), com os serviços em `waitlist_entry_services`, e as ofertas em `waitlist_offers` (`pending`, `accepted`, `declined`, `expired`), apagadas com a inscrição. O horário liberado é o agendamento `cancelled` com início no futuro (AD-014), lido pelo `WaitlistJob` (`@Cron('* * * * *')` em toda instância, AD-015, barbearia por barbearia, AD-009), que oferta ao primeiro inscrito compatível segundo o `ListAvailableSlotsUseCase`. Os índices únicos parciais `(barbershop_id, appointment_id) WHERE status = 'pending'` e `(entry_id) WHERE status = 'pending'`, mais `UNIQUE (entry_id, appointment_id)`, garantem uma oferta por vez e nunca o mesmo horário duas vezes à mesma inscrição. A oferta não segura o horário; ela vai para o rascunho da conversa com `waitlistOfferId` (AD-013), e o aceite só vale antes de `expires_at`.
+- **Reason**: US-24 (RF-21 a RF-23, RN-15 a RN-17, CA-24.2 a CA-24.6). Com várias instâncias, o banco é o que impede duas ofertas do mesmo horário; a rotina de minuto em minuto também é o que passa a vez quando o prazo acaba.
+- **Trade-off**: Só cancelamentos e remarcações liberam horário para a fila; bloqueio removido ou jornada alterada não geram oferta. Uma oferta aceita some com a inscrição, então o histórico de ofertas não fica no banco (fica na métrica). Um novo jeito de liberar horário precisa terminar num agendamento `cancelled` ou ensinar a rotina a lê-lo.
+- **Scope**: Lista de espera e jobs, US-24 em diante.
+- **Date**: 2026-10-07
+- **Status**: active
+
 ## Handoff
 

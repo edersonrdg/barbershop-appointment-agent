@@ -40,6 +40,13 @@ export interface AddOnSuggestion {
   pending: boolean;
 }
 
+/** US-24: the waitlist the bot proposed, with the dates and period searched. */
+export interface WaitlistProposal {
+  startsOn: string;
+  endsOn: string;
+  period: BookingPeriod | null;
+}
+
 /**
  * US-17: what the bot knows of the booking in progress (AD-013). US-18: also
  * of a cancellation or rescheduling; the criteria and the offer then search
@@ -62,6 +69,10 @@ export interface BookingDraft {
   offer: OfferedSlot[];
   /** US-23: `null` while no add-on was suggested in this draft. */
   addOnSuggestion: AddOnSuggestion | null;
+  /** US-24: proposed while the client may join the waitlist. */
+  waitlistProposal: WaitlistProposal | null;
+  /** US-24: set when `offer` is a slot offered from the waitlist. */
+  waitlistOfferId: string | null;
   updatedAt: Date;
 }
 
@@ -87,6 +98,12 @@ export interface ConversationRepository {
     barbershopId: string,
     clientId: string,
     at: Date,
+    expiredBefore: Date,
+  ): Promise<boolean>;
+  /** US-24: whether a pause is in force (RN-23), without writing anything. */
+  isPaused(
+    barbershopId: string,
+    clientId: string,
     expiredBefore: Date,
   ): Promise<boolean>;
   /** Adds one understanding failure and resolves to the new count. */

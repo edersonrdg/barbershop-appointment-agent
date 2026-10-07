@@ -76,6 +76,8 @@ function interpretation(
     confirmRequested: false,
     choice: null,
     addOnAccepted: false,
+    waitlistAccepted: false,
+    offerDeclined: false,
     ...partial,
   };
 }

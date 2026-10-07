@@ -18,6 +18,7 @@ import {
   workingHoursInput,
 } from './barber-fixtures';
 import { CountingAppointmentMetrics } from './counting-appointment-metrics';
+import { CountingWaitlistMetrics } from './counting-waitlist-metrics';
 import { InMemoryAccountStore } from './in-memory-account-store';
 import { InMemoryAppointmentRepository } from './in-memory-appointment.repository';
 import { InMemoryBarberBlockRepository } from './in-memory-barber-block.repository';
@@ -28,6 +29,7 @@ import { InMemoryClientRepository } from './in-memory-client.repository';
 import { InMemoryConversationRepository } from './in-memory-conversation.repository';
 import { InMemoryNoShowLedger } from './in-memory-no-show-ledger';
 import { InMemoryServiceRepository } from './in-memory-service.repository';
+import { InMemoryWaitlistRepository } from './in-memory-waitlist.repository';
 import { rulesWithMinimumAdvance } from './scheduling-fixtures';
 import { SequentialIdGenerator } from './sequential-id-generator';
 import { seedService } from './service-fixtures';
@@ -154,6 +156,8 @@ export async function setupWhatsAppBooking({
   const conversations = new InMemoryConversationRepository();
   const ids = new SequentialIdGenerator();
   const appointmentMetrics = new CountingAppointmentMetrics();
+  const waitlist = new InMemoryWaitlistRepository();
+  const waitlistMetrics = new CountingWaitlistMetrics();
   const listSlots = new ListAvailableSlotsUseCase(
     barbershops,
     bookingRules,
@@ -191,6 +195,8 @@ export async function setupWhatsAppBooking({
     schedule,
     appointments,
     appointmentMetrics,
+    waitlist,
+    waitlistMetrics,
   );
   const presence = new ConfirmPresenceViaWhatsAppUseCase(
     schedule,
@@ -280,6 +286,9 @@ export async function setupWhatsAppBooking({
     conversations,
     ids,
     appointmentMetrics,
+    waitlist,
+    waitlistMetrics,
+    schedule,
     listSlots,
     booking,
     presence,

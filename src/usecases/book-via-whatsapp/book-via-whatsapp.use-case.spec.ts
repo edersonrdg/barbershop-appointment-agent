@@ -11,6 +11,7 @@ import {
   setupWhatsAppBooking,
   TOMORROW,
 } from '../testing/whatsapp-booking-fixtures';
+import { FREED_AT, setupWaitlist } from '../testing/waitlist-fixtures';
 import { BookingOutcome } from './book-via-whatsapp.use-case';
 
 const TODAY = '2026-09-29';
@@ -37,6 +38,8 @@ function interpretation(
     confirmRequested: false,
     choice: null,
     addOnAccepted: false,
+    waitlistAccepted: false,
+    offerDeclined: false,
     ...partial,
   };
 }
@@ -48,6 +51,9 @@ function offer(lines: string[], header = CORTE): string {
     FOOTER,
   ].join('\n');
 }
+
+const waitlistProposal = (label: string) =>
+  `Se preferir, posso te colocar na lista de espera para ${label} e te aviso se vagar um horário. Responda "lista de espera" para entrar.`;
 
 const wed = (time: string, barber = 'João') =>
   `quarta-feira, 30/09, às ${time}, com ${barber}`;
@@ -63,11 +69,19 @@ const JOAO_AFTERNOON = {
   period: 'afternoon' as const,
 };
 
-async function setup(options: Parameters<typeof setupWhatsAppBooking>[0] = {}) {
-  const scenario = await setupWhatsAppBooking(options);
+async function withSend<
+  T extends Awaited<ReturnType<typeof setupWhatsAppBooking>>,
+>(scenario: T) {
   const { barbershop, client, conversations, services, booking, clock } =
     scenario;
   await conversations.enter(barbershop.id, client.id, clock.now(), new Date(0));
+  const prepare = async () =>
+    booking.prepare(
+      barbershop,
+      client.id,
+      clock.now(),
+      await services.listActiveByBarbershop(barbershop.id),
+    );
   const send = async (
     partial: Partial<MessageInterpretation>,
   ): Promise<BookingOutcome> => {
@@ -99,7 +113,11 @@ async function setup(options: Parameters<typeof setupWhatsAppBooking>[0] = {}) {
   };
   const draft = () =>
     conversations.row(barbershop.id, client.id)?.bookingDraft ?? null;
-  return { ...scenario, send, text, draft };
+  return { ...scenario, prepare, send, text, draft };
+}
+
+async function setup(options: Parameters<typeof setupWhatsAppBooking>[0] = {}) {
+  return withSend(await setupWhatsAppBooking(options));
 }
 
 describe('BookViaWhatsAppUseCase', () => {
@@ -430,21 +448,24 @@ describe('BookViaWhatsAppUseCase', () => {
         ['12:00', '18:00'],
         'Não há horário livre à tarde em quarta-feira, 30/09.',
         [wed('09:00'), wed('09:30'), wed('10:00')],
+        'Corte à tarde em quarta-feira, 30/09',
       ],
       [
         'morning',
         ['09:00', '12:00'],
         'Não há horário livre de manhã em quarta-feira, 30/09.',
         [wed('12:00'), wed('12:30'), wed('13:00')],
+        'Corte de manhã em quarta-feira, 30/09',
       ],
     ] as const)(
       'CA-17.7 (C27): an empty %s offers the other periods',
-      async (period, [from, to], notice, lines) => {
+      async (period, [from, to], notice, lines, waiting) => {
         const { text, block, joao } = await setup();
         block(joao.id, local(TOMORROW, from), local(TOMORROW, to));
 
+        // US-24 (CA-24.1): the reply also proposes the waitlist.
         expect(await text({ ...JOAO_AFTERNOON, period: period })).toBe(
-          `${notice}\n\n${offer([...lines])}`,
+          `${notice}\n\n${offer([...lines])}\n\n${waitlistProposal(waiting)}`,
         );
       },
     );
@@ -456,7 +477,7 @@ describe('BookViaWhatsAppUseCase', () => {
       expect(
         await text({ services: ['Corte'], barber: 'João', date: TOMORROW }),
       ).toBe(
-        `Não há horário livre em quarta-feira, 30/09.\n\n${offer([thu('09:00'), thu('09:30'), thu('10:00')])}`,
+        `Não há horário livre em quarta-feira, 30/09.\n\n${offer([thu('09:00'), thu('09:30'), thu('10:00')])}\n\n${waitlistProposal('Corte em quarta-feira, 30/09')}`,
       );
     });
 
@@ -465,14 +486,14 @@ describe('BookViaWhatsAppUseCase', () => {
       block(joao.id, local(TODAY, '09:00'), local('2026-10-06', '19:00'));
 
       expect(await text({ services: ['Corte'], barber: 'João' })).toBe(
-        'Não encontrei horário livre para Corte até segunda-feira, 05/10.',
+        `Não encontrei horário livre para Corte até segunda-feira, 05/10.\n\n${waitlistProposal('Corte até segunda-feira, 05/10')}`,
       );
       expect(draft()?.offer).toEqual([]);
 
       expect(
         await text({ services: ['Corte'], barber: 'João', date: TOMORROW }),
       ).toMatch(
-        /Não encontrei horário livre para Corte até terça-feira, 06\/10\.$/,
+        /Não encontrei horário livre para Corte até terça-feira, 06\/10\.\n\nSe preferir, posso te colocar na lista de espera para Corte até terça-feira, 06\/10 e te aviso se vagar um horário\. Responda "lista de espera" para entrar\.$/,
       );
     });
   });
@@ -1215,6 +1236,330 @@ describe('BookViaWhatsAppUseCase US-18', () => {
         serviceIds: ['corte'],
         addOnSuggestion: { serviceId: 'barba', pending: false },
       });
+    });
+  });
+});
+
+describe('BookViaWhatsAppUseCase US-24', () => {
+  const PROPOSTA_SEMANA =
+    'Se preferir, posso te colocar na lista de espera para Corte à tarde até segunda-feira, 05/10 e te aviso se vagar um horário. Responda "lista de espera" para entrar.';
+  const PROPOSTA_DIA =
+    'Se preferir, posso te colocar na lista de espera para Corte à tarde em quarta-feira, 30/09 e te aviso se vagar um horário. Responda "lista de espera" para entrar.';
+  const INSCRITO =
+    'Pronto! Você está na lista de espera para Corte à tarde em quarta-feira, 30/09. Se vagar um horário, eu te aviso por aqui.';
+  const EXPIRADA =
+    'O prazo para aceitar esse horário acabou. Você continua na lista de espera.';
+  const RECUSADA = 'Tudo bem, você continua na lista de espera.';
+  const ACCEPT = { bookingRequested: false, waitlistAccepted: true };
+  const DECLINE = { bookingRequested: false, offerDeclined: true };
+  const AFTERNOON_PROPOSAL = {
+    startsOn: TOMORROW,
+    endsOn: TOMORROW,
+    period: 'afternoon' as const,
+  };
+
+  // CA-24.1 scenario: João has no afternoon slot on Wednesday 30/09.
+  async function afternoonFull() {
+    const scenario = await setup();
+    scenario.block(
+      scenario.joao.id,
+      local(TOMORROW, '12:00'),
+      local(TOMORROW, '18:00'),
+    );
+    return scenario;
+  }
+
+  // CA-24.2: the job offered João's freed 15:00 slot to Carlos.
+  async function offeredToCarlos() {
+    const scenario = await withSend(await setupWaitlist());
+    await scenario.enlist('carlos');
+    await scenario.free();
+    await scenario.process.execute();
+    const [offer] = scenario.offersOf('carlos');
+    return { ...scenario, offer };
+  }
+
+  describe('joining the waitlist', () => {
+    it('US-24 CA-24.1 (C1): with nothing free in 7 days, proposes the waitlist for the searched days and period', async () => {
+      const { text, block, joao, draft } = await setup();
+      block(joao.id, local(TODAY, '09:00'), local('2026-10-06', '19:00'));
+
+      expect(
+        await text({
+          services: ['Corte'],
+          barber: 'João',
+          period: 'afternoon',
+        }),
+      ).toBe(
+        `Não encontrei horário livre para Corte até segunda-feira, 05/10.\n\n${PROPOSTA_SEMANA}`,
+      );
+      expect(draft()?.waitlistProposal).toEqual({
+        startsOn: TODAY,
+        endsOn: '2026-10-05',
+        period: 'afternoon',
+      });
+    });
+
+    it('US-24 CA-24.1, AC 2 (C2) (a): an empty period offers the others and proposes waiting for it', async () => {
+      const { text, draft } = await afternoonFull();
+
+      expect(await text(JOAO_AFTERNOON)).toBe(
+        `Não há horário livre à tarde em quarta-feira, 30/09.\n\n${offer([wed('09:00'), wed('09:30'), wed('10:00')])}\n\n${PROPOSTA_DIA}`,
+      );
+      expect(draft()?.waitlistProposal).toEqual(AFTERNOON_PROPOSAL);
+    });
+
+    it('US-24 AC 2 (C2) (b): a taken time proposes waiting for its period', async () => {
+      const { text, draft } = await afternoonFull();
+
+      const reply = await text({
+        ...JOAO_AFTERNOON,
+        period: null,
+        time: '15:00',
+      });
+
+      expect(reply.endsWith(`\n\n${PROPOSTA_DIA}`)).toBe(true);
+      expect(draft()?.waitlistProposal).toEqual(AFTERNOON_PROPOSAL);
+    });
+
+    it('US-24 AC 2 (C2) (c): an empty date without a period proposes waiting for the whole day', async () => {
+      const { text, block, joao, draft } = await setup();
+      block(joao.id, local(TOMORROW, '09:00'), local(TOMORROW, '19:00'));
+
+      const reply = await text({
+        services: ['Corte'],
+        barber: 'João',
+        date: TOMORROW,
+      });
+
+      expect(
+        reply.endsWith(
+          '\n\nSe preferir, posso te colocar na lista de espera para Corte em quarta-feira, 30/09 e te aviso se vagar um horário. Responda "lista de espera" para entrar.',
+        ),
+      ).toBe(true);
+      expect(draft()?.waitlistProposal).toEqual({
+        startsOn: TOMORROW,
+        endsOn: TOMORROW,
+        period: null,
+      });
+    });
+
+    it('US-24 AC 3 (C3) (a) (b) (c): gives the interpreter the proposal as the client read it, and null otherwise', async () => {
+      const { text, prepare } = await afternoonFull();
+      expect((await prepare()).interpreterInput).toMatchObject({
+        waitlistProposal: null,
+        waitlistOffer: false,
+      });
+
+      await text(JOAO_AFTERNOON);
+      expect((await prepare()).interpreterInput.waitlistProposal).toBe(
+        'Corte à tarde em quarta-feira, 30/09',
+      );
+
+      await text({ date: '2026-10-01' });
+      expect((await prepare()).interpreterInput).toMatchObject({
+        waitlistProposal: null,
+        waitlistOffer: false,
+      });
+    });
+
+    it('US-24 AC 3 (C3) (d): tells the interpreter the offer in force came from the waitlist', async () => {
+      const { prepare } = await offeredToCarlos();
+
+      expect((await prepare()).interpreterInput).toMatchObject({
+        waitlistProposal: null,
+        waitlistOffer: true,
+        offeredOptions: ['quarta-feira, 30/09, às 15:00, com João'],
+      });
+    });
+
+    it('US-24 CA-24.1, AC 4 (C4): accepting stores the entry, clears the draft and confirms', async () => {
+      const { text, draft, waitlist, clock } = await afternoonFull();
+      await text(JOAO_AFTERNOON);
+
+      expect(await text(ACCEPT)).toBe(INSCRITO);
+      expect(
+        waitlist.entries.map((entry) => ({
+          clientId: entry.clientId,
+          serviceIds: entry.serviceIds,
+          barberId: entry.barberId,
+          startsOn: entry.startsOn,
+          endsOn: entry.endsOn,
+          period: entry.period,
+          createdAt: entry.createdAt,
+        })),
+      ).toEqual([
+        {
+          clientId: 'carlos',
+          serviceIds: ['corte'],
+          barberId: 'joao',
+          ...AFTERNOON_PROPOSAL,
+          createdAt: clock.now(),
+        },
+      ]);
+      expect(draft()).toBeNull();
+    });
+
+    it('US-24 AC 4 (C4): "tanto faz" joins for any barber', async () => {
+      const { text, waitlist, block, joao, pedro } = await setup();
+      block(joao.id, local(TOMORROW, '12:00'), local(TOMORROW, '18:00'));
+      block(pedro.id, local(TOMORROW, '12:00'), local(TOMORROW, '18:00'));
+      await text({ ...JOAO_AFTERNOON, barber: null, anyBarber: true });
+
+      expect(await text(ACCEPT)).toBe(INSCRITO);
+      expect(waitlist.entries.map((entry) => entry.barberId)).toEqual([null]);
+    });
+
+    it('US-24 AC 5 (C5): joining again replaces the entry, with the new instant', async () => {
+      const { text, waitlist, clock, block, joao } = await afternoonFull();
+      await text(JOAO_AFTERNOON);
+      await text(ACCEPT);
+
+      clock.current = new Date(clock.now().getTime() + 10 * 60 * 1000);
+      block(joao.id, local(TOMORROW, '09:00'), local(TOMORROW, '12:00'));
+      await text({ ...JOAO_AFTERNOON, period: 'morning' });
+      await text(ACCEPT);
+
+      expect(
+        waitlist.entries.map((entry) => [
+          entry.clientId,
+          entry.period,
+          entry.createdAt,
+        ]),
+      ).toEqual([['carlos', 'morning', clock.now()]]);
+    });
+
+    it('US-24 AC 6 (C6): accepting without a proposal stores nothing and answers as US-17', async () => {
+      const { text, waitlist } = await setup();
+      expect(await text(ACCEPT)).toBe(
+        'Qual serviço você quer agendar? Temos: Barba, Corte, Pigmentação.',
+      );
+
+      const shown = await text(JOAO_AFTERNOON);
+      expect(await text(ACCEPT)).toBe(shown);
+      expect(waitlist.entries).toEqual([]);
+    });
+
+    it('US-24 AC 7 (C7): rescheduling with nothing free does not propose the waitlist', async () => {
+      const { text, block, joao, own, draft } = await setup();
+      await own({ id: 'mine', startsAt: local(TOMORROW, '15:00') });
+      block(joao.id, local(TODAY, '09:00'), local('2026-10-06', '19:00'));
+
+      expect(await text({ rescheduleRequested: true })).toBe(
+        'Não encontrei horário livre para Corte até segunda-feira, 05/10.',
+      );
+      expect(draft()?.waitlistProposal).toBeNull();
+    });
+  });
+
+  describe('accepting the offer', () => {
+    it('US-24 CA-24.3 (C18): within the deadline books the slot, accepts the offer and leaves the queue', async () => {
+      const { text, waitlist, bookedBy, waitlistMetrics } =
+        await offeredToCarlos();
+
+      expect(await text({ choice: 1 })).toBe(
+        'Agendamento confirmado!\nServiço: Corte\nBarbeiro: João\nData: quarta-feira, 30/09\nHorário: 15:00\nValor: R$ 45,00\nEndereço: Rua das Flores, 123',
+      );
+      const booked = (await bookedBy('carlos')).filter(
+        (appointment) => appointment.status === 'confirmed',
+      );
+      expect(
+        booked.map((appointment) => [
+          appointment.barberId,
+          appointment.startsAt,
+          appointment.origin,
+          appointment.serviceIds,
+        ]),
+      ).toEqual([['joao', FREED_AT, 'bot', ['corte']]]);
+      expect(waitlistMetrics.offers).toContain('accepted');
+      expect(waitlist.entries).toEqual([]);
+      expect(waitlist.offers).toEqual([]);
+    });
+
+    it.each([
+      ['(a) at the deadline', 'deadline'],
+      ['(b) already declined', 'declined'],
+      ['(c) already expired', 'expired'],
+    ] as const)(
+      'US-24 AC 19 (C19) %s: does not book, keeps the entry and says the offer is over',
+      async (_, state) => {
+        const { text, offer, waitlist, bookedBy, clock, draft } =
+          await offeredToCarlos();
+        const stored = waitlist.offers.find(({ id }) => id === offer.id);
+        if (state === 'deadline') clock.current = offer.expiresAt;
+        if (state !== 'deadline' && stored) stored.status = state;
+
+        expect(await text({ choice: 1 })).toBe(EXPIRADA);
+        expect(
+          (await bookedBy('carlos')).filter(
+            (appointment) => appointment.status === 'confirmed',
+          ),
+        ).toEqual([]);
+        expect(draft()).toBeNull();
+        expect(waitlist.entries.map((entry) => entry.clientId)).toEqual([
+          'carlos',
+        ]);
+      },
+    );
+
+    it('US-24 AC 20 (C20): a slot taken before the answer searches again, keeps the entry and is never offered again', async () => {
+      const { text, own, waitlist, process, offersOf, appointments } =
+        await offeredToCarlos();
+      await own({ id: 'occupant', startsAt: FREED_AT, clientId: 'bruno' });
+
+      const reply = await text({ choice: 1 });
+
+      expect(
+        reply.startsWith(
+          `Esse horário acabou de ser ocupado.\n\n${CORTE}\n1. quarta-feira, 30/09, às 12:00`,
+        ),
+      ).toBe(true);
+      expect(waitlist.entries.map((entry) => entry.clientId)).toEqual([
+        'carlos',
+      ]);
+
+      const occupant = await appointments.findById('barbershop-a', 'occupant');
+      if (!occupant) throw new Error('occupant not stored');
+      await appointments.saveStatus(occupant.cancel());
+      await process.execute();
+      expect(
+        offersOf('carlos').filter((offer) => offer.appointmentId === 'freed'),
+      ).toHaveLength(1);
+    });
+  });
+
+  describe('declining the offer', () => {
+    it('US-24 CA-24.4 (C21): declines the offer, clears the draft, keeps the entry and says so', async () => {
+      const { text, offer, waitlist, draft } = await offeredToCarlos();
+
+      expect(await text(DECLINE)).toBe(RECUSADA);
+      expect(waitlist.offers.find(({ id }) => id === offer.id)?.status).toBe(
+        'declined',
+      );
+      expect(draft()).toBeNull();
+      expect(waitlist.entries.map((entry) => entry.clientId)).toEqual([
+        'carlos',
+      ]);
+    });
+  });
+
+  describe('metrics', () => {
+    it('US-24 AC 26 (C26): counts joined, and accepted and booked from the offer', async () => {
+      const joining = await afternoonFull();
+      await joining.text(JOAO_AFTERNOON);
+      await joining.text(ACCEPT);
+      expect(joining.waitlistMetrics.entries).toEqual(['joined']);
+
+      const accepting = await offeredToCarlos();
+      await accepting.text({ choice: 1 });
+      expect(accepting.waitlistMetrics.offers).toEqual(['sent', 'accepted']);
+      expect(accepting.waitlistMetrics.entries).toEqual(['booked']);
+    });
+
+    it('US-24 AC 26 (C26): counts declined', async () => {
+      const { text, waitlistMetrics } = await offeredToCarlos();
+      await text(DECLINE);
+      expect(waitlistMetrics.offers).toEqual(['sent', 'declined']);
     });
   });
 });

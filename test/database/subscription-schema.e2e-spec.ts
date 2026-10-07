@@ -3,6 +3,7 @@ import { DataSource } from 'typeorm';
 import { validateEnv } from '../../src/infrastructure/config/env.schema';
 import { buildTypeOrmOptions } from '../../src/infrastructure/database/typeorm.options';
 import { truncateAccountTables } from '../support/truncate-account-tables';
+import { AddSubscriptions1790956376701 } from '../../src/infrastructure/database/migrations/1790956376701-AddSubscriptions';
 
 const UNIQUE_VIOLATION = '23505';
 const CHECK_VIOLATION = '23514';
@@ -172,19 +173,29 @@ describe('US-20 subscription schema (e2e)', () => {
     expect(row.trial_warning_sent_at).toBeNull();
   });
 
+  // Reverts this migration itself, not the latest one, so later migrations
+  // do not change what is tested.
   it('the migration reverts and runs again (C43)', async () => {
     await truncateAccountTables(dataSource);
+    const migration = new AddSubscriptions1790956376701();
+    const queryRunner = dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      await migration.down(queryRunner);
+      const [{ exists }] = (await queryRunner.query(
+        `SELECT to_regclass('barbershop_subscriptions') IS NOT NULL AS exists`,
+      )) as { exists: boolean }[];
+      expect(exists).toBe(false);
 
-    await dataSource.undoLastMigration();
-    const [{ exists }] = await dataSource.query<{ exists: boolean }[]>(
-      `SELECT to_regclass('barbershop_subscriptions') IS NOT NULL AS exists`,
-    );
-    expect(exists).toBe(false);
-
-    await dataSource.runMigrations();
-    const [{ again }] = await dataSource.query<{ again: boolean }[]>(
-      `SELECT to_regclass('barbershop_subscriptions') IS NOT NULL AS again`,
-    );
-    expect(again).toBe(true);
+      await migration.up(queryRunner);
+      const [{ again }] = (await queryRunner.query(
+        `SELECT to_regclass('barbershop_subscriptions') IS NOT NULL AS again`,
+      )) as { again: boolean }[];
+      expect(again).toBe(true);
+    } finally {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+    }
   });
 });

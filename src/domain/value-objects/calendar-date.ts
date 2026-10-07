@@ -23,3 +23,15 @@ export function addCalendarMonth(date: string): string {
     String(Math.min(day, lastDay)).padStart(2, '0'),
   ].join('-');
 }
+
+/** The date `days` calendar days after `date`, `YYYY-MM-DD`. */
+export function addCalendarDays(date: string, days: number): string {
+  const match = DATE_PATTERN.exec(date);
+  if (!match) {
+    throw new Error(`Not a calendar date: ${date}`);
+  }
+  const [year, month, day] = match.slice(1).map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days))
+    .toISOString()
+    .slice(0, 10);
+}

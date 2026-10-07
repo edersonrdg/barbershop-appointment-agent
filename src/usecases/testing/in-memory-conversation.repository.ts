@@ -64,6 +64,15 @@ export class InMemoryConversationRepository implements ConversationRepository {
     return Promise.resolve(true);
   }
 
+  isPaused(
+    barbershopId: string,
+    clientId: string,
+    expiredBefore: Date,
+  ): Promise<boolean> {
+    const row = this.row(barbershopId, clientId);
+    return Promise.resolve(row ? pauseInForce(row, expiredBefore) : false);
+  }
+
   recordFailure(barbershopId: string, clientId: string): Promise<number> {
     const row = this.row(barbershopId, clientId);
     if (!row) return Promise.resolve(0);
@@ -159,5 +168,6 @@ function copyDraft(draft: BookingDraft): BookingDraft {
     candidates: draft.candidates.map((candidate) => ({ ...candidate })),
     offer: draft.offer.map((slot) => ({ ...slot })),
     addOnSuggestion: draft.addOnSuggestion && { ...draft.addOnSuggestion },
+    waitlistProposal: draft.waitlistProposal && { ...draft.waitlistProposal },
   };
 }

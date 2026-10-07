@@ -37,6 +37,8 @@ describe('TypeOrmConversationRepository booking draft (e2e)', () => {
         },
       ],
       addOnSuggestion: null,
+      waitlistProposal: null,
+      waitlistOfferId: null,
       updatedAt: NOW,
     };
   }
@@ -112,6 +114,47 @@ describe('TypeOrmConversationRepository booking draft (e2e)', () => {
     expect(await storedDraft()).not.toHaveProperty('addOnSuggestion');
     await expect(repository.findDraft(barbershopId, clientId)).resolves.toEqual(
       { ...legacy, addOnSuggestion: null },
+    );
+  });
+
+  it('US-24 door 3 (C31): reads back a waitlist proposal and a waitlist offer', async () => {
+    const proposed: BookingDraft = {
+      ...draft(),
+      offer: [],
+      waitlistProposal: {
+        startsOn: '2026-09-30',
+        endsOn: '2026-09-30',
+        period: 'afternoon',
+      },
+    };
+    await repository.saveDraft(barbershopId, clientId, proposed);
+    await expect(repository.findDraft(barbershopId, clientId)).resolves.toEqual(
+      proposed,
+    );
+
+    const offered: BookingDraft = {
+      ...draft('draft-2'),
+      waitlistOfferId: randomUUID(),
+    };
+    await repository.saveDraft(barbershopId, clientId, offered);
+    await expect(repository.findDraft(barbershopId, clientId)).resolves.toEqual(
+      offered,
+    );
+  });
+
+  it('US-24 door 3 (C31): reads a draft stored before US-24 without proposal nor offer', async () => {
+    const { waitlistProposal, waitlistOfferId, ...legacy } = draft();
+    await dataSource.query(
+      `UPDATE whatsapp_conversations SET booking_draft = $3::jsonb
+        WHERE barbershop_id = $1 AND client_id = $2`,
+      [barbershopId, clientId, JSON.stringify(legacy)],
+    );
+
+    expect([waitlistProposal, waitlistOfferId]).toEqual([null, null]);
+    expect(await storedDraft()).not.toHaveProperty('waitlistProposal');
+    expect(await storedDraft()).not.toHaveProperty('waitlistOfferId');
+    await expect(repository.findDraft(barbershopId, clientId)).resolves.toEqual(
+      { ...legacy, waitlistProposal: null, waitlistOfferId: null },
     );
   });
 

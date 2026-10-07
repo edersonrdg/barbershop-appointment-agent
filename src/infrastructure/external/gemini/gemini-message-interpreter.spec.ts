@@ -27,6 +27,8 @@ const INPUT = {
     'Barba, quarta-feira, 30/09, às 10:00, com João',
   ],
   suggestedAddOn: null,
+  waitlistProposal: null,
+  waitlistOffer: false,
 };
 const VALID = {
   topics: ['services'],
@@ -45,6 +47,8 @@ const VALID = {
   confirmRequested: false,
   choice: null,
   addOnAccepted: false,
+  waitlistAccepted: false,
+  offerDeclined: false,
 };
 
 class FakeModels implements GeminiModels {
@@ -487,6 +491,68 @@ describe('GeminiMessageInterpreter', () => {
       const none = models.calls[1].config?.systemInstruction as string;
       expect(none).toContain(
         'Serviço adicional sugerido ao cliente na mensagem anterior:\n(nenhum serviço adicional sugerido)\n',
+      );
+    });
+  });
+
+  describe('US-24 waitlist fields (door 2)', () => {
+    const ANSWERED = {
+      ...VALID,
+      bookingRequested: true,
+      waitlistAccepted: true,
+      offerDeclined: true,
+    };
+
+    it('US-24 door 2 (C30): passes waitlistAccepted and offerDeclined through', async () => {
+      const { interpreter, models } = setup();
+      models.result = withText(JSON.stringify(ANSWERED));
+
+      await expect(interpreter.interpret(INPUT)).resolves.toEqual(ANSWERED);
+    });
+
+    it.each(['waitlistAccepted', 'offerDeclined'])(
+      'US-24 door 2 (C30): rejects an answer without %s',
+      async (field) => {
+        const { interpreter, models } = setup();
+        models.result = withText(
+          JSON.stringify({ ...ANSWERED, [field]: undefined }),
+        );
+
+        await expect(interpreter.interpret(INPUT)).rejects.toBeInstanceOf(
+          MessageInterpreterUnavailableError,
+        );
+      },
+    );
+
+    it('US-24 door 2 (C30): requires both fields and gives the proposal and the offer in the instruction', async () => {
+      const { interpreter, models } = setup();
+
+      await interpreter.interpret({
+        ...INPUT,
+        waitlistProposal: 'Corte à tarde em quarta-feira, 30/09',
+        waitlistOffer: true,
+      });
+      await interpreter.interpret(INPUT);
+
+      const schema = models.calls[0].config?.responseJsonSchema as {
+        required: string[];
+      };
+      expect(schema.required).toEqual(
+        expect.arrayContaining(['waitlistAccepted', 'offerDeclined']),
+      );
+      const proposed = models.calls[0].config?.systemInstruction as string;
+      expect(proposed).toContain(
+        'Lista de espera proposta ao cliente na mensagem anterior:\nCorte à tarde em quarta-feira, 30/09\n',
+      );
+      expect(proposed).toContain(
+        'O horário oferecido na mensagem anterior vagou na lista de espera do cliente.',
+      );
+      const none = models.calls[1].config?.systemInstruction as string;
+      expect(none).toContain(
+        'Lista de espera proposta ao cliente na mensagem anterior:\n(nenhuma lista de espera proposta)\n',
+      );
+      expect(none).toContain(
+        'Nenhum horário da lista de espera foi oferecido na mensagem anterior.',
       );
     });
   });

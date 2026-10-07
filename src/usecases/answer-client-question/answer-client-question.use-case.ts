@@ -74,7 +74,8 @@ const FAILURES_BEFORE_HANDOFF = 2;
 // for a person and the off-topic refusal and before the questions. US-18: so
 // does a request to cancel or reschedule. US-19: a confirmation of presence
 // comes after those, before the questions. US-23: so does accepting the
-// suggested add-on. US-21: a suspended barbershop gets
+// suggested add-on, and so do joining the waitlist and declining its offer
+// (US-24). US-21: a suspended barbershop gets
 // a fixed reply, without the model, once a paused conversation stayed silent.
 export class AnswerClientQuestionUseCase {
   constructor(
@@ -157,6 +158,8 @@ export class AnswerClientQuestionUseCase {
           interpretation.cancelRequested ||
           interpretation.rescheduleRequested ||
           interpretation.addOnAccepted ||
+          interpretation.waitlistAccepted ||
+          interpretation.offerDeclined ||
           interpretation.choice !== null)
       ) {
         const outcome = await this.booking.handle({

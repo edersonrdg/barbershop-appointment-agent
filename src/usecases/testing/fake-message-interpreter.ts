@@ -22,6 +22,8 @@ const NO_TOPIC: MessageInterpretation = {
   confirmRequested: false,
   choice: null,
   addOnAccepted: false,
+  waitlistAccepted: false,
+  offerDeclined: false,
 };
 
 export class FakeMessageInterpreter implements MessageInterpreter {

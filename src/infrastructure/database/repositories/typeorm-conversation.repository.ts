@@ -11,7 +11,8 @@ import { BOOKING_PERIODS } from '../../../usecases/ports/message-interpreter.por
 
 // AD-013: the stored draft is read back through this schema; a value it does
 // not accept is treated as no draft. A draft stored before US-18 has no action
-// and is a booking (door 2); one stored before US-23 suggested no add-on.
+// and is a booking (door 2); one stored before US-23 suggested no add-on, and
+// one stored before US-24 has no waitlist proposal nor offer.
 const storedDraftSchema = z.object({
   id: z.string().min(1),
   action: z.enum(['book', 'cancel', 'reschedule']).default('book'),
@@ -36,6 +37,15 @@ const storedDraftSchema = z.object({
     .object({ serviceId: z.string(), pending: z.boolean() })
     .nullable()
     .default(null),
+  waitlistProposal: z
+    .object({
+      startsOn: z.string(),
+      endsOn: z.string(),
+      period: z.enum(BOOKING_PERIODS).nullable(),
+    })
+    .nullable()
+    .default(null),
+  waitlistOfferId: z.string().nullable().default(null),
   updatedAt: z.coerce.date(),
 });
 
@@ -124,6 +134,20 @@ export class TypeOrmConversationRepository implements ConversationRepository {
           AND ${pauseInForce('$4')}
         RETURNING client_id`,
       [barbershopId, clientId, at, expiredBefore],
+    );
+    return rows.length === 1;
+  }
+
+  async isPaused(
+    barbershopId: string,
+    clientId: string,
+    expiredBefore: Date,
+  ): Promise<boolean> {
+    const rows = await this.dataSource.query<unknown[]>(
+      `SELECT 1 FROM whatsapp_conversations
+        WHERE barbershop_id = $1 AND client_id = $2
+          AND ${pauseInForce('$3')}`,
+      [barbershopId, clientId, expiredBefore],
     );
     return rows.length === 1;
   }

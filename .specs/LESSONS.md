@@ -168,6 +168,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: C17 test/api-docs.e2e-spec.ts:214 (api-docs)
 - last seen: 2026-10-07T13:56:30Z
 
+### L-027 - A /metrics label check must first drive the real use case so each counter it names has a sample; a labelled counter with no increments prints no line, and a loop over existing lines then passes vacuously.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `metrics` · harmful: 0
+- features: us-24-lista-de-espera
+- evidence: test/whatsapp-waitlist.e2e-spec.ts:367 (C26 round 1) (metrics)
+- last seen: 2026-10-07T14:53:04Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

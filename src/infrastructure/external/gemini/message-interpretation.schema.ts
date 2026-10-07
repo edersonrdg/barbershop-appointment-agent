@@ -90,4 +90,12 @@ export const messageInterpretationSchema = z.object({
     description:
       'true quando o cliente aceita incluir o serviço adicional sugerido na mensagem anterior.',
   }),
+  waitlistAccepted: z.boolean().meta({
+    description:
+      'true quando o cliente aceita entrar na lista de espera proposta na mensagem anterior.',
+  }),
+  offerDeclined: z.boolean().meta({
+    description:
+      'true quando o cliente recusa o horário da lista de espera oferecido na mensagem anterior.',
+  }),
 });

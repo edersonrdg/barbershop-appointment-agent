@@ -2,6 +2,7 @@ import { Barber } from '../../domain/entities/barber';
 import { Barbershop } from '../../domain/entities/barbershop';
 import { BarbershopService } from '../../domain/entities/barbershop-service';
 import { Client } from '../../domain/entities/client';
+import { WaitlistEntry } from '../../domain/entities/waitlist-entry';
 import { AppointmentConflictError } from '../../domain/errors/appointment-conflict.error';
 import { BarberNotFoundError } from '../../domain/errors/barber-not-found.error';
 import { BarberUnavailableError } from '../../domain/errors/barber-unavailable.error';
@@ -13,7 +14,12 @@ import { ServiceNotPerformedError } from '../../domain/errors/service-not-perfor
 import { SlotInPastError } from '../../domain/errors/slot-in-past.error';
 import { AvailableSlot } from '../../domain/value-objects/barber-day-schedule';
 import { BarbershopTimezone } from '../../domain/value-objects/barbershop-timezone';
-import { BookingRules } from '../../domain/value-objects/booking-rules';
+import {
+  BookingRules,
+  MAX_WAITLIST_OFFER_MINUTES,
+} from '../../domain/value-objects/booking-rules';
+import { addCalendarDays } from '../../domain/value-objects/calendar-date';
+import { dayPeriodOf } from '../../domain/value-objects/day-period';
 import { TimeOfDay } from '../../domain/value-objects/time-of-day';
 import { WEEKDAY_LABELS } from '../../domain/value-objects/weekday';
 import { BookAppointmentUseCase } from '../book-appointment/book-appointment.use-case';
@@ -28,6 +34,7 @@ import {
   ConversationRepository,
   DraftAction,
   OfferedSlot,
+  WaitlistProposal,
 } from '../ports/conversation.repository.port';
 import { IdGenerator } from '../ports/id-generator.port';
 import {
@@ -39,6 +46,8 @@ import {
 } from '../ports/message-interpreter.port';
 import { NoShowLedger } from '../ports/no-show-ledger.port';
 import { ScheduleEntry, ScheduleQuery } from '../ports/schedule.query.port';
+import { WaitlistMetrics } from '../ports/waitlist-metrics.port';
+import { WaitlistRepository } from '../ports/waitlist.repository.port';
 import { performsAll } from '../shared/booking-context';
 import { clientNoShowStatus } from '../shared/client-no-show-status';
 import {
@@ -63,6 +72,11 @@ import {
   SLOT_TAKEN_NOTICE,
   timeTakenText,
   UNKNOWN_OPTION_NOTICE,
+  WAITLIST_OFFER_DECLINED_TEXT,
+  WAITLIST_OFFER_EXPIRED_TEXT,
+  waitlistJoinedText,
+  waitlistLabel,
+  waitlistProposalText,
 } from './booking-reply';
 
 const MS_PER_MINUTE = 60 * 1000;
@@ -70,12 +84,17 @@ const MS_PER_MINUTE = 60 * 1000;
 const DRAFT_TTL_MINUTES = 60;
 // Assumption of the plan: the bot looks 7 local days ahead (AC 3, AC 28).
 const SEARCH_DAYS = 7;
-const NOON_MINUTES = 12 * 60;
-const EVENING_MINUTES = 18 * 60;
 
 type Criteria = Omit<
   BookingDraft,
-  'id' | 'action' | 'candidates' | 'targetAppointmentId' | 'offer' | 'updatedAt'
+  | 'id'
+  | 'action'
+  | 'candidates'
+  | 'targetAppointmentId'
+  | 'offer'
+  | 'waitlistProposal'
+  | 'waitlistOfferId'
+  | 'updatedAt'
 >;
 
 export interface BookingPreparation {
@@ -92,6 +111,8 @@ export interface BookingPreparation {
     | 'offeredOptions'
     | 'appointmentOptions'
     | 'suggestedAddOn'
+    | 'waitlistProposal'
+    | 'waitlistOffer'
   >;
 }
 
@@ -141,7 +162,9 @@ const BLOCKED: BookingOutcome = { type: 'handoff', reason: 'blocked_client' };
 // engine and a booking only from an option the bot offered (AD-013). US-18:
 // cancels and reschedules the client's own appointments (RF-04) within the
 // cancellation deadline (RN-09); a new slot is searched and booked like a new
-// booking, and only then the old appointment is cancelled (RN-10).
+// booking, and only then the old appointment is cancelled (RN-10). US-24: a
+// request with no slot in its period may join the waitlist (RF-21), and a slot
+// offered from it is booked like any offer, within the offer deadline (RN-16).
 export class BookViaWhatsAppUseCase {
   constructor(
     private readonly barbersRepository: BarberRepository,
@@ -154,6 +177,8 @@ export class BookViaWhatsAppUseCase {
     private readonly schedule: ScheduleQuery,
     private readonly appointments: AppointmentRepository,
     private readonly metrics: AppointmentMetrics,
+    private readonly waitlist: WaitlistRepository,
+    private readonly waitlistMetrics: WaitlistMetrics,
   ) {}
 
   async prepare(
@@ -202,6 +227,14 @@ export class BookViaWhatsAppUseCase {
           appointmentLabel(timezone, entry),
         ),
         suggestedAddOn: pendingAddOn?.name ?? null,
+        waitlistProposal: draft?.waitlistProposal
+          ? waitlistLabel(
+              timezone,
+              servicesIn(services, draft.serviceIds),
+              draft.waitlistProposal,
+            )
+          : null,
+        waitlistOffer: (draft?.waitlistOfferId ?? null) !== null,
       },
     };
   }
@@ -238,6 +271,12 @@ export class BookViaWhatsAppUseCase {
       );
     }
     const draft = preparation.draft;
+    if (interpretation.waitlistAccepted && draft?.waitlistProposal) {
+      return this.join(context, draft, draft.waitlistProposal);
+    }
+    if (interpretation.offerDeclined && draft?.waitlistOfferId) {
+      return this.decline(context, draft.waitlistOfferId);
+    }
     if (interpretation.choice !== null) {
       if (!draft) return { type: 'not_understood' };
       if (draft.candidates.length > 0) {
@@ -302,6 +341,8 @@ export class BookViaWhatsAppUseCase {
       ...preferences,
       serviceIds: [],
       offer: [],
+      waitlistProposal: null,
+      waitlistOfferId: null,
       updatedAt: context.now,
     });
     return this.reply([appointmentListText(context.timezone, upcoming)]);
@@ -410,6 +451,56 @@ export class BookViaWhatsAppUseCase {
       .slice(0, MAX_CHOICE);
   }
 
+  // CA-24.1: the entry keeps what the client asked for, with the period that
+  // had no slot.
+  private async join(
+    context: Context,
+    draft: BookingDraft,
+    proposal: WaitlistProposal,
+  ): Promise<BookingOutcome> {
+    const { barbershop, client } = context;
+    const services = servicesOf(context, draft.serviceIds);
+    await this.waitlist.join(
+      WaitlistEntry.create({
+        id: this.ids.next(),
+        barbershopId: barbershop.id,
+        clientId: client.id,
+        serviceIds: services.map((service) => service.id),
+        barberId: draft.anyBarber ? null : draft.barberId,
+        startsOn: proposal.startsOn,
+        endsOn: proposal.endsOn,
+        period: proposal.period,
+        createdAt: context.now,
+      }),
+    );
+    await this.conversations.clearDraft(barbershop.id, client.id);
+    this.waitlistMetrics.entry('joined');
+    return this.reply([
+      waitlistJoinedText(waitlistLabel(context.timezone, services, proposal)),
+    ]);
+  }
+
+  // CA-24.4: the client stays on the waitlist; the next run offers the slot to
+  // the next entry.
+  private async decline(
+    context: Context,
+    offerId: string,
+  ): Promise<BookingOutcome> {
+    const { barbershop, client } = context;
+    if (
+      await this.waitlist.resolveOffer(
+        barbershop.id,
+        offerId,
+        'declined',
+        context.now,
+      )
+    ) {
+      this.waitlistMetrics.offer('declined');
+    }
+    await this.conversations.clearDraft(barbershop.id, client.id);
+    return this.reply([WAITLIST_OFFER_DECLINED_TEXT]);
+  }
+
   private async choose(
     context: Context,
     draft: BookingDraft,
@@ -434,6 +525,17 @@ export class BookViaWhatsAppUseCase {
       draft.id,
     );
     if (!consumed) return { type: 'silent' };
+    // RN-16: an offer from the waitlist is accepted only within its deadline.
+    if (draft.waitlistOfferId !== null) {
+      const accepted = await this.waitlist.resolveOffer(
+        context.barbershop.id,
+        draft.waitlistOfferId,
+        'accepted',
+        context.now,
+      );
+      if (!accepted) return this.reply([WAITLIST_OFFER_EXPIRED_TEXT]);
+      this.waitlistMetrics.offer('accepted');
+    }
 
     const criteria = criteriaOf(draft);
     try {
@@ -449,6 +551,16 @@ export class BookViaWhatsAppUseCase {
       const rescheduled = draft.targetAppointmentId !== null;
       if (draft.targetAppointmentId !== null) {
         await this.release(context.barbershop.id, draft.targetAppointmentId);
+      }
+      // CA-24.3: booking from the offer takes the client off the waitlist.
+      if (
+        draft.waitlistOfferId !== null &&
+        (await this.waitlist.removeClientEntry(
+          context.barbershop.id,
+          context.client.id,
+        ))
+      ) {
+        this.waitlistMetrics.entry('booked');
       }
       return {
         type: 'reply',
@@ -580,7 +692,7 @@ export class BookViaWhatsAppUseCase {
         context,
         current,
         date,
-        periodOfMinutes(TimeOfDay.create(current.time).minutes),
+        dayPeriodOf(TimeOfDay.create(current.time).minutes),
         notices,
       );
     }
@@ -628,7 +740,17 @@ export class BookViaWhatsAppUseCase {
         !this.matchesPeriod(context, slot, period),
       MAX_OFFERED_SLOTS,
     );
-    return this.offerOrNothing(context, criteria, date, others, notices);
+    if (others.length === 0) {
+      return this.offerOrNothing(context, criteria, date, others, notices);
+    }
+    // CA-24.1: the other slots are offered, and so is waiting for this period.
+    return this.offer(
+      context,
+      criteria,
+      others,
+      notices,
+      proposalFor(context, { startsOn: date, endsOn: date, period }),
+    );
   }
 
   // CA-17.5: the rule is explained and the first valid slot is offered.
@@ -655,14 +777,24 @@ export class BookViaWhatsAppUseCase {
     notices: string[],
   ): Promise<BookingOutcome> {
     if (slots.length > 0) return this.offer(context, criteria, slots, notices);
-    await this.saveDraft(context, criteria, []);
+    const services = servicesOf(context, criteria.serviceIds);
+    const lastDate = addCalendarDays(firstDate, SEARCH_DAYS - 1);
+    const proposal = proposalFor(context, {
+      startsOn: firstDate,
+      endsOn: lastDate,
+      period: criteria.period,
+    });
+    await this.saveDraft(context, criteria, [], proposal);
     return this.reply([
       ...notices,
-      nothingFreeText(
-        context.timezone,
-        servicesOf(context, criteria.serviceIds),
-        addDays(firstDate, SEARCH_DAYS - 1),
-      ),
+      nothingFreeText(context.timezone, services, lastDate),
+      ...(proposal
+        ? [
+            waitlistProposalText(
+              waitlistLabel(context.timezone, services, proposal),
+            ),
+          ]
+        : []),
     ]);
   }
 
@@ -671,19 +803,28 @@ export class BookViaWhatsAppUseCase {
     criteria: Criteria,
     slots: AvailableSlot[],
     notices: string[],
+    proposal: WaitlistProposal | null = null,
   ): Promise<BookingOutcome> {
     const offered = slots.map(({ barberId, startsAt }) => ({
       barberId,
       startsAt,
     }));
-    await this.saveDraft(context, criteria, offered);
+    const services = servicesOf(context, criteria.serviceIds);
+    await this.saveDraft(context, criteria, offered, proposal);
     return this.reply([
       ...notices,
       offerText(
         context.timezone,
-        servicesOf(context, criteria.serviceIds),
+        services,
         offered.map((slot) => labeled(context.barbers, slot)),
       ),
+      ...(proposal
+        ? [
+            waitlistProposalText(
+              waitlistLabel(context.timezone, services, proposal),
+            ),
+          ]
+        : []),
     ]);
   }
 
@@ -699,7 +840,7 @@ export class BookViaWhatsAppUseCase {
       const slots = await this.slotsOn(
         context,
         criteria,
-        addDays(firstDate, day),
+        addCalendarDays(firstDate, day),
       );
       found.push(...slots.filter(keep).slice(0, limit - found.length));
     }
@@ -729,7 +870,7 @@ export class BookViaWhatsAppUseCase {
     const minutes = TimeOfDay.create(
       context.timezone.localTimeOf(slot.startsAt),
     ).minutes;
-    return periodOfMinutes(minutes) === period;
+    return dayPeriodOf(minutes) === period;
   }
 
   private async rules(barbershopId: string): Promise<BookingRules> {
@@ -743,6 +884,7 @@ export class BookViaWhatsAppUseCase {
     context: Context,
     criteria: Criteria,
     offer: OfferedSlot[],
+    waitlistProposal: WaitlistProposal | null = null,
   ): Promise<void> {
     return this.conversations.saveDraft(
       context.barbershop.id,
@@ -754,6 +896,8 @@ export class BookViaWhatsAppUseCase {
         targetAppointmentId: context.targetAppointmentId,
         ...criteria,
         offer,
+        waitlistProposal,
+        waitlistOfferId: null,
         updatedAt: context.now,
       },
     );
@@ -764,11 +908,22 @@ export class BookViaWhatsAppUseCase {
   }
 }
 
+// RN-16: an offer from the waitlist stays answerable for its whole deadline,
+// which may be longer than the draft's; the offer itself decides if it expired.
 function inForce(draft: BookingDraft, now: Date): boolean {
-  return (
-    now.getTime() - draft.updatedAt.getTime() <
-    DRAFT_TTL_MINUTES * MS_PER_MINUTE
-  );
+  const minutes =
+    draft.waitlistOfferId === null
+      ? DRAFT_TTL_MINUTES
+      : Math.max(DRAFT_TTL_MINUTES, MAX_WAITLIST_OFFER_MINUTES);
+  return now.getTime() - draft.updatedAt.getTime() < minutes * MS_PER_MINUTE;
+}
+
+// US-24: only a new booking may wait for a slot (AC 7).
+function proposalFor(
+  context: Context,
+  proposal: WaitlistProposal,
+): WaitlistProposal | null {
+  return context.action === 'book' ? proposal : null;
 }
 
 // A booking, or a rescheduling whose appointment is known, takes the next
@@ -926,8 +1081,15 @@ function servicesOf(
   context: Context,
   serviceIds: readonly string[],
 ): BarbershopService[] {
+  return servicesIn(context.services, serviceIds);
+}
+
+function servicesIn(
+  services: readonly BarbershopService[],
+  serviceIds: readonly string[],
+): BarbershopService[] {
   return serviceIds.flatMap((id) => {
-    const service = context.services.find((candidate) => candidate.id === id);
+    const service = services.find((candidate) => candidate.id === id);
     return service ? [service] : [];
   });
 }
@@ -938,19 +1100,6 @@ function labeled(
 ): { barberName: string; startsAt: Date } {
   const barber = barbers.find((candidate) => candidate.id === slot.barberId);
   return { barberName: barber?.name ?? '', startsAt: slot.startsAt };
-}
-
-function periodOfMinutes(minutes: number): BookingPeriod {
-  if (minutes < NOON_MINUTES) return 'morning';
-  if (minutes < EVENING_MINUTES) return 'afternoon';
-  return 'evening';
-}
-
-function addDays(date: string, days: number): string {
-  const [year, month, day] = date.split('-').map(Number);
-  return new Date(Date.UTC(year, month - 1, day + days))
-    .toISOString()
-    .slice(0, 10);
 }
 
 function key(name: string): string {
