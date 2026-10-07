@@ -365,19 +365,44 @@ describe('WhatsApp waitlist (e2e)', () => {
     });
 
     it('US-24 AC 26 (C26): exposes the waitlist counters with the event and outcome labels only', async () => {
+      const joined = await metricValue(
+        'waitlist_entries_total{event="joined"}',
+      );
       const sent = await metricValue('waitlist_offers_total{outcome="sent"}');
-      await enlist(carlos, NOW);
-      await insertAppointment(bruno, at('15:00'), 'cancelled');
+      await block(at('12:00'), at('15:00'));
+      await block(at('15:30'), at('18:00'));
+      await insertAppointment(bruno, at('15:00'), 'confirmed');
+      await send(CARLOS_PHONE, {
+        bookingRequested: true,
+        services: ['Corte'],
+        barber: 'João',
+        date: TOMORROW,
+        period: 'afternoon',
+      });
+      await send(CARLOS_PHONE, { waitlistAccepted: true });
+      await dataSource.query(
+        `UPDATE appointments SET status = 'cancelled'
+          WHERE barbershop_id = $1 AND status = 'confirmed'`,
+        [shop],
+      );
 
       await job.run();
 
+      await expect(
+        metricValue('waitlist_entries_total{event="joined"}'),
+      ).resolves.toBe(joined + 1);
       await expect(
         metricValue('waitlist_offers_total{outcome="sent"}'),
       ).resolves.toBe(sent + 1);
       const lines = (await metrics()).filter((line) =>
         /^waitlist_(entries|offers)_total\{/.test(line),
       );
-      expect(lines.length).toBeGreaterThan(0);
+      expect(
+        lines.some((line) => line.startsWith('waitlist_entries_total{')),
+      ).toBe(true);
+      expect(
+        lines.some((line) => line.startsWith('waitlist_offers_total{')),
+      ).toBe(true);
       for (const line of lines) {
         expect(line).toMatch(
           /^waitlist_(entries_total\{event="[a-z_]+"\}|offers_total\{outcome="[a-z_]+"\}) \d+$/,
