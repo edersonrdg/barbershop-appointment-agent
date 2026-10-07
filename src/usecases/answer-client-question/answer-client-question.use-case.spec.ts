@@ -31,6 +31,8 @@ import { InMemorySubscriptionRepository } from '../testing/in-memory-subscriptio
 import { InMemoryWhatsAppConnectionRepository } from '../testing/in-memory-whatsapp-connection.repository';
 import { SequentialIdGenerator } from '../testing/sequential-id-generator';
 import { seedService } from '../testing/service-fixtures';
+import { InMemoryWaitlistRepository } from '../testing/in-memory-waitlist.repository';
+import { CountingWaitlistMetrics } from '../testing/counting-waitlist-metrics';
 import { subscriptionOf } from '../testing/subscription-fixtures';
 import {
   BOOKING_NOW,
@@ -77,6 +79,8 @@ function interpretation(
     confirmRequested: false,
     choice: null,
     addOnAccepted: false,
+    waitlistAccepted: false,
+    offerDeclined: false,
     ...partial,
   };
 }
@@ -127,6 +131,8 @@ function bookingUseCase(
     new InMemoryScheduleQuery(),
     appointments,
     new CountingAppointmentMetrics(),
+    new InMemoryWaitlistRepository(),
+    new CountingWaitlistMetrics(),
   );
 }
 
@@ -356,6 +362,8 @@ describe('AnswerClientQuestionUseCase', () => {
         offeredOptions: [],
         appointmentOptions: [],
         suggestedAddOn: null,
+        waitlistProposal: null,
+        waitlistOffer: false,
       },
     ]);
   });
@@ -882,6 +890,57 @@ describe('AnswerClientQuestionUseCase', () => {
         expect(conversation()?.consecutiveFailures).toBe(0);
       });
     });
+    describe('US-24 waitlist', () => {
+      const INSCRITO =
+        'Pronto! Você está na lista de espera para Corte à tarde em quarta-feira, 30/09. Se vagar um horário, eu te aviso por aqui.';
+
+      // João has no afternoon slot on 30/09, so the reply proposes the waitlist.
+      async function waitlistSetup() {
+        const scenario = await bookingSetup();
+        scenario.busy(
+          scenario.joao.id,
+          local(TOMORROW, '12:00'),
+          local(TOMORROW, '18:00'),
+        );
+        await scenario.lastText(C1_REQUEST);
+        const handle = jest.spyOn(scenario.booking, 'handle');
+        return { ...scenario, handle };
+      }
+
+      it('US-24 AC 8 (C8) (a): accepting the waitlist without bookingRequested goes to the booking', async () => {
+        const { lastText, handle } = await waitlistSetup();
+
+        expect(await lastText({ waitlistAccepted: true })).toEqual([INSCRITO]);
+        expect(handle).toHaveBeenCalledTimes(1);
+      });
+
+      it('US-24 AC 8 (C8) (b): declining an offer without bookingRequested goes to the booking', async () => {
+        const { lastText, handle } = await waitlistSetup();
+
+        await lastText({ offerDeclined: true });
+        expect(handle).toHaveBeenCalledTimes(1);
+      });
+
+      it('US-24 AC 8 (C8) (c): a request for a person wins over accepting the waitlist', async () => {
+        const { lastText, handle, conversation } = await waitlistSetup();
+
+        expect(
+          await lastText({ waitlistAccepted: true, humanRequested: true }),
+        ).toEqual([HANDOFF_REPLY]);
+        expect(handle).not.toHaveBeenCalled();
+        expect(conversation()?.pauseReason).toBe('requested');
+      });
+
+      it('US-24 AC 8 (C8) (d): an off-topic message wins over declining the offer', async () => {
+        const { lastText, handle } = await waitlistSetup();
+
+        expect(await lastText({ offerDeclined: true, offTopic: true })).toEqual(
+          [REFUSAL],
+        );
+        expect(handle).not.toHaveBeenCalled();
+      });
+    });
+
     describe('US-18 cancel and reschedule', () => {
       const TODAY = '2026-09-29';
       const CANCEL = { bookingRequested: false, cancelRequested: true };

@@ -1,4 +1,5 @@
 import { Appointment } from '../../domain/entities/appointment';
+import { UtcPeriod } from '../../domain/entities/barbershop';
 import { ReminderKind } from '../../domain/value-objects/appointment-reminder';
 import {
   PendingReminder,
@@ -105,8 +106,19 @@ export class AppointmentBackedScheduleQuery implements ScheduleQuery {
     return entries;
   }
 
-  listStartingIn(): never {
-    throw new Error('not used by the WhatsApp booking tests');
+  // US-24: the same filter as the database query.
+  async listStartingIn(
+    barbershopId: string,
+    range: UtcPeriod,
+    barberId: string | null,
+  ): Promise<ScheduleEntry[]> {
+    const stored = (await this.appointments.list(barbershopId)).filter(
+      (appointment) =>
+        appointment.startsAt >= range.start &&
+        appointment.startsAt < range.end &&
+        (barberId === null || appointment.barberId === barberId),
+    );
+    return this.toEntries(barbershopId, stored);
   }
 
   listOverlapping(): never {

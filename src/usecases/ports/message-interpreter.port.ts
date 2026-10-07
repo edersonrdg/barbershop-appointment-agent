@@ -1,12 +1,14 @@
+import { DAY_PERIODS, DayPeriod } from '../../domain/value-objects/day-period';
+
 export const MESSAGE_INTERPRETER = Symbol('MessageInterpreter');
 
 export const MESSAGE_TOPICS = ['services', 'address', 'opening_hours'] as const;
 
 export type MessageTopic = (typeof MESSAGE_TOPICS)[number];
 
-export const BOOKING_PERIODS = ['morning', 'afternoon', 'evening'] as const;
+export const BOOKING_PERIODS = DAY_PERIODS;
 
-export type BookingPeriod = (typeof BOOKING_PERIODS)[number];
+export type BookingPeriod = DayPeriod;
 
 /** CA-17.1: the bot offers up to this many slots at a time. */
 export const MAX_OFFERED_SLOTS = 3;
@@ -47,6 +49,10 @@ export interface MessageInterpretation {
   choice: number | null;
   /** US-23: the client accepts the suggested add-on service (CA-23.2). */
   addOnAccepted: boolean;
+  /** US-24: the client accepts joining the waitlist the bot proposed (RF-21). */
+  waitlistAccepted: boolean;
+  /** US-24: the client refuses the slot offered from the waitlist (RF-23). */
+  offerDeclined: boolean;
 }
 
 export interface MessageInterpreterInput {
@@ -69,13 +75,21 @@ export interface MessageInterpreterInput {
    * while the client has not answered it.
    */
   suggestedAddOn: string | null;
+  /**
+   * US-24: services and period of the waitlist proposed in the previous
+   * message, as the client read it; `null` when none was proposed.
+   */
+  waitlistProposal: string | null;
+  /** US-24: the offer in force is a slot freed for the client's waitlist. */
+  waitlistOffer: boolean;
 }
 
 // US-15: the LLM only extracts what the client wants; the reply is written
 // from the barbershop's data (RF-09). US-17: it never picks a slot, it only
 // says which offered option was chosen. US-18: likewise it only says which
 // listed appointment was chosen. US-23: and whether the suggested add-on was
-// accepted. Every method rejects with
+// accepted. US-24: and whether the waitlist was accepted or its offer
+// declined. Every method rejects with
 // MessageInterpreterUnavailableError when the model fails.
 export interface MessageInterpreter {
   interpret(input: MessageInterpreterInput): Promise<MessageInterpretation>;

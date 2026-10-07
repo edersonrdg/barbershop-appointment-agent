@@ -199,3 +199,44 @@ export function cancelledText(
 export function cancellationDeadlineText(minutes: number): string {
   return `Só cancelamos ou remarcamos pelo WhatsApp com pelo menos ${formatDuration(minutes)} de antecedência.`;
 }
+
+export const WAITLIST_OFFER_EXPIRED_TEXT =
+  'O prazo para aceitar esse horário acabou. Você continua na lista de espera.';
+export const WAITLIST_OFFER_DECLINED_TEXT =
+  'Tudo bem, você continua na lista de espera.';
+
+/** US-24: `Corte à tarde em quarta-feira, 30/09`, as the client reads it. */
+export function waitlistLabel(
+  timezone: BarbershopTimezone,
+  services: readonly BarbershopService[],
+  window: { startsOn: string; endsOn: string; period: BookingPeriod | null },
+): string {
+  const period = window.period ? `${PERIOD_LABELS[window.period]} ` : '';
+  const when =
+    window.startsOn === window.endsOn
+      ? `em ${dateLabel(timezone, window.startsOn)}`
+      : `até ${dateLabel(timezone, window.endsOn)}`;
+  return `${serviceNames(services, ' + ')} ${period}${when}`;
+}
+
+export function waitlistProposalText(label: string): string {
+  return `Se preferir, posso te colocar na lista de espera para ${label} e te aviso se vagar um horário. Responda "lista de espera" para entrar.`;
+}
+
+export function waitlistJoinedText(label: string): string {
+  return `Pronto! Você está na lista de espera para ${label}. Se vagar um horário, eu te aviso por aqui.`;
+}
+
+export function waitlistOfferText(
+  timezone: BarbershopTimezone,
+  services: readonly BarbershopService[],
+  slot: LabeledSlot,
+  deadlineMinutes: number,
+): string {
+  const price = services.reduce((sum, service) => sum + service.priceCents, 0);
+  const minutes = services.reduce(
+    (sum, service) => sum + service.durationMinutes,
+    0,
+  );
+  return `Vagou um horário: ${serviceNames(services, ' + ')}, ${optionLabel(timezone, slot)} (${formatPrice(price)}, ${formatDuration(minutes)}). Responda "sim" em até ${formatDuration(deadlineMinutes)} para agendar ou "não" para recusar.`;
+}

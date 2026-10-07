@@ -91,17 +91,29 @@ import { ReceiveWhatsAppMessageUseCase } from '../../usecases/receive-whatsapp-m
 import { RecordConversationActivityUseCase } from '../../usecases/record-conversation-activity/record-conversation-activity.use-case';
 import { ResumeConversationUseCase } from '../../usecases/resume-conversation/resume-conversation.use-case';
 import { SendAppointmentRemindersUseCase } from '../../usecases/send-appointment-reminders/send-appointment-reminders.use-case';
+import { ProcessWaitlistUseCase } from '../../usecases/process-waitlist/process-waitlist.use-case';
+import {
+  WAITLIST_METRICS,
+  WaitlistMetrics,
+} from '../../usecases/ports/waitlist-metrics.port';
+import {
+  WAITLIST_REPOSITORY,
+  WaitlistRepository,
+} from '../../usecases/ports/waitlist.repository.port';
 import type { Env } from '../config/env.schema';
 import { TypeOrmInboundMessageRepository } from '../database/repositories/typeorm-inbound-message.repository';
 import { TypeOrmClientRepository } from '../database/repositories/typeorm-client.repository';
 import { TypeOrmConversationRepository } from '../database/repositories/typeorm-conversation.repository';
 import { TypeOrmWhatsAppConnectionRepository } from '../database/repositories/typeorm-whatsapp-connection.repository';
+import { TypeOrmWaitlistRepository } from '../database/repositories/typeorm-waitlist.repository';
 import { EvolutionWebhookController } from '../external/whatsapp/evolution/evolution-webhook.controller';
 import { EvolutionWebhookGuard } from '../external/whatsapp/evolution/evolution-webhook.guard';
 import { EvolutionWhatsAppConnector } from '../external/whatsapp/evolution/evolution-whatsapp-connector';
 import { AppointmentRemindersJob } from '../jobs/appointment-reminders.job';
+import { WaitlistJob } from '../jobs/waitlist.job';
 import { METRICS_REGISTRY } from '../observability/metrics.registry';
 import { ObservabilityModule } from '../observability/observability.module';
+import { PrometheusWaitlistMetrics } from '../observability/prometheus-waitlist-metrics';
 import { PrometheusWhatsAppMetrics } from '../observability/prometheus-whatsapp-metrics';
 import { SystemClock } from '../security/system-clock';
 import { UuidIdGenerator } from '../security/uuid-id-generator';
@@ -118,7 +130,7 @@ import { ServicesModule } from './services.module';
 // US-13: WhatsApp connection; US-14: first contact and privacy notice; US-15:
 // answers to the client's questions; US-16: hand-off to a human; US-17:
 // booking through the availability engine; US-19: appointment reminders and
-// the client's confirmation. Global so the readiness check can
+// the client's confirmation; US-24: the waitlist. Global so the readiness check can
 // ping the connector through the port (AD-011).
 @Global()
 @Module({
@@ -183,6 +195,18 @@ import { ServicesModule } from './services.module';
       inject: [DataSource],
       useFactory: (dataSource: DataSource) =>
         new TypeOrmConversationRepository(dataSource),
+    },
+    {
+      provide: WAITLIST_REPOSITORY,
+      inject: [DataSource],
+      useFactory: (dataSource: DataSource) =>
+        new TypeOrmWaitlistRepository(dataSource),
+    },
+    {
+      provide: WAITLIST_METRICS,
+      inject: [METRICS_REGISTRY],
+      useFactory: (registry: Registry) =>
+        new PrometheusWaitlistMetrics(registry),
     },
     {
       provide: WHATSAPP_METRICS,
@@ -296,6 +320,8 @@ import { ServicesModule } from './services.module';
         SCHEDULE_QUERY,
         APPOINTMENT_REPOSITORY,
         APPOINTMENT_METRICS,
+        WAITLIST_REPOSITORY,
+        WAITLIST_METRICS,
       ],
       useFactory: (
         barbers: BarberRepository,
@@ -308,6 +334,8 @@ import { ServicesModule } from './services.module';
         schedule: ScheduleQuery,
         appointments: AppointmentRepository,
         appointmentMetrics: AppointmentMetrics,
+        waitlist: WaitlistRepository,
+        waitlistMetrics: WaitlistMetrics,
       ) =>
         new BookViaWhatsAppUseCase(
           barbers,
@@ -320,6 +348,8 @@ import { ServicesModule } from './services.module';
           schedule,
           appointments,
           appointmentMetrics,
+          waitlist,
+          waitlistMetrics,
         ),
     },
     {
@@ -415,6 +445,64 @@ import { ServicesModule } from './services.module';
         ),
     },
     AppointmentRemindersJob,
+    {
+      provide: ProcessWaitlistUseCase,
+      inject: [
+        BARBERSHOP_REPOSITORY,
+        WHATSAPP_CONNECTION_REPOSITORY,
+        GetSuspensionReasonUseCase,
+        WAITLIST_REPOSITORY,
+        SCHEDULE_QUERY,
+        ListAvailableSlotsUseCase,
+        BOOKING_RULES_REPOSITORY,
+        NO_SHOW_LEDGER,
+        CONVERSATION_REPOSITORY,
+        CLIENT_REPOSITORY,
+        SERVICE_REPOSITORY,
+        WHATSAPP_CONNECTOR,
+        WAITLIST_METRICS,
+        ID_GENERATOR,
+        CLOCK,
+        ConfigService,
+      ],
+      useFactory: (
+        barbershops: BarbershopRepository,
+        connections: WhatsAppConnectionRepository,
+        suspension: GetSuspensionReasonUseCase,
+        waitlist: WaitlistRepository,
+        schedule: ScheduleQuery,
+        listSlots: ListAvailableSlotsUseCase,
+        bookingRules: BookingRulesRepository,
+        ledger: NoShowLedger,
+        conversations: ConversationRepository,
+        clients: ClientRepository,
+        services: ServiceRepository,
+        connector: WhatsAppConnector,
+        metrics: WaitlistMetrics,
+        ids: IdGenerator,
+        clock: Clock,
+        config: ConfigService<Env, true>,
+      ) =>
+        new ProcessWaitlistUseCase(
+          barbershops,
+          connections,
+          suspension,
+          waitlist,
+          schedule,
+          listSlots,
+          bookingRules,
+          ledger,
+          conversations,
+          clients,
+          services,
+          connector,
+          metrics,
+          ids,
+          clock,
+          config.get('WHATSAPP_HANDOFF_RESUME_HOURS', { infer: true }),
+        ),
+    },
+    WaitlistJob,
     {
       provide: RecordConversationActivityUseCase,
       inject: [

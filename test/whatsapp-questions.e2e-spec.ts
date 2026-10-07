@@ -51,6 +51,8 @@ function interpretation(
     confirmRequested: false,
     choice: null,
     addOnAccepted: false,
+    waitlistAccepted: false,
+    offerDeclined: false,
     ...partial,
   };
 }
@@ -234,6 +236,8 @@ describe('WhatsApp questions (e2e)', () => {
           offeredOptions: [],
           appointmentOptions: [],
           suggestedAddOn: null,
+          waitlistProposal: null,
+          waitlistOffer: false,
         },
       ]);
     });
