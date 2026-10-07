@@ -208,6 +208,12 @@ describe('API docs (e2e)', () => {
     expect(hook.description).toContain('US-16');
   });
 
+  it('US-23 (C17): describes the add-on suggestion on the webhook', () => {
+    const hook = document.paths['/webhooks/whatsapp/evolution'].post!;
+
+    expect(hook.description).toContain('US-23');
+  });
+
   it('US-17 (C36): describes the booking on the webhook and the blocked_client reason', () => {
     const hook = document.paths['/webhooks/whatsapp/evolution'].post!;
     expect(hook.description).toContain('US-17');

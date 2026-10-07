@@ -1,7 +1,11 @@
+import { BarbershopService } from '../../domain/entities/barbershop-service';
 import { AppointmentConflictError } from '../../domain/errors/appointment-conflict.error';
+import { ServiceDuration } from '../../domain/value-objects/service-duration';
+import { ServicePrice } from '../../domain/value-objects/service-price';
 import { BookingRules } from '../../domain/value-objects/booking-rules';
 import { MessageInterpretation } from '../ports/message-interpreter.port';
 import { rulesWithMinimumAdvance } from '../testing/scheduling-fixtures';
+import { describeService, seedService } from '../testing/service-fixtures';
 import {
   local,
   setupWhatsAppBooking,
@@ -32,6 +36,7 @@ function interpretation(
     rescheduleRequested: false,
     confirmRequested: false,
     choice: null,
+    addOnAccepted: false,
     ...partial,
   };
 }
@@ -67,11 +72,17 @@ async function setup(options: Parameters<typeof setupWhatsAppBooking>[0] = {}) {
     partial: Partial<MessageInterpretation>,
   ): Promise<BookingOutcome> => {
     const now = clock.now();
-    const preparation = await booking.prepare(barbershop, client.id, now);
+    const active = await services.listActiveByBarbershop(barbershop.id);
+    const preparation = await booking.prepare(
+      barbershop,
+      client.id,
+      now,
+      active,
+    );
     return booking.handle({
       barbershop,
       client,
-      services: await services.listActiveByBarbershop(barbershop.id),
+      services: active,
       preparation,
       interpretation: interpretation(partial),
       now,
@@ -897,6 +908,313 @@ describe('BookViaWhatsAppUseCase US-18', () => {
         offer([wed('12:00'), wed('12:30'), wed('13:00')]),
       );
       expect(draft()).toMatchObject({ action: 'book', candidates: [] });
+    });
+  });
+
+  describe('US-23 add-on suggestion', () => {
+    const SUGESTAO =
+      'Quer incluir Barba por +R$ 30,00? Responda "sim" para incluir ou "não" para seguir só com Corte.';
+    const CORTE_BARBA = 'Horários para Corte + Barba (R$ 75,00, 50 min):';
+
+    // Corte suggests Barba unless the test says otherwise (CA-04.2).
+    async function addOnSetup(corteAddOns: string[] = ['barba']) {
+      const scenario = await setup();
+      const { services, barbers, barbershop } = scenario;
+      const addOns = async (serviceId: string, ids: string[]) => {
+        const stored = await services.findById(barbershop.id, serviceId);
+        const state = describeService(stored!);
+        await services.save(
+          BarbershopService.restore({
+            ...state,
+            price: ServicePrice.create(state.priceCents),
+            duration: ServiceDuration.create(state.durationMinutes),
+            suggestedAddOnIds: ids,
+            createdAt: stored!.createdAt,
+          }),
+        );
+      };
+      // Lavagem and Sobrancelha, both performed by João only.
+      const extras = async () => {
+        await seedService(services, {
+          id: 'lavagem',
+          name: 'Lavagem',
+          priceCents: 2000,
+          durationMinutes: 20,
+        });
+        await seedService(services, {
+          id: 'sobrancelha',
+          name: 'Sobrancelha',
+          priceCents: 1500,
+          durationMinutes: 10,
+        });
+        const joao = await barbers.findById(barbershop.id, 'joao');
+        joao!.changeServices(
+          await services.findByIds(barbershop.id, [
+            'corte',
+            'barba',
+            'lavagem',
+            'sobrancelha',
+          ]),
+        );
+        await barbers.save(joao!);
+      };
+      await addOns('corte', corteAddOns);
+      return { ...scenario, addOns, extras };
+    }
+
+    it('US-23 CA-23.1 (C1): suggests Barba before searching any slot', async () => {
+      const { text, listSlots } = await addOnSetup();
+      const search = jest.spyOn(listSlots, 'execute');
+
+      expect(await text(JOAO_AFTERNOON)).toBe(SUGESTAO);
+      expect(search).toHaveBeenCalledTimes(0);
+    });
+
+    describe('AC 2 (C2): the first suggestible add-on', () => {
+      it('US-23 AC 2 (C2) (a): skips an inactive add-on', async () => {
+        const { text } = await addOnSetup(['hidratacao', 'barba']);
+
+        expect(await text(JOAO_AFTERNOON)).toBe(SUGESTAO);
+      });
+
+      it('US-23 AC 2 (C2) (b): skips an add-on already requested', async () => {
+        const { text } = await addOnSetup(['barba']);
+
+        expect(
+          await text({ ...JOAO_AFTERNOON, services: ['Corte', 'Barba'] }),
+        ).toBe(offer([wed('12:00'), wed('12:30'), wed('13:00')], CORTE_BARBA));
+      });
+
+      it('US-23 AC 2 (C2) (c): skips an add-on no barber performs', async () => {
+        const { text } = await addOnSetup(['pigmentacao', 'barba']);
+
+        expect(await text(JOAO_AFTERNOON)).toBe(SUGESTAO);
+      });
+
+      it('US-23 AC 2 (C2) (d): skips an add-on the named barber does not perform', async () => {
+        const { text } = await addOnSetup(['barba']);
+
+        expect(await text({ ...JOAO_AFTERNOON, barber: 'Pedro' })).toBe(
+          offer([
+            wed('12:00', 'Pedro'),
+            wed('12:30', 'Pedro'),
+            wed('13:00', 'Pedro'),
+          ]),
+        );
+      });
+
+      it('US-23 AC 2 (C2) (e): without a named barber, one apt barber is enough', async () => {
+        const { text } = await addOnSetup(['barba']);
+
+        expect(
+          await text({ ...JOAO_AFTERNOON, barber: null, anyBarber: true }),
+        ).toBe(SUGESTAO);
+      });
+
+      it('US-23 AC 2 (C2) (f): follows the registered order', async () => {
+        const { text, extras } = await addOnSetup(['lavagem', 'sobrancelha']);
+        await extras();
+
+        expect(await text(JOAO_AFTERNOON)).toBe(
+          'Quer incluir Lavagem por +R$ 20,00? Responda "sim" para incluir ou "não" para seguir só com Corte.',
+        );
+      });
+
+      it('US-23 AC 2 (C2) (g): follows the order of the requested services', async () => {
+        const { text, extras, addOns } = await addOnSetup(['lavagem']);
+        await extras();
+        await addOns('barba', ['sobrancelha']);
+
+        expect(
+          await text({ ...JOAO_AFTERNOON, services: ['Barba', 'Corte'] }),
+        ).toBe(
+          'Quer incluir Sobrancelha por +R$ 15,00? Responda "sim" para incluir ou "não" para seguir só com Barba + Corte.',
+        );
+      });
+    });
+
+    it('US-23 AC 3 (C3): records the pending suggestion with the request', async () => {
+      const { text, draft } = await addOnSetup();
+
+      await text(JOAO_AFTERNOON);
+
+      expect(draft()).toMatchObject({
+        addOnSuggestion: { serviceId: 'barba', pending: true },
+        serviceIds: ['corte'],
+        barberId: 'joao',
+        date: '2026-09-30',
+        period: 'afternoon',
+        offer: [],
+      });
+    });
+
+    it.each([[[]], [['hidratacao']]])(
+      'US-23 CA-23.4 (C4): with add-ons %j, offers as in US-17 without suggesting',
+      async (addOns) => {
+        const { text, draft } = await addOnSetup(addOns);
+
+        expect(await text(JOAO_AFTERNOON)).toBe(
+          offer([wed('12:00'), wed('12:30'), wed('13:00')]),
+        );
+        expect(draft()?.addOnSuggestion).toBeNull();
+      },
+    );
+
+    describe('AC 5 (C5): suggests once per draft', () => {
+      it('US-23 AC 5 (C5) (a): not the add-on of the accepted add-on', async () => {
+        const { text, extras, addOns } = await addOnSetup();
+        await extras();
+        await addOns('barba', ['sobrancelha']);
+        await text(JOAO_AFTERNOON);
+
+        expect(
+          await text({ bookingRequested: false, addOnAccepted: true }),
+        ).toBe(offer([wed('12:00'), wed('12:30'), wed('13:00')], CORTE_BARBA));
+      });
+
+      it('US-23 AC 5 (C5) (b): not after declining', async () => {
+        const { text } = await addOnSetup();
+        await text(JOAO_AFTERNOON);
+        await text({});
+
+        expect(await text({ date: '2026-10-01' })).toBe(
+          offer([thu('12:00'), thu('12:30'), thu('13:00')]),
+        );
+      });
+
+      it('US-23 AC 5 (C5) (c): not in the new offer after a taken slot', async () => {
+        const { text, busy, joao } = await addOnSetup();
+        await text(JOAO_AFTERNOON);
+        await text({});
+        busy(joao.id, local(TOMORROW, '12:00'), local(TOMORROW, '12:30'));
+
+        expect(await text({ bookingRequested: false, choice: 1 })).toBe(
+          `Esse horário acabou de ser ocupado.\n\n${offer([wed('12:30'), wed('13:00'), wed('13:30')])}`,
+        );
+      });
+    });
+
+    it('US-23 AC 6 (C6): does not suggest when rescheduling', async () => {
+      const { text, own } = await addOnSetup();
+      await own({ id: 'R', startsAt: local(TOMORROW, '15:00') });
+
+      expect(
+        await text({ bookingRequested: false, rescheduleRequested: true }),
+      ).toBe(offer([tue('13:00'), tue('13:30'), tue('14:00')]));
+    });
+
+    it('US-23 AC 7 (C7): hands a blocked client to the team without suggesting', async () => {
+      const { send, noShows, draft } = await addOnSetup();
+      await noShows(2);
+
+      expect(await send(JOAO_AFTERNOON)).toEqual({
+        type: 'handoff',
+        reason: 'blocked_client',
+      });
+      expect(draft()).toBeNull();
+    });
+
+    it('US-23 AC 8 (C8): gives the interpreter the pending add-on only', async () => {
+      const { text, booking, barbershop, client, clock, services } =
+        await addOnSetup();
+      const suggested = async () =>
+        (
+          await booking.prepare(
+            barbershop,
+            client.id,
+            clock.now(),
+            await services.listActiveByBarbershop(barbershop.id),
+          )
+        ).interpreterInput.suggestedAddOn;
+
+      expect(await suggested()).toBeNull();
+      await text(JOAO_AFTERNOON);
+      expect(await suggested()).toBe('Barba');
+      await text({});
+      expect(await suggested()).toBeNull();
+    });
+
+    it('US-23 CA-23.2 (C9): accepting offers slots of Corte + Barba', async () => {
+      const { text, draft } = await addOnSetup();
+      await text(JOAO_AFTERNOON);
+
+      expect(await text({ bookingRequested: false, addOnAccepted: true })).toBe(
+        offer([wed('12:00'), wed('12:30'), wed('13:00')], CORTE_BARBA),
+      );
+      expect(draft()).toMatchObject({
+        serviceIds: ['corte', 'barba'],
+        addOnSuggestion: { serviceId: 'barba', pending: false },
+      });
+    });
+
+    it('US-23 AC 9 (C10): accepting asks for a barber who performs both', async () => {
+      const { text } = await addOnSetup();
+
+      expect(await text({ services: ['Corte'], date: TOMORROW })).toBe(
+        SUGESTAO,
+      );
+      expect(await text({ addOnAccepted: true })).toBe(
+        'Tem preferência de barbeiro? Fazem Corte + Barba: João. Se não tiver, responda "tanto faz".',
+      );
+    });
+
+    it('US-23 AC 10 (C11): naming the add-on accepts it and keeps Corte', async () => {
+      const { text, draft } = await addOnSetup();
+      await text(JOAO_AFTERNOON);
+
+      expect(await text({ services: ['Barba'] })).toBe(
+        offer([wed('12:00'), wed('12:30'), wed('13:00')], CORTE_BARBA),
+      );
+      expect(draft()?.serviceIds).toEqual(['corte', 'barba']);
+    });
+
+    it('US-23 CA-23.2 (C12): searches the engine with both services', async () => {
+      const { text, listSlots } = await addOnSetup();
+      await text(JOAO_AFTERNOON);
+      const search = jest.spyOn(listSlots, 'execute');
+
+      await text({ addOnAccepted: true });
+
+      expect(search.mock.calls.length).toBeGreaterThan(0);
+      for (const [query] of search.mock.calls) {
+        expect(query.serviceIds).toEqual(['corte', 'barba']);
+      }
+    });
+
+    it('US-23 CA-23.2 (C13): books both services and sums the price', async () => {
+      const { text, bookedBy, client } = await addOnSetup();
+      await text(JOAO_AFTERNOON);
+      await text({ addOnAccepted: true });
+
+      expect(await text({ bookingRequested: false, choice: 1 })).toBe(
+        'Agendamento confirmado!\nServiços: Corte, Barba\nBarbeiro: João\nData: quarta-feira, 30/09\nHorário: 12:00\nValor: R$ 75,00\nEndereço: Rua das Flores, 123',
+      );
+      const [appointment] = await bookedBy(client.id);
+      expect(appointment.serviceIds).toEqual(['corte', 'barba']);
+      expect(appointment.startsAt).toEqual(local(TOMORROW, '12:00'));
+      expect(appointment.endsAt).toEqual(local(TOMORROW, '12:50'));
+    });
+
+    it('US-23 AC 13 (C14): combines the accepting message with the draft', async () => {
+      const { text } = await addOnSetup();
+      await text(JOAO_AFTERNOON);
+
+      expect(await text({ addOnAccepted: true, date: '2026-10-01' })).toBe(
+        offer([thu('12:00'), thu('12:30'), thu('13:00')], CORTE_BARBA),
+      );
+    });
+
+    it('US-23 CA-23.3 (C16): declining offers Corte and keeps the services', async () => {
+      const { text, draft } = await addOnSetup();
+      await text(JOAO_AFTERNOON);
+
+      expect(await text({})).toBe(
+        offer([wed('12:00'), wed('12:30'), wed('13:00')]),
+      );
+      expect(draft()).toMatchObject({
+        serviceIds: ['corte'],
+        addOnSuggestion: { serviceId: 'barba', pending: false },
+      });
     });
   });
 });

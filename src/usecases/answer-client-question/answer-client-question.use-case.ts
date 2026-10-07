@@ -73,7 +73,8 @@ const FAILURES_BEFORE_HANDOFF = 2;
 // US-17: a booking request goes to the booking use case, after the request
 // for a person and the off-topic refusal and before the questions. US-18: so
 // does a request to cancel or reschedule. US-19: a confirmation of presence
-// comes after those, before the questions. US-21: a suspended barbershop gets
+// comes after those, before the questions. US-23: so does accepting the
+// suggested add-on. US-21: a suspended barbershop gets
 // a fixed reply, without the model, once a paused conversation stayed silent.
 export class AnswerClientQuestionUseCase {
   constructor(
@@ -132,7 +133,12 @@ export class AnswerClientQuestionUseCase {
     const services = await this.services.listActiveByBarbershop(
       input.barbershopId,
     );
-    const preparation = await this.booking.prepare(barbershop, client.id, now);
+    const preparation = await this.booking.prepare(
+      barbershop,
+      client.id,
+      now,
+      services,
+    );
     let reply: ClientQuestionReply;
     let appointmentId: string | undefined;
     try {
@@ -150,6 +156,7 @@ export class AnswerClientQuestionUseCase {
         (interpretation.bookingRequested ||
           interpretation.cancelRequested ||
           interpretation.rescheduleRequested ||
+          interpretation.addOnAccepted ||
           interpretation.choice !== null)
       ) {
         const outcome = await this.booking.handle({

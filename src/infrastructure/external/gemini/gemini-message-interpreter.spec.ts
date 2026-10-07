@@ -26,6 +26,7 @@ const INPUT = {
     'Corte, terça-feira, 29/09, às 15:00, com João',
     'Barba, quarta-feira, 30/09, às 10:00, com João',
   ],
+  suggestedAddOn: null,
 };
 const VALID = {
   topics: ['services'],
@@ -43,6 +44,7 @@ const VALID = {
   rescheduleRequested: false,
   confirmRequested: false,
   choice: null,
+  addOnAccepted: false,
 };
 
 class FakeModels implements GeminiModels {
@@ -443,6 +445,48 @@ describe('GeminiMessageInterpreter', () => {
       const instruction = models.calls[0].config?.systemInstruction as string;
       expect(instruction).toContain(
         '- confirmRequested: true quando o cliente confirma que vai comparecer ao agendamento (por exemplo, "confirmo", "confirmar", "estarei lá").',
+      );
+    });
+  });
+
+  describe('US-23 add-on field (door 1)', () => {
+    const ACCEPTED = { ...VALID, bookingRequested: true, addOnAccepted: true };
+
+    it('US-23 door 1 (C18): passes addOnAccepted through', async () => {
+      const { interpreter, models } = setup();
+      models.result = withText(JSON.stringify(ACCEPTED));
+
+      await expect(interpreter.interpret(INPUT)).resolves.toEqual(ACCEPTED);
+    });
+
+    it('US-23 door 1 (C18): rejects an answer without addOnAccepted', async () => {
+      const { interpreter, models } = setup();
+      models.result = withText(
+        JSON.stringify({ ...ACCEPTED, addOnAccepted: undefined }),
+      );
+
+      await expect(interpreter.interpret(INPUT)).rejects.toBeInstanceOf(
+        MessageInterpreterUnavailableError,
+      );
+    });
+
+    it('US-23 door 1 (C18): requires addOnAccepted and gives the suggested add-on in the instruction', async () => {
+      const { interpreter, models } = setup();
+
+      await interpreter.interpret({ ...INPUT, suggestedAddOn: 'Barba' });
+      await interpreter.interpret(INPUT);
+
+      const schema = models.calls[0].config?.responseJsonSchema as {
+        required: string[];
+      };
+      expect(schema.required).toContain('addOnAccepted');
+      const pending = models.calls[0].config?.systemInstruction as string;
+      expect(pending).toContain(
+        'Serviço adicional sugerido ao cliente na mensagem anterior:\nBarba\n',
+      );
+      const none = models.calls[1].config?.systemInstruction as string;
+      expect(none).toContain(
+        'Serviço adicional sugerido ao cliente na mensagem anterior:\n(nenhum serviço adicional sugerido)\n',
       );
     });
   });

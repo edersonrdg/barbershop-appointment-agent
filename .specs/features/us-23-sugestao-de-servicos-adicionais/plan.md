@@ -11,7 +11,7 @@ Com a entrega, quando o serviço pedido tem um adicional configurado, o bot perg
 Reaproveita o fluxo de agendamento da US-17 inteiro: o rascunho da conversa (AD-013) guarda a sugestão, o motor da US-07 já soma as durações (RN-04) quando recebe mais de um serviço, e a oferta e o resumo já mostram vários serviços com o valor somado. Nenhuma regra de agenda é reescrita.
 
 1. `POST /webhooks/whatsapp/evolution` com `messages.upsert` -> `EvolutionWebhookController` (exists) - sem mudança
-2. `AnswerClientQuestionUseCase` (exists) - pede ao `BookViaWhatsAppUseCase.prepare` o rascunho em vigor, que agora informa o adicional com sugestão pendente (door 2), e o passa ao intérprete
+2. `AnswerClientQuestionUseCase` (exists) - pede ao `BookViaWhatsAppUseCase.prepare`, agora com os serviços ativos, o rascunho em vigor, que informa o nome do adicional com sugestão pendente (door 2), e o passa ao intérprete
 3. `GeminiMessageInterpreter` (exists) - recebe o adicional sugerido e devolve se o cliente aceitou (door 1); a mensagem que aceita vai para o agendamento, mesmo sem `bookingRequested`
 4. `BookViaWhatsAppUseCase` (exists) - com sugestão pendente, aceitar soma o adicional aos serviços do rascunho e qualquer outra resposta recusa; nos dois casos a sugestão deixa de estar pendente
 5. mesmo use case, ao buscar - com os serviços resolvidos e algum barbeiro apto, se o rascunho ainda não sugeriu nada e algum serviço tem adicional sugerível, grava a sugestão no rascunho (door 2) e responde com ela, sem consultar o motor; senão segue a US-17 (pergunta de barbeiro, `ListAvailableSlotsUseCase` (exists) com todos os serviços, oferta)
@@ -27,7 +27,7 @@ Reaproveita o fluxo de agendamento da US-17 inteiro: o rascunho da conversa (AD-
 | domain | termo existente: `suggestedAddOnIds` do serviço (US-04). Até aqui só era gravado e devolvido pelo painel; passa a ser lido pelo bot. O comentário de `changeSuggestedAddOns` já prevê que a US-23 pula adicionais inativos |
 | domain | termo existente: rascunho de agendamento (AD-013). Ganha o campo da sugestão (door 2). Quem lê: `BookViaWhatsAppUseCase` e o schema de leitura do repositório |
 | stored data | nada a migrar: o campo vive dentro do `jsonb` `booking_draft`; rascunhos já gravados não têm o campo e são lidos com o padrão "sem sugestão" |
-| testes existentes | as fixtures de interpretação ganham `addOnAccepted: false`; os cenários da US-17/US-18 que agendam um serviço com adicional configurado passam a receber a sugestão antes da oferta (as fixtures atuais não configuram adicionais, a conferir no build) |
+| testes existentes | as fixtures de interpretação ganham `addOnAccepted: false`, e os testes da US-15 que conferem a entrada inteira do intérprete (unitário e e2e) ganham `suggestedAddOn: null`. Nenhuma fixture da US-17/US-18 configura adicionais, então os cenários existentes não recebem a sugestão |
 | webhook existente | `POST /webhooks/whatsapp/evolution`: entrada, saída e status não mudam; a descrição no Swagger ganha a sugestão de adicional |
 
 ## Relations

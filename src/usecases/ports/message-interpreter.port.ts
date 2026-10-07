@@ -45,6 +45,8 @@ export interface MessageInterpretation {
   confirmRequested: boolean;
   /** Number of the listed option the client chose, 1 to `MAX_CHOICE`. */
   choice: number | null;
+  /** US-23: the client accepts the suggested add-on service (CA-23.2). */
+  addOnAccepted: boolean;
 }
 
 export interface MessageInterpreterInput {
@@ -62,12 +64,18 @@ export interface MessageInterpreterInput {
    * without their numbers.
    */
   appointmentOptions: string[];
+  /**
+   * US-23: catalog name of the add-on suggested in the previous message,
+   * while the client has not answered it.
+   */
+  suggestedAddOn: string | null;
 }
 
 // US-15: the LLM only extracts what the client wants; the reply is written
 // from the barbershop's data (RF-09). US-17: it never picks a slot, it only
 // says which offered option was chosen. US-18: likewise it only says which
-// listed appointment was chosen. Every method rejects with
+// listed appointment was chosen. US-23: and whether the suggested add-on was
+// accepted. Every method rejects with
 // MessageInterpreterUnavailableError when the model fails.
 export interface MessageInterpreter {
   interpret(input: MessageInterpreterInput): Promise<MessageInterpretation>;

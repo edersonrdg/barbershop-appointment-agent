@@ -17,7 +17,7 @@ Cenário-base dos unitários (`setupWhatsAppBooking`, terça 29/09 12:00 em São
 ### S1 - O bot sugere o adicional uma vez · 6 files · 120 KB · ~30k
 
 **C1** - Com Barba como adicional de Corte, o pedido `JOAO_AFTERNOON` recebe exatamente `SUGESTAO` e o `ListAvailableSlotsUseCase` não é chamado nessa mensagem (0 chamadas) (CA-23.1, AC 1)
-Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C1\)"`
+Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C1\)"` ✅
 
 **C2** - O adicional sugerido é o primeiro sugerível, linha a linha (AC 2), com o texto completo de cada linha:
 (a) Corte com `[hidratacao, barba]` -> sugere Barba (inativo pulado);
@@ -27,73 +27,73 @@ Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.
 (e) pedido com `anyBarber: true` e Corte `[barba]` -> sugere Barba;
 (f) Corte com `[lavagem, sobrancelha]` (os dois feitos por João) -> sugere Lavagem (ordem cadastrada);
 (g) pedido `['Barba', 'Corte']` com Barba `[sobrancelha]` e Corte `[lavagem]` -> sugere Sobrancelha (ordem dos serviços do pedido)
-Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C2\)"`
+Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C2\)"` ✅
 
 **C3** - Depois de `SUGESTAO`, o rascunho tem `addOnSuggestion: { serviceId: 'barba', pending: true }`, `serviceIds: ['corte']`, `barberId: 'joao'`, `date: '2026-09-30'`, `period: 'afternoon'` e `offer: []` (AC 3)
-Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C3\)"`
+Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C3\)"` ✅
 
 **C4** - Sem adicional sugerível o pedido `JOAO_AFTERNOON` recebe exatamente a oferta da US-17 (`Horários para Corte (R$ 45,00, 30 min):` com 12:00, 12:30 e 13:00 de quarta com João), tanto com Corte sem adicionais quanto com Corte `[hidratacao]` (só inativo), e o rascunho fica com `addOnSuggestion: null` (CA-23.4, AC 4)
-Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C4\)"`
+Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C4\)"` ✅
 
 **C5** - Com `addOnSuggestion` diferente de `null` nenhuma sugestão volta (AC 5), com a resposta exata de cada caso:
 (a) aceito Barba, com Barba `[sobrancelha]` -> a resposta é a oferta de Corte + Barba, sem sugerir Sobrancelha;
 (b) recusado e, em seguida, `{ date: '2026-10-01' }` -> oferta de Corte de quinta 01/10, sem `SUGESTAO`;
 (c) recusado, oferta mostrada, horário 1 ocupado por outro agendamento e `choice: 1` -> `Esse horário acabou de ser ocupado.` seguido de nova oferta de Corte, sem `SUGESTAO`
-Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C5\)"`
+Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C5\)"` ✅
 
 **C6** - Um cliente com um agendamento de Corte (amanhã 15:00, João) que pede `rescheduleRequested: true` recebe a oferta de Corte para o novo horário, sem `SUGESTAO`, mesmo com Corte `[barba]` (AC 6)
-Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C6\)"`
+Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C6\)"` ✅
 
 **C7** - Um cliente com 2 faltas (limite 2) que pede `JOAO_AFTERNOON` com Corte `[barba]` recebe o desfecho `{ type: 'handoff', reason: 'blocked_client' }`, sem sugestão e sem rascunho gravado (AC 7)
-Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C7\)"`
+Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C7\)"` ✅
 
 **C8** - `prepare().interpreterInput.suggestedAddOn` é `'Barba'` com a sugestão pendente, `null` sem rascunho e `null` depois da recusa (`pending: false`) (AC 8)
-Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C8\)"`
+Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C8\)"` ✅
 
 ### S2 - Aceitar soma o adicional · 4 files · 95 KB · ~24k
 
 **C9** - Com a sugestão pendente, `{ addOnAccepted: true }` recebe exatamente `Horários para Corte + Barba (R$ 75,00, 50 min):` com 12:00, 12:30 e 13:00 de quarta com João, e o rascunho fica com `serviceIds: ['corte', 'barba']` e `addOnSuggestion: { serviceId: 'barba', pending: false }` (CA-23.2, AC 9)
-Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C9\)"`
+Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C9\)"` ✅
 
 **C10** - Pedido `{ services: ['Corte'], date: '2026-09-30' }` sem barbeiro recebe `SUGESTAO`; o aceite recebe exatamente `Tem preferência de barbeiro? Fazem Corte + Barba: João. Se não tiver, responda "tanto faz".` (AC 9)
-Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C10\)"`
+Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C10\)"` ✅
 
 **C11** - Com a sugestão pendente, `{ services: ['Barba'] }` com `addOnAccepted: false` recebe a mesma oferta do C9 e o rascunho fica com `serviceIds: ['corte', 'barba']` (AC 10)
-Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C11\)"`
+Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C11\)"` ✅
 
 **C12** - Depois do aceite, toda chamada ao `ListAvailableSlotsUseCase` recebe `serviceIds: ['corte', 'barba']` (CA-23.2, AC 11)
-Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C12\)"`
+Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C12\)"` ✅
 
 **C13** - Depois do aceite, `choice: 1` cria um agendamento com `serviceIds: ['corte', 'barba']`, início quarta 12:00 e fim 50 min depois, e o resumo é exatamente `Agendamento confirmado!\nServiços: Corte, Barba\nBarbeiro: João\nData: quarta-feira, 30/09\nHorário: 12:00\nValor: R$ 75,00\nEndereço: Rua das Flores, 123` (CA-23.2, AC 12)
-Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C13\)"`
+Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C13\)"` ✅
 
 **C14** - Com a sugestão pendente, `{ addOnAccepted: true, date: '2026-10-01' }` recebe exatamente a oferta de Corte + Barba com 12:00, 12:30 e 13:00 de quinta 01/10 com João (AC 13)
-Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C14\)"`
+Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C14\)"` ✅
 
 **C15** - No `AnswerClientQuestionUseCase`, linha a linha (AC 14): (a) `addOnAccepted: true` com `bookingRequested: false` chama o agendamento e envia a resposta dele; (b) `addOnAccepted: true` com `humanRequested: true` transfere com motivo `requested`, sem chamar o agendamento; (c) `addOnAccepted: true` com `offTopic: true` envia a recusa da US-15, sem chamar o agendamento
-Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "US-23.*\(C15\)"`
+Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "US-23.*\(C15\)"` ✅
 
 ### S3 - Recusar não insiste · 1 file · 35 KB · ~9k
 
 **C16** - Com a sugestão pendente, `{ bookingRequested: true }` sem aceite recebe exatamente a oferta de Corte (12:00, 12:30 e 13:00 de quarta com João), e o rascunho fica com `serviceIds: ['corte']` e `addOnSuggestion: { serviceId: 'barba', pending: false }` (CA-23.3, AC 15)
-Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C16\)"`
+Proof: `npx jest src/usecases/book-via-whatsapp/book-via-whatsapp.use-case.spec.ts -t "US-23.*\(C16\)"` ✅
 
 ### S4 - Documentação, doors e ponta a ponta · 7 files · 110 KB · ~28k
 
 **C17** - A descrição do webhook `POST /webhooks/whatsapp/evolution` no documento OpenAPI gerado contém `US-23` (AC 16)
-Proof: `npx jest --config ./test/jest-e2e.json test/api-docs.e2e-spec.ts -t "US-23.*\(C17\)"`
+Proof: `npx jest --config ./test/jest-e2e.json test/api-docs.e2e-spec.ts -t "US-23.*\(C17\)"` ✅
 
 **C18** - Door 1: o `GeminiMessageInterpreter` repassa `addOnAccepted: true`; uma resposta sem `addOnAccepted` rejeita com `MessageInterpreterUnavailableError`; o schema de resposta exige `addOnAccepted`; a instrução traz `Serviço adicional sugerido ao cliente na mensagem anterior:` seguido de `Barba` quando `suggestedAddOn: 'Barba'`, e de `(nenhum serviço adicional sugerido)` quando `null`
-Proof: `npx jest src/infrastructure/external/gemini/gemini-message-interpreter.spec.ts -t "US-23.*\(C18\)"`
+Proof: `npx jest src/infrastructure/external/gemini/gemini-message-interpreter.spec.ts -t "US-23.*\(C18\)"` ✅
 
 **C19** - Door 2: `saveDraft` seguido de `findDraft` devolve `addOnSuggestion: { serviceId, pending: true }` igual ao gravado, e um `booking_draft` gravado sem o campo é lido com `addOnSuggestion: null`
-Proof: `npx jest --config ./test/jest-e2e.json test/database/typeorm-conversation.repository.e2e-spec.ts -t "US-23.*\(C19\)"`
+Proof: `npx jest --config ./test/jest-e2e.json test/database/typeorm-conversation.repository.e2e-spec.ts -t "US-23.*\(C19\)"` ✅
 
 **C20** - Pelo webhook, com Barba como adicional de Corte no banco: o pedido faz o conector receber exatamente `SUGESTAO`; `addOnAccepted: true` faz receber a oferta `Horários para Corte + Barba (R$ 75,00, 50 min):` …; `choice: 1` grava em `appointments` uma linha `origin = 'bot'`, `status = 'confirmed'` com os serviços Corte e Barba e 50 min de duração (CA-23.1, CA-23.2)
-Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-booking.e2e-spec.ts -t "US-23.*\(C20\)"`
+Proof: `npx jest --config ./test/jest-e2e.json test/whatsapp-booking.e2e-spec.ts -t "US-23.*\(C20\)"` ✅
 
 **C21** - A sugestão é enviada com `kind: 'booking'`, conta `whatsapp_replies_total{kind="booking"}` e zera a contagem de falhas: depois de 1 falha, a mensagem que recebe `SUGESTAO` deixa `consecutive_failures` em 0 (Assumptions, contagem da resposta)
-Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "US-23.*\(C21\)"`
+Proof: `npx jest src/usecases/answer-client-question/answer-client-question.use-case.spec.ts -t "US-23.*\(C21\)"` ✅
 
 ## Coverage
 

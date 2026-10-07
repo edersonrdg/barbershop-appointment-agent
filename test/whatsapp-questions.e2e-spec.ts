@@ -50,6 +50,7 @@ function interpretation(
     rescheduleRequested: false,
     confirmRequested: false,
     choice: null,
+    addOnAccepted: false,
     ...partial,
   };
 }
@@ -232,6 +233,7 @@ describe('WhatsApp questions (e2e)', () => {
           barberNames: [],
           offeredOptions: [],
           appointmentOptions: [],
+          suggestedAddOn: null,
         },
       ]);
     });

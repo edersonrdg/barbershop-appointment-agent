@@ -42,6 +42,7 @@ import { ScheduleEntry, ScheduleQuery } from '../ports/schedule.query.port';
 import { performsAll } from '../shared/booking-context';
 import { clientNoShowStatus } from '../shared/client-no-show-status';
 import {
+  addOnText,
   appointmentLabel,
   appointmentListText,
   askBarberText,
@@ -86,7 +87,11 @@ export interface BookingPreparation {
   candidates: ScheduleEntry[];
   interpreterInput: Pick<
     MessageInterpreterInput,
-    'today' | 'barberNames' | 'offeredOptions' | 'appointmentOptions'
+    | 'today'
+    | 'barberNames'
+    | 'offeredOptions'
+    | 'appointmentOptions'
+    | 'suggestedAddOn'
   >;
 }
 
@@ -155,6 +160,7 @@ export class BookViaWhatsAppUseCase {
     barbershop: Barbershop,
     clientId: string,
     now: Date,
+    services: readonly BarbershopService[],
   ): Promise<BookingPreparation> {
     const timezone = BarbershopTimezone.create(barbershop.timezone);
     const [barbers, stored] = await Promise.all([
@@ -169,6 +175,11 @@ export class BookViaWhatsAppUseCase {
         )
       : [];
     const today = timezone.localDateOf(now);
+    const pendingAddOn = draft?.addOnSuggestion?.pending
+      ? services.find(
+          (service) => service.id === draft.addOnSuggestion?.serviceId,
+        )
+      : undefined;
     return {
       draft,
       barbers,
@@ -190,6 +201,7 @@ export class BookViaWhatsAppUseCase {
         appointmentOptions: candidates.map((entry) =>
           appointmentLabel(timezone, entry),
         ),
+        suggestedAddOn: pendingAddOn?.name ?? null,
       },
     };
   }
@@ -249,7 +261,12 @@ export class BookViaWhatsAppUseCase {
     const base = draft && continues(draft) ? draft : null;
     return this.search(
       base ? withDraft(context, base) : context,
-      merge(context, base, interpretation),
+      answerAddOn(
+        context,
+        base,
+        interpretation,
+        merge(context, base, interpretation),
+      ),
       [],
     );
   }
@@ -497,6 +514,21 @@ export class BookViaWhatsAppUseCase {
     if (apt.length === 0) {
       await this.conversations.clearDraft(barbershop.id, client.id);
       return this.reply([...notices, noBarberText(services)]);
+    }
+    // US-23: one add-on is suggested before searching, once per draft (RF-06).
+    if (context.action === 'book' && criteria.addOnSuggestion === null) {
+      const addOn = suggestible(context, criteria, services, apt);
+      if (addOn) {
+        await this.saveDraft(
+          context,
+          {
+            ...criteria,
+            addOnSuggestion: { serviceId: addOn.id, pending: true },
+          },
+          [],
+        );
+        return this.reply([...notices, addOnText(addOn, services)]);
+      }
     }
     const aptNames = apt.map((barber) => barber.name);
     if (criteria.barberId !== null) {
@@ -772,6 +804,7 @@ function criteriaOf(draft: BookingDraft): Criteria {
     date: draft.date,
     period: draft.period,
     time: draft.time,
+    addOnSuggestion: draft.addOnSuggestion && { ...draft.addOnSuggestion },
   };
 }
 
@@ -789,6 +822,7 @@ function merge(
     date: null,
     period: null,
     time: null,
+    addOnSuggestion: null,
   };
   const activeIds = new Set(context.services.map((service) => service.id));
   const keptServices = kept.serviceIds.every((id) => activeIds.has(id))
@@ -825,7 +859,67 @@ function merge(
     date: interpretation.date ?? kept.date,
     period: interpretation.period ?? kept.period,
     time: interpretation.time ?? kept.time,
+    addOnSuggestion: kept.addOnSuggestion,
   };
+}
+
+// CA-23.2, CA-23.3: the message after the suggestion answers it. Accepting adds
+// the add-on to the services already in the draft; anything else declines.
+// Either way it is not suggested again.
+function answerAddOn(
+  context: Context,
+  draft: BookingDraft | null,
+  interpretation: MessageInterpretation,
+  criteria: Criteria,
+): Criteria {
+  const suggestion = criteria.addOnSuggestion;
+  if (!draft || !suggestion?.pending) return criteria;
+  const answered = {
+    ...criteria,
+    addOnSuggestion: { ...suggestion, pending: false },
+  };
+  const addOn = context.services.find(
+    (service) => service.id === suggestion.serviceId,
+  );
+  if (!addOn) return answered;
+  const accepted =
+    interpretation.addOnAccepted ||
+    interpretation.services.some((name) => key(name) === key(addOn.name));
+  if (!accepted) return answered;
+  const kept = draft.serviceIds.filter((id) =>
+    context.services.some((service) => service.id === id),
+  );
+  return {
+    ...answered,
+    serviceIds: [...new Set([...kept, ...criteria.serviceIds, addOn.id])],
+  };
+}
+
+// AC 2: the first active add-on of the requested services, in their order and
+// then in the order registered, that the named barber (or, without one, some
+// apt barber) performs together with the request.
+function suggestible(
+  context: Context,
+  criteria: Criteria,
+  services: readonly BarbershopService[],
+  apt: readonly Barber[],
+): BarbershopService | null {
+  const named =
+    criteria.barberId === null
+      ? null
+      : (context.barbers.find(
+          (barber) => barber.active && barber.id === criteria.barberId,
+        ) ?? null);
+  const performers = named ? [named] : apt;
+  for (const service of services) {
+    for (const addOnId of service.suggestedAddOnIds) {
+      const addOn = context.services.find((active) => active.id === addOnId);
+      if (!addOn || criteria.serviceIds.includes(addOnId)) continue;
+      const ids = [...criteria.serviceIds, addOnId];
+      if (performers.some((barber) => performsAll(barber, ids))) return addOn;
+    }
+  }
+  return null;
 }
 
 function servicesOf(
