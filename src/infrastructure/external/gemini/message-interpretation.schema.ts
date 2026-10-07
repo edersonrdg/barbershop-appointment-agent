@@ -86,4 +86,8 @@ export const messageInterpretationSchema = z.object({
     description:
       'Número da opção listada (horário oferecido ou agendamento do cliente) que o cliente escolheu; null quando não escolheu.',
   }),
+  addOnAccepted: z.boolean().meta({
+    description:
+      'true quando o cliente aceita incluir o serviço adicional sugerido na mensagem anterior.',
+  }),
 });

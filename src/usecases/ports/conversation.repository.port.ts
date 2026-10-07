@@ -32,6 +32,15 @@ export interface AppointmentCandidate {
 }
 
 /**
+ * US-23: the add-on offered in this draft. While `pending`, the client has not
+ * answered; once answered it is never suggested again in the draft.
+ */
+export interface AddOnSuggestion {
+  serviceId: string;
+  pending: boolean;
+}
+
+/**
  * US-17: what the bot knows of the booking in progress (AD-013). US-18: also
  * of a cancellation or rescheduling; the criteria and the offer then search
  * the new slot of `targetAppointmentId`.
@@ -51,6 +60,8 @@ export interface BookingDraft {
   time: string | null;
   /** The options shown to the client, in order. */
   offer: OfferedSlot[];
+  /** US-23: `null` while no add-on was suggested in this draft. */
+  addOnSuggestion: AddOnSuggestion | null;
   updatedAt: Date;
 }
 

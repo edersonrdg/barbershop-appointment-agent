@@ -36,6 +36,7 @@ describe('TypeOrmConversationRepository booking draft (e2e)', () => {
           startsAt: new Date('2026-09-30T15:30:00.000Z'),
         },
       ],
+      addOnSuggestion: null,
       updatedAt: NOW,
     };
   }
@@ -83,6 +84,34 @@ describe('TypeOrmConversationRepository booking draft (e2e)', () => {
 
     await expect(repository.findDraft(barbershopId, clientId)).resolves.toEqual(
       saved,
+    );
+  });
+
+  it('US-23 door 2 (C19): reads back a pending add-on suggestion', async () => {
+    const saved: BookingDraft = {
+      ...draft(),
+      offer: [],
+      addOnSuggestion: { serviceId: randomUUID(), pending: true },
+    };
+    await repository.saveDraft(barbershopId, clientId, saved);
+
+    await expect(repository.findDraft(barbershopId, clientId)).resolves.toEqual(
+      saved,
+    );
+  });
+
+  it('US-23 door 2 (C19): reads a draft stored before US-23 as without suggestion', async () => {
+    const { addOnSuggestion, ...legacy } = draft();
+    await dataSource.query(
+      `UPDATE whatsapp_conversations SET booking_draft = $3::jsonb
+        WHERE barbershop_id = $1 AND client_id = $2`,
+      [barbershopId, clientId, JSON.stringify(legacy)],
+    );
+
+    expect(addOnSuggestion).toBeNull();
+    expect(await storedDraft()).not.toHaveProperty('addOnSuggestion');
+    await expect(repository.findDraft(barbershopId, clientId)).resolves.toEqual(
+      { ...legacy, addOnSuggestion: null },
     );
   });
 

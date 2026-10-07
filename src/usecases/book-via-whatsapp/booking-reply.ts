@@ -95,6 +95,14 @@ export function bookedText({
   ].join('\n');
 }
 
+// US-23: CA-23.1 gives "quer incluir barba por +R$20?".
+export function addOnText(
+  addOn: BarbershopService,
+  services: readonly BarbershopService[],
+): string {
+  return `Quer incluir ${addOn.name} por +${formatPrice(addOn.priceCents)}? Responda "sim" para incluir ou "não" para seguir só com ${serviceNames(services, ' + ')}.`;
+}
+
 export function askServiceText(services: readonly BarbershopService[]): string {
   return `Qual serviço você quer agendar? Temos: ${serviceNames(services, ', ')}.`;
 }

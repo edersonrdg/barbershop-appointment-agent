@@ -75,6 +75,7 @@ function interpretation(
     rescheduleRequested: false,
     confirmRequested: false,
     choice: null,
+    addOnAccepted: false,
     ...partial,
   };
 }

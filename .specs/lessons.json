@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 26,
+  "next_id": 27,
   "lessons": [
     {
       "id": "L-001",
@@ -462,6 +462,24 @@
       ],
       "created": "2026-10-06T16:08:27Z",
       "last_seen": "2026-10-06T16:08:27Z"
+    },
+    {
+      "id": "L-026",
+      "key": "spec_precision_gap::a docs check for a behaviour change must assert a phrase that describes that behaviour not only the story id which any mention satisfies",
+      "text": "A docs check for a behaviour change must assert a phrase that describes that behaviour, not only the story id, which any mention satisfies.",
+      "signal": "spec_precision_gap",
+      "scope": "api-docs",
+      "status": "candidate",
+      "features": [
+        "us-23-sugestao-de-servicos-adicionais"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "C17 test/api-docs.e2e-spec.ts:214 (api-docs)"
+      ],
+      "created": "2026-10-07T13:56:30Z",
+      "last_seen": "2026-10-07T13:56:30Z"
     }
   ]
 }

@@ -76,6 +76,7 @@ function interpretation(
     rescheduleRequested: false,
     confirmRequested: false,
     choice: null,
+    addOnAccepted: false,
     ...partial,
   };
 }
@@ -354,6 +355,7 @@ describe('AnswerClientQuestionUseCase', () => {
         barberNames: [],
         offeredOptions: [],
         appointmentOptions: [],
+        suggestedAddOn: null,
       },
     ]);
   });
@@ -805,6 +807,79 @@ describe('AnswerClientQuestionUseCase', () => {
         expect(conversation()?.consecutiveFailures).toBe(
           before.consecutiveFailures,
         );
+      });
+    });
+
+    describe('US-23 add-on suggestion', () => {
+      const SUGESTAO =
+        'Quer incluir Barba por +R$ 30,00? Responda "sim" para incluir ou "não" para seguir só com Corte.';
+      const OFFER_BOTH =
+        'Horários para Corte + Barba (R$ 75,00, 50 min):\n1. quarta-feira, 30/09, às 12:00, com João\n2. quarta-feira, 30/09, às 12:30, com João\n3. quarta-feira, 30/09, às 13:00, com João\nResponda com o número do horário que você quer.';
+
+      // Corte suggests Barba (CA-04.2).
+      async function addOnSetup() {
+        const scenario = await bookingSetup();
+        const { services, barbershop } = scenario;
+        const corte = await services.findById(barbershop.id, 'corte');
+        const barba = await services.findById(barbershop.id, 'barba');
+        corte!.changeSuggestedAddOns([barba!]);
+        await services.save(corte!);
+        const handle = jest.spyOn(scenario.booking, 'handle');
+        return { ...scenario, handle };
+      }
+
+      it('US-23 AC 14 (C15) (a): accepting without bookingRequested goes to the booking', async () => {
+        const { lastText, handle } = await addOnSetup();
+        expect(await lastText(C1_REQUEST)).toEqual([SUGESTAO]);
+        handle.mockClear();
+
+        expect(await lastText({ addOnAccepted: true })).toEqual([OFFER_BOTH]);
+        expect(handle).toHaveBeenCalledTimes(1);
+      });
+
+      it('US-23 AC 14 (C15) (b): a request for a person wins over accepting', async () => {
+        const { lastText, handle, conversation } = await addOnSetup();
+        await lastText(C1_REQUEST);
+        handle.mockClear();
+
+        expect(
+          await lastText({
+            addOnAccepted: true,
+            bookingRequested: true,
+            humanRequested: true,
+          }),
+        ).toEqual([HANDOFF_REPLY]);
+        expect(handle).not.toHaveBeenCalled();
+        expect(conversation()?.pauseReason).toBe('requested');
+      });
+
+      it('US-23 AC 14 (C15) (c): an off-topic message wins over accepting', async () => {
+        const { lastText, handle } = await addOnSetup();
+        await lastText(C1_REQUEST);
+        handle.mockClear();
+
+        expect(
+          await lastText({
+            addOnAccepted: true,
+            bookingRequested: true,
+            offTopic: true,
+          }),
+        ).toEqual([REFUSAL]);
+        expect(handle).not.toHaveBeenCalled();
+      });
+
+      it('US-23 (C21): the suggestion is a booking reply and resets the failures', async () => {
+        const { execute, lastText, metrics, conversation } = await addOnSetup();
+        expect(await lastText({})).toEqual([FALLBACK]);
+        expect(conversation()?.consecutiveFailures).toBe(1);
+
+        await expect(execute(C1_REQUEST)).resolves.toEqual({
+          outcome: 'sent',
+          kind: 'booking',
+        });
+
+        expect(metrics.replies.at(-1)).toBe('booking');
+        expect(conversation()?.consecutiveFailures).toBe(0);
       });
     });
     describe('US-18 cancel and reschedule', () => {

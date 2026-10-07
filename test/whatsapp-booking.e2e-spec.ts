@@ -57,6 +57,7 @@ function interpretation(
     rescheduleRequested: false,
     confirmRequested: false,
     choice: null,
+    addOnAccepted: false,
     ...partial,
   };
 }
@@ -314,6 +315,59 @@ describe('WhatsApp booking (e2e)', () => {
     const rows = await botAppointments();
     expect(rows).toHaveLength(1);
     expect(rows[0].starts_at).toEqual(new Date('2026-09-30T15:30:00.000Z'));
+  });
+
+  it('US-23 CA-23.1, CA-23.2 (C20): suggests Barba, books Corte + Barba through the webhook', async () => {
+    const barba = randomUUID();
+    await dataSource.query(
+      `INSERT INTO services (id, barbershop_id, name, price_cents, duration_minutes, active, created_at)
+       VALUES ($1, $2, 'Barba', 3000, 20, true, now())`,
+      [barba, shop],
+    );
+    await dataSource.query(
+      `INSERT INTO barber_services (barber_id, service_id, barbershop_id, position)
+       VALUES ($1, $2, $3, 1)`,
+      [joao, barba, shop],
+    );
+    await dataSource.query(
+      `INSERT INTO service_add_ons (service_id, add_on_service_id, position)
+       VALUES ($1, $2, 0)`,
+      [corte, barba],
+    );
+
+    await send(REQUEST, 'tem horário amanhã à tarde com o João para corte?');
+    expect(texts()).toEqual([
+      'Quer incluir Barba por +R$ 30,00? Responda "sim" para incluir ou "não" para seguir só com Corte.',
+    ]);
+
+    await send({ bookingRequested: true, addOnAccepted: true }, 'sim');
+    expect(texts()[1]).toBe(
+      'Horários para Corte + Barba (R$ 75,00, 50 min):\n1. quarta-feira, 30/09, às 12:00, com João\n2. quarta-feira, 30/09, às 12:30, com João\n3. quarta-feira, 30/09, às 13:00, com João\nResponda com o número do horário que você quer.',
+    );
+
+    await send({ choice: 1 }, 'o primeiro');
+
+    const rows = await dataSource.query<
+      { id: string; origin: string; status: string; minutes: number }[]
+    >(
+      `SELECT id, origin, status,
+              EXTRACT(EPOCH FROM ends_at - starts_at)::int / 60 AS minutes
+         FROM appointments WHERE barbershop_id = $1 AND client_id = $2`,
+      [shop, client],
+    );
+    expect(rows).toEqual([
+      expect.objectContaining({
+        origin: 'bot',
+        status: 'confirmed',
+        minutes: 50,
+      }),
+    ]);
+    const services = await dataSource.query<{ service_id: string }[]>(
+      `SELECT service_id FROM appointment_services
+        WHERE appointment_id = $1 ORDER BY position`,
+      [rows[0].id],
+    );
+    expect(services.map((row) => row.service_id)).toEqual([corte, barba]);
   });
 
   it('CA-17.6 (C32): a client blocked by no-shows is handed to the team and listed as blocked_client', async () => {
