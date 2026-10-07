@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 27,
+  "next_id": 28,
   "lessons": [
     {
       "id": "L-001",
@@ -480,6 +480,24 @@
       ],
       "created": "2026-10-07T13:56:30Z",
       "last_seen": "2026-10-07T13:56:30Z"
+    },
+    {
+      "id": "L-027",
+      "key": "ac_gap::a metrics label check must first drive the real use case so each counter it names has a sample a labelled counter with no increments prints no line and a loop over existing lines then passes vacuously",
+      "text": "A /metrics label check must first drive the real use case so each counter it names has a sample; a labelled counter with no increments prints no line, and a loop over existing lines then passes vacuously.",
+      "signal": "ac_gap",
+      "scope": "metrics",
+      "status": "candidate",
+      "features": [
+        "us-24-lista-de-espera"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "test/whatsapp-waitlist.e2e-spec.ts:367 (C26 round 1) (metrics)"
+      ],
+      "created": "2026-10-07T14:53:04Z",
+      "last_seen": "2026-10-07T14:53:04Z"
     }
   ]
 }
