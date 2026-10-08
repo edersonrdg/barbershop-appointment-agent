@@ -3,6 +3,7 @@ import {
   BOOKING_PERIODS,
   MAX_CHOICE,
   MESSAGE_TOPICS,
+  RETURN_REMINDER_CHOICES,
 } from '../../../usecases/ports/message-interpreter.port';
 
 const LOCAL_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -97,5 +98,9 @@ export const messageInterpretationSchema = z.object({
   offerDeclined: z.boolean().meta({
     description:
       'true quando o cliente recusa o horário da lista de espera oferecido na mensagem anterior.',
+  }),
+  returnReminder: z.enum(RETURN_REMINDER_CHOICES).nullable().meta({
+    description:
+      'enable quando o cliente quer receber o lembrete de retorno; disable quando quer parar de receber; null quando não fala disso.',
   }),
 });

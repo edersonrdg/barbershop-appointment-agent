@@ -3,8 +3,10 @@ import { Client } from '../../../domain/entities/client';
 import {
   ClientRepository,
   ClientSearch,
+  ReturnReminderChange,
 } from '../../../usecases/ports/client.repository.port';
 import { ClientEntity } from '../entities/client.entity';
+import { ReturnReminderConsentEntity } from '../entities/return-reminder-consent.entity';
 
 interface ClientRow {
   id: string;
@@ -13,6 +15,7 @@ interface ClientRow {
   phone: string;
   created_at: Date;
   return_reminder_enabled: boolean;
+  return_reminder_asked_at: Date | null;
 }
 
 export class TypeOrmClientRepository implements ClientRepository {
@@ -43,7 +46,7 @@ export class TypeOrmClientRepository implements ClientRepository {
   async search(barbershopId: string, search: ClientSearch): Promise<Client[]> {
     const rows = await this.dataSource.query<ClientRow[]>(
       `SELECT c.id, c.barbershop_id, c.name, c.phone, c.created_at,
-              c.return_reminder_enabled
+              c.return_reminder_enabled, c.return_reminder_asked_at
          FROM clients c
         WHERE c.barbershop_id = $1
           AND (($2::text IS NULL AND $3::text IS NULL)
@@ -73,6 +76,7 @@ export class TypeOrmClientRepository implements ClientRepository {
         phone: row.phone,
         createdAt: row.created_at,
         returnReminderEnabled: row.return_reminder_enabled,
+        returnReminderAskedAt: row.return_reminder_asked_at,
       }),
     );
   }
@@ -111,6 +115,49 @@ export class TypeOrmClientRepository implements ClientRepository {
     return result.affected === 1;
   }
 
+  // CA-25.5: the consent row is written only by the UPDATE that changed the
+  // value; a concurrent equal change waits on the row lock and then matches
+  // nothing, so it records nothing.
+  async changeReturnReminder(change: ReturnReminderChange): Promise<boolean> {
+    return this.dataSource.transaction(async (manager) => {
+      const [, affected] = await manager.query<[unknown, number]>(
+        `UPDATE clients SET return_reminder_enabled = $3
+         WHERE barbershop_id = $1 AND id = $2
+           AND return_reminder_enabled <> $3`,
+        [change.barbershopId, change.clientId, change.enabled],
+      );
+      if (affected !== 1) return false;
+      await manager.getRepository(ReturnReminderConsentEntity).insert({
+        id: change.id,
+        barbershopId: change.barbershopId,
+        clientId: change.clientId,
+        enabled: change.enabled,
+        channel: change.channel,
+        recordedAt: change.recordedAt,
+      });
+      return true;
+    });
+  }
+
+  async claimReturnReminderQuestion(
+    barbershopId: string,
+    clientId: string,
+    at: Date,
+  ): Promise<boolean> {
+    const [, affected] = await this.dataSource.query<[unknown, number]>(
+      `UPDATE clients c SET return_reminder_asked_at = $3
+       WHERE c.barbershop_id = $1 AND c.id = $2
+         AND c.return_reminder_asked_at IS NULL
+         AND NOT c.return_reminder_enabled
+         AND NOT EXISTS (
+               SELECT 1 FROM return_reminder_consents r
+                WHERE r.barbershop_id = c.barbershop_id
+                  AND r.client_id = c.id)`,
+      [barbershopId, clientId, at],
+    );
+    return affected === 1;
+  }
+
   async releasePrivacyNotice(client: Client, sentAt: Date): Promise<void> {
     await this.dataSource
       .createQueryBuilder()
@@ -133,6 +180,7 @@ function toClient(
     | 'phone'
     | 'createdAt'
     | 'returnReminderEnabled'
+    | 'returnReminderAskedAt'
   >,
 ): Client {
   return Client.restore({
@@ -142,6 +190,7 @@ function toClient(
     phone: row.phone,
     createdAt: row.createdAt,
     returnReminderEnabled: row.returnReminderEnabled,
+    returnReminderAskedAt: row.returnReminderAskedAt,
   });
 }
 

@@ -14,8 +14,7 @@ Reaproveita a conversa do bot das US-15 a US-24: o `AnswerClientQuestionUseCase`
 flowchart TD
     subgraph Resposta["Ativar e desativar (webhook)"]
         W["POST /webhooks/whatsapp/evolution -> EvolutionWebhookController (exists)"] --> A["AnswerClientQuestionUseCase (exists)"]
-        A --> P["BookViaWhatsAppUseCase.prepare (exists): returnReminderQuestion"]
-        P --> I["GeminiMessageInterpreter (exists, door 2)"]
+        A -->|"returnReminderQuestion, com o rascunho do BookViaWhatsAppUseCase.prepare (exists)"| I["GeminiMessageInterpreter (exists, door 2)"]
         I -->|returnReminder| C["clients.return_reminder_enabled + return_reminder_consents (door 1)"]
         C --> S1["WhatsAppConnector.sendText (exists)"]
     end
@@ -28,7 +27,7 @@ flowchart TD
 ```
 
 1. Perguntar: o `ReturnReminderJob` (door 3) roda a cada minuto, barbearia por barbearia (AD-009). Para cada agendamento `attended` com cliente que terminou nas últimas 24h, reivindica a pergunta no cliente (door 1) e envia o texto pelo `WhatsAppConnector` (exists).
-2. Responder: o `prepare` do `BookViaWhatsAppUseCase` (exists) informa ao intérprete se o cliente acabou de receber a pergunta (`returnReminderQuestion`, door 2). Com `returnReminder: 'enable'` ou `'disable'` na interpretação, o `AnswerClientQuestionUseCase` (exists) grava o novo valor e a mudança na mesma transação (door 1) e responde.
+2. Responder: o `AnswerClientQuestionUseCase` (exists) informa ao intérprete se o cliente acabou de receber a pergunta (`returnReminderQuestion`, door 2), a partir do cliente e do rascunho que o `prepare` do `BookViaWhatsAppUseCase` (exists) já lê. Com `returnReminder: 'enable'` ou `'disable'` na interpretação, o `AnswerClientQuestionUseCase` (exists) grava o novo valor e a mudança na mesma transação (door 1) e responde.
 3. Convidar: na mesma rodada, para cada cliente com opt-in ativo cujo último atendimento passou do prazo e que não tem agendamento futuro, reivindica o convite no agendamento atendido (door 1) e envia o texto.
 4. out: respostas e mensagens pelo `WhatsAppConnector.sendText` (exists); o webhook responde `204` como hoje.
 

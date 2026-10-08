@@ -709,4 +709,53 @@ describe('TypeOrmAppointmentRepository (e2e)', () => {
       expect((await marksOf(cancelled.id)).client_confirmed_at).toBeNull();
     });
   });
+
+  describe('US-25 return reminder', () => {
+    const AFTER = new Date('2026-10-05T14:00:00.000Z');
+    const LATER = new Date('2026-11-04T14:00:00.000Z');
+
+    async function stored(status: AttendanceStatus | 'confirmed') {
+      const barberId = await insertBarber(barbershopA);
+      const serviceId = await insertService(barbershopA);
+      const appointment = book({
+        barbershopId: barbershopA,
+        barberId,
+        serviceIds: [serviceId],
+        startsAt: '2026-10-05T13:00:00.000Z',
+      });
+      await repository.create(appointment);
+      if (status !== 'confirmed') {
+        await repository.saveStatus(appointment.markAttendance(status, AFTER));
+      }
+      return appointment;
+    }
+
+    async function sentAtOf(id: string): Promise<Date | null> {
+      const [row] = await dataSource.query<
+        { return_reminder_sent_at: Date | null }[]
+      >('SELECT return_reminder_sent_at FROM appointments WHERE id = $1', [id]);
+      return row.return_reminder_sent_at;
+    }
+
+    it('US-25 door 1 (C22) (e): claims the invite once, only for an attended appointment of the barbershop', async () => {
+      const attended = await stored('attended');
+
+      expect(
+        await repository.claimReturnReminder(barbershopB, attended.id, LATER),
+      ).toBe(false);
+      expect(
+        await repository.claimReturnReminder(barbershopA, attended.id, LATER),
+      ).toBe(true);
+      expect(
+        await repository.claimReturnReminder(barbershopA, attended.id, AFTER),
+      ).toBe(false);
+      expect(await sentAtOf(attended.id)).toEqual(LATER);
+
+      const confirmed = await stored('confirmed');
+      expect(
+        await repository.claimReturnReminder(barbershopA, confirmed.id, LATER),
+      ).toBe(false);
+      expect(await sentAtOf(confirmed.id)).toBeNull();
+    });
+  });
 });

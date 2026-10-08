@@ -60,6 +60,53 @@ export class AppointmentBackedScheduleQuery implements ScheduleQuery {
     });
   }
 
+  // US-25: the same filters as the database queries.
+  async listAttendedEndedIn(
+    barbershopId: string,
+    after: Date,
+    until: Date,
+  ): Promise<ScheduleEntry[]> {
+    const stored = (await this.appointments.list(barbershopId)).filter(
+      (appointment) =>
+        appointment.status === 'attended' &&
+        appointment.clientId !== null &&
+        appointment.endsAt > after &&
+        appointment.endsAt <= until,
+    );
+    return byEnd(await this.toEntries(barbershopId, stored));
+  }
+
+  async listReturnRemindersDue(
+    barbershopId: string,
+    endedUntil: Date,
+  ): Promise<ScheduleEntry[]> {
+    const attended = (await this.appointments.list(barbershopId)).filter(
+      (appointment) =>
+        appointment.status === 'attended' && appointment.clientId !== null,
+    );
+    const latest = new Map<string, Appointment>();
+    for (const appointment of attended) {
+      const clientId = appointment.clientId ?? '';
+      const current = latest.get(clientId);
+      if (!current || appointment.startsAt > current.startsAt) {
+        latest.set(clientId, appointment);
+      }
+    }
+    const due: Appointment[] = [];
+    for (const [clientId, appointment] of latest) {
+      const client = await this.clients.findById(barbershopId, clientId);
+      if (
+        client?.returnReminderEnabled &&
+        appointment.endsAt <= endedUntil &&
+        this.appointments.marksOf(barbershopId, appointment.id)
+          .returnReminderSentAt === null
+      ) {
+        due.push(appointment);
+      }
+    }
+    return byEnd(await this.toEntries(barbershopId, due));
+  }
+
   private async toEntries(
     barbershopId: string,
     appointments: Appointment[],
@@ -128,4 +175,11 @@ export class AppointmentBackedScheduleQuery implements ScheduleQuery {
   findById(): never {
     throw new Error('not used by the WhatsApp booking tests');
   }
+}
+
+function byEnd(entries: ScheduleEntry[]): ScheduleEntry[] {
+  return entries.sort(
+    (a, b) =>
+      a.endsAt.getTime() - b.endsAt.getTime() || a.id.localeCompare(b.id),
+  );
 }

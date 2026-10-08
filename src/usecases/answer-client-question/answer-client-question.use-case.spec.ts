@@ -6,11 +6,14 @@ import { PhoneNumber } from '../../domain/value-objects/phone-number';
 import { WeeklyOpeningHours } from '../../domain/value-objects/weekly-opening-hours';
 import { BookAppointmentUseCase } from '../book-appointment/book-appointment.use-case';
 import { BookViaWhatsAppUseCase } from '../book-via-whatsapp/book-via-whatsapp.use-case';
+import { ChangeReturnReminderViaWhatsAppUseCase } from '../change-return-reminder-via-whatsapp/change-return-reminder-via-whatsapp.use-case';
 import { ConfirmPresenceViaWhatsAppUseCase } from '../confirm-presence-via-whatsapp/confirm-presence-via-whatsapp.use-case';
 import { GetSuspensionReasonUseCase } from '../get-suspension-reason/get-suspension-reason.use-case';
 import { ListAvailableSlotsUseCase } from '../list-available-slots/list-available-slots.use-case';
+import { BookingDraft } from '../ports/conversation.repository.port';
 import { MessageInterpretation } from '../ports/message-interpreter.port';
 import { CountingAppointmentMetrics } from '../testing/counting-appointment-metrics';
+import { CountingReturnReminderMetrics } from '../testing/counting-return-reminder-metrics';
 import { CountingWhatsAppMetrics } from '../testing/counting-whatsapp-metrics';
 import { FakeMessageInterpreter } from '../testing/fake-message-interpreter';
 import { FakeWhatsAppConnector } from '../testing/fake-whatsapp-connector';
@@ -34,6 +37,10 @@ import { seedService } from '../testing/service-fixtures';
 import { InMemoryWaitlistRepository } from '../testing/in-memory-waitlist.repository';
 import { CountingWaitlistMetrics } from '../testing/counting-waitlist-metrics';
 import { subscriptionOf } from '../testing/subscription-fixtures';
+import {
+  ANA_PHONE,
+  setupReturnReminders,
+} from '../testing/return-reminder-fixtures';
 import {
   BOOKING_NOW,
   CLIENT_PHONE,
@@ -81,6 +88,7 @@ function interpretation(
     addOnAccepted: false,
     waitlistAccepted: false,
     offerDeclined: false,
+    returnReminder: null,
     ...partial,
   };
 }
@@ -235,6 +243,12 @@ async function setup({
       new InMemoryAppointmentRepository(),
     ),
     new GetSuspensionReasonUseCase(subscriptions, clock, 5),
+    new ChangeReturnReminderViaWhatsAppUseCase(
+      clients,
+      new InMemoryBookingRulesRepository(store),
+      new CountingReturnReminderMetrics(),
+      new SequentialIdGenerator(),
+    ),
   );
   let nextId = 0;
   const reply = async (
@@ -364,6 +378,7 @@ describe('AnswerClientQuestionUseCase', () => {
         suggestedAddOn: null,
         waitlistProposal: null,
         waitlistOffer: false,
+        returnReminderQuestion: false,
       },
     ]);
   });
@@ -601,6 +616,12 @@ describe('AnswerClientQuestionUseCase', () => {
         scenario.booking,
         scenario.presence,
         new GetSuspensionReasonUseCase(subscriptions, scenario.clock, 5),
+        new ChangeReturnReminderViaWhatsAppUseCase(
+          clients,
+          scenario.bookingRules,
+          new CountingReturnReminderMetrics(),
+          scenario.ids,
+        ),
       );
       let nextId = 0;
       const execute = (partial: Partial<MessageInterpretation>) => {
@@ -1430,6 +1451,296 @@ describe('AnswerClientQuestionUseCase', () => {
           }),
         ),
       ).toEqual([SERVICES_REPLY]);
+    });
+  });
+
+  describe('the return reminder opt-in (US-25 S2)', () => {
+    const ATIVADO =
+      'Combinado! Vou te lembrar de voltar 30 dias depois do seu último atendimento. Para parar, é só responder "parar lembretes".';
+    const DESATIVADO =
+      'Pronto, você não vai mais receber lembretes de retorno. Se mudar de ideia, é só responder "quero lembrete".';
+    const HOUR_MS = 60 * 60 * 1000;
+    const ago = (ms: number): Date => new Date(BOOKING_NOW.getTime() - ms);
+
+    const draftOf = (overrides: Partial<BookingDraft> = {}): BookingDraft => ({
+      id: 'draft-1',
+      action: 'book',
+      candidates: [],
+      targetAppointmentId: null,
+      serviceIds: ['corte'],
+      barberId: null,
+      anyBarber: true,
+      date: null,
+      period: null,
+      time: null,
+      offer: [],
+      addOnSuggestion: null,
+      waitlistProposal: null,
+      waitlistOfferId: null,
+      updatedAt: BOOKING_NOW,
+      ...overrides,
+    });
+
+    // Ana was asked `askedAgo` before now and writes with `draft` in force.
+    async function questionFlagFor({
+      askedAgo,
+      enabled = false,
+      draft,
+    }: {
+      askedAgo: number | null;
+      enabled?: boolean;
+      draft?: (
+        scenario: Awaited<ReturnType<typeof setupReturnReminders>>,
+      ) => Promise<BookingDraft>;
+    }): Promise<boolean | undefined> {
+      const scenario = await setupReturnReminders();
+      const { clients, barbershop, conversations, say, interpreter } = scenario;
+      clients.setReturnReminder(barbershop.id, 'ana', {
+        enabled,
+        askedAt: askedAgo === null ? null : ago(askedAgo),
+      });
+      if (draft) {
+        await conversations.enter(
+          barbershop.id,
+          'ana',
+          BOOKING_NOW,
+          new Date(0),
+        );
+        await conversations.saveDraft(
+          barbershop.id,
+          'ana',
+          await draft(scenario),
+        );
+      }
+      await say(ANA_PHONE, {});
+      return interpreter.inputs.at(-1)?.returnReminderQuestion;
+    }
+
+    it('US-25 (C8) (a): flags the question asked 1h ago', async () => {
+      expect(await questionFlagFor({ askedAgo: HOUR_MS })).toBe(true);
+    });
+
+    it('US-25 (C8) (b): flags the question asked exactly 24h ago', async () => {
+      expect(await questionFlagFor({ askedAgo: 24 * HOUR_MS })).toBe(true);
+    });
+
+    it('US-25 (C8) (c): does not flag the question asked 24h01 ago', async () => {
+      expect(
+        await questionFlagFor({ askedAgo: 24 * HOUR_MS + 60 * 1000 }),
+      ).toBe(false);
+    });
+
+    it('US-25 (C8) (d): does not flag a client never asked', async () => {
+      expect(await questionFlagFor({ askedAgo: null })).toBe(false);
+    });
+
+    it('US-25 (C8) (e): does not flag a client with the reminder on', async () => {
+      expect(await questionFlagFor({ askedAgo: HOUR_MS, enabled: true })).toBe(
+        false,
+      );
+    });
+
+    it('US-25 (C8) (f): does not flag while slots are offered', async () => {
+      expect(
+        await questionFlagFor({
+          askedAgo: HOUR_MS,
+          draft: () =>
+            Promise.resolve(
+              draftOf({
+                offer: [
+                  { barberId: 'joao', startsAt: local(TOMORROW, '15:00') },
+                ],
+              }),
+            ),
+        }),
+      ).toBe(false);
+    });
+
+    it('US-25 (C8) (g): does not flag while appointments are listed to cancel', async () => {
+      expect(
+        await questionFlagFor({
+          askedAgo: HOUR_MS,
+          draft: async ({ attend }) => {
+            const startsAt = local(TOMORROW, '15:00');
+            const appointmentId = await attend('ana', startsAt, {
+              status: 'confirmed',
+            });
+            return draftOf({
+              action: 'cancel',
+              candidates: [{ appointmentId, barberId: 'joao', startsAt }],
+            });
+          },
+        }),
+      ).toBe(false);
+    });
+
+    it('US-25 (C8) (h): does not flag while an add-on waits for an answer', async () => {
+      expect(
+        await questionFlagFor({
+          askedAgo: HOUR_MS,
+          draft: () =>
+            Promise.resolve(
+              draftOf({
+                addOnSuggestion: { serviceId: 'barba', pending: true },
+              }),
+            ),
+        }),
+      ).toBe(false);
+    });
+
+    it('US-25 (C8) (i): does not flag while the waitlist is proposed', async () => {
+      expect(
+        await questionFlagFor({
+          askedAgo: HOUR_MS,
+          draft: () =>
+            Promise.resolve(
+              draftOf({
+                waitlistProposal: {
+                  startsOn: TOMORROW,
+                  endsOn: TOMORROW,
+                  period: 'afternoon',
+                },
+              }),
+            ),
+        }),
+      ).toBe(false);
+    });
+
+    it('US-25 (C8) (j): flags the question with a draft holding only the criteria', async () => {
+      expect(
+        await questionFlagFor({
+          askedAgo: HOUR_MS,
+          draft: () => Promise.resolve(draftOf()),
+        }),
+      ).toBe(true);
+    });
+
+    it('US-25 (C9): turns the reminder on and confirms it', async () => {
+      const { say, clientOf, textsTo } = await setupReturnReminders();
+
+      const result = await say(ANA_PHONE, { returnReminder: 'enable' });
+
+      expect(result).toEqual({ outcome: 'sent', kind: 'return_reminder' });
+      expect((await clientOf('ana')).returnReminderEnabled).toBe(true);
+      expect(textsTo(ANA_PHONE)).toEqual([ATIVADO]);
+    });
+
+    it('US-25 CA-25.3 (C10) (a): turns the reminder off and confirms it', async () => {
+      const { say, clientOf, textsTo, clients, barbershop } =
+        await setupReturnReminders();
+      clients.setReturnReminder(barbershop.id, 'ana', { enabled: true });
+
+      await say(ANA_PHONE, { returnReminder: 'disable' });
+
+      expect((await clientOf('ana')).returnReminderEnabled).toBe(false);
+      expect(textsTo(ANA_PHONE)).toEqual([DESATIVADO]);
+    });
+
+    it('US-25 CA-25.3 (C10) (b): confirms "parar lembretes" to a client never asked', async () => {
+      const { say, clientOf, textsTo } = await setupReturnReminders();
+
+      await say(CLIENT_PHONE, { returnReminder: 'disable' });
+
+      expect(textsTo(CLIENT_PHONE)).toEqual([DESATIVADO]);
+      expect((await clientOf('carlos')).returnReminderEnabled).toBe(false);
+    });
+
+    it('US-25 (C11) (a): enabling an enabled reminder records nothing', async () => {
+      const { say, textsTo, clients, barbershop, changesOf } =
+        await setupReturnReminders();
+      clients.setReturnReminder(barbershop.id, 'ana', { enabled: true });
+
+      await say(ANA_PHONE, { returnReminder: 'enable' });
+
+      expect(textsTo(ANA_PHONE)).toEqual([ATIVADO]);
+      expect(changesOf('ana')).toHaveLength(0);
+    });
+
+    it('US-25 (C11) (b): disabling a disabled reminder records nothing', async () => {
+      const { say, textsTo, changesOf } = await setupReturnReminders();
+
+      await say(ANA_PHONE, { returnReminder: 'disable' });
+
+      expect(textsTo(ANA_PHONE)).toEqual([DESATIVADO]);
+      expect(changesOf('ana')).toHaveLength(0);
+    });
+
+    it('US-25 (C12) (a): handles the opt-in before the off-topic refusal', async () => {
+      const { say, textsTo } = await setupReturnReminders();
+
+      await say(ANA_PHONE, { returnReminder: 'enable', offTopic: true });
+
+      expect(textsTo(ANA_PHONE)).toEqual([ATIVADO]);
+    });
+
+    it('US-25 (C12) (b): handles the opt-in instead of a booking request', async () => {
+      const { say, textsTo, conversations, barbershop } =
+        await setupReturnReminders();
+
+      await say(ANA_PHONE, {
+        returnReminder: 'enable',
+        bookingRequested: true,
+        services: ['Corte'],
+      });
+
+      expect(textsTo(ANA_PHONE)).toEqual([ATIVADO]);
+      expect(await conversations.findDraft(barbershop.id, 'ana')).toBeNull();
+    });
+
+    it('US-25 (C12) (c): handles the opt-in instead of a confirmation of presence', async () => {
+      const { say, textsTo, attend, appointments, barbershop } =
+        await setupReturnReminders();
+      const id = await attend('ana', local(TOMORROW, '15:00'), {
+        status: 'confirmed',
+      });
+      appointments.setMarks(barbershop.id, id, {
+        reminder24hSentAt: BOOKING_NOW,
+      });
+
+      await say(ANA_PHONE, {
+        returnReminder: 'enable',
+        confirmRequested: true,
+      });
+
+      expect(textsTo(ANA_PHONE)).toEqual([ATIVADO]);
+      expect(
+        appointments.marksOf(barbershop.id, id).clientConfirmedAt,
+      ).toBeNull();
+    });
+
+    it('US-25 (C12) (d): a request for a person comes before the opt-in', async () => {
+      const { say, textsTo, clientOf, whatsAppMetrics } =
+        await setupReturnReminders();
+
+      await say(ANA_PHONE, { returnReminder: 'enable', humanRequested: true });
+
+      expect(whatsAppMetrics.handoffs).toEqual(['requested']);
+      expect(textsTo(ANA_PHONE)).toEqual([HANDOFF_REPLY]);
+      expect((await clientOf('ana')).returnReminderEnabled).toBe(false);
+    });
+
+    it('US-25 (C12) (e): the opt-in reply resets the failures and counts as return_reminder', async () => {
+      const { say, conversations, barbershop, whatsAppMetrics } =
+        await setupReturnReminders();
+      await conversations.enter(barbershop.id, 'ana', BOOKING_NOW, new Date(0));
+      await conversations.recordFailure(barbershop.id, 'ana');
+
+      await say(ANA_PHONE, { returnReminder: 'enable' });
+
+      expect(conversations.row(barbershop.id, 'ana')?.consecutiveFailures).toBe(
+        0,
+      );
+      expect(whatsAppMetrics.replies).toEqual(['return_reminder']);
+    });
+
+    it('US-25 (C24): counts each opt-in change, and not a request for the value in force', async () => {
+      const { say, metrics } = await setupReturnReminders();
+
+      await say(ANA_PHONE, { returnReminder: 'enable' });
+      await say(ANA_PHONE, { returnReminder: 'disable' });
+      await say(ANA_PHONE, { returnReminder: 'disable' });
+
+      expect(metrics.optInChanges).toEqual([true, false]);
     });
   });
 });

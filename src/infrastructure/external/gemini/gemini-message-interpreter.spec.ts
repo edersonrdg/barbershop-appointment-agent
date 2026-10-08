@@ -29,6 +29,7 @@ const INPUT = {
   suggestedAddOn: null,
   waitlistProposal: null,
   waitlistOffer: false,
+  returnReminderQuestion: false,
 };
 const VALID = {
   topics: ['services'],
@@ -49,6 +50,7 @@ const VALID = {
   addOnAccepted: false,
   waitlistAccepted: false,
   offerDeclined: false,
+  returnReminder: null,
 };
 
 class FakeModels implements GeminiModels {
@@ -553,6 +555,62 @@ describe('GeminiMessageInterpreter', () => {
       );
       expect(none).toContain(
         'Nenhum horário da lista de espera foi oferecido na mensagem anterior.',
+      );
+    });
+  });
+
+  describe('US-25 return reminder', () => {
+    it.each(['enable', 'disable', null])(
+      'US-25 door 2 (C28): passes returnReminder %s through',
+      async (returnReminder) => {
+        const { interpreter, models } = setup();
+        const answered = { ...VALID, returnReminder };
+        models.result = withText(JSON.stringify(answered));
+
+        await expect(interpreter.interpret(INPUT)).resolves.toEqual(answered);
+      },
+    );
+
+    it.each([
+      ['without returnReminder', undefined],
+      ['with returnReminder maybe', 'maybe'],
+    ])('US-25 door 2 (C28): rejects an answer %s', async (_case, value) => {
+      const { interpreter, models } = setup();
+      models.result = withText(
+        JSON.stringify({ ...VALID, returnReminder: value }),
+      );
+
+      await expect(interpreter.interpret(INPUT)).rejects.toBeInstanceOf(
+        MessageInterpreterUnavailableError,
+      );
+    });
+
+    it('US-25 door 2 (C28): requires the field with its enum and says whether the question was asked', async () => {
+      const { interpreter, models } = setup();
+
+      await interpreter.interpret({ ...INPUT, returnReminderQuestion: true });
+      await interpreter.interpret(INPUT);
+
+      const schema = models.calls[0].config?.responseJsonSchema as {
+        required: string[];
+        properties: Record<string, unknown>;
+      };
+      expect(schema.required).toEqual(
+        expect.arrayContaining(['returnReminder']),
+      );
+      expect(JSON.stringify(schema.properties.returnReminder)).toContain(
+        '"enum":["enable","disable"]',
+      );
+      expect(JSON.stringify(schema.properties.returnReminder)).toContain(
+        '"type":"null"',
+      );
+      const asked = models.calls[0].config?.systemInstruction as string;
+      expect(asked).toContain(
+        'A mensagem anterior perguntou se o cliente quer receber um lembrete quando estiver na hora de voltar à barbearia.',
+      );
+      const notAsked = models.calls[1].config?.systemInstruction as string;
+      expect(notAsked).toContain(
+        'A mensagem anterior não perguntou sobre o lembrete de retorno.',
       );
     });
   });

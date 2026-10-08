@@ -136,6 +136,49 @@ export class TypeOrmScheduleQuery implements ScheduleQuery {
     }));
   }
 
+  async listAttendedEndedIn(
+    barbershopId: string,
+    after: Date,
+    until: Date,
+  ): Promise<ScheduleEntry[]> {
+    const rows = await this.dataSource.query<AppointmentRow[]>(
+      `${SELECT_APPOINTMENTS}
+       WHERE a.barbershop_id = $1
+         AND a.status = 'attended'
+         AND a.client_id IS NOT NULL
+         AND a.ends_at > $2 AND a.ends_at <= $3
+       ORDER BY a.ends_at, a.id`,
+      [barbershopId, after, until],
+    );
+    return this.withServices(barbershopId, rows);
+  }
+
+  // RN-19: the return is counted from the client's latest attendance, so an
+  // older attended appointment never invites while a newer one is not due.
+  async listReturnRemindersDue(
+    barbershopId: string,
+    endedUntil: Date,
+  ): Promise<ScheduleEntry[]> {
+    const rows = await this.dataSource.query<AppointmentRow[]>(
+      `${SELECT_APPOINTMENTS}
+       WHERE a.id IN (
+               SELECT DISTINCT ON (l.client_id) l.id
+                 FROM appointments l
+                 JOIN clients lc ON lc.id = l.client_id
+                                AND lc.barbershop_id = l.barbershop_id
+                WHERE l.barbershop_id = $1
+                  AND l.status = 'attended'
+                  AND lc.return_reminder_enabled
+                ORDER BY l.client_id, l.starts_at DESC, l.id DESC)
+         AND a.barbershop_id = $1
+         AND a.return_reminder_sent_at IS NULL
+         AND a.ends_at <= $2
+       ORDER BY a.ends_at, a.id`,
+      [barbershopId, endedUntil],
+    );
+    return this.withServices(barbershopId, rows);
+  }
+
   private async withServices(
     barbershopId: string,
     rows: AppointmentRow[],

@@ -94,6 +94,14 @@ class BarrierAppointmentRepository implements AppointmentRepository {
   ): Promise<boolean> {
     return this.inner.confirmByClient(barbershopId, appointmentId, now);
   }
+
+  claimReturnReminder(
+    barbershopId: string,
+    appointmentId: string,
+    now: Date,
+  ): Promise<boolean> {
+    return this.inner.claimReturnReminder(barbershopId, appointmentId, now);
+  }
 }
 
 describe('Scheduling (e2e)', () => {

@@ -113,4 +113,12 @@ export class InMemoryScheduleQuery implements ScheduleQuery {
   listPendingReminders(): never {
     throw new Error('not used by the schedule tests');
   }
+
+  listAttendedEndedIn(): never {
+    throw new Error('not used by the schedule tests');
+  }
+
+  listReturnRemindersDue(): never {
+    throw new Error('not used by the schedule tests');
+  }
 }

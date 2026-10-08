@@ -2,6 +2,21 @@ import type { Client } from '../../domain/entities/client';
 
 export const CLIENT_REPOSITORY = Symbol('ClientRepository');
 
+/** US-25: where a client changed the return reminder (CA-25.5). */
+export const CONSENT_CHANNELS = ['whatsapp'] as const;
+
+export type ConsentChannel = (typeof CONSENT_CHANNELS)[number];
+
+/** US-25: a change of the return reminder opt-in, kept as consent proof. */
+export interface ReturnReminderChange {
+  id: string;
+  barbershopId: string;
+  clientId: string;
+  enabled: boolean;
+  channel: ConsentChannel;
+  recordedAt: Date;
+}
+
 export interface ClientSearch {
   /** Case-insensitive part of the name, taken literally; `null` skips it. */
   name: string | null;
@@ -34,4 +49,21 @@ export interface ClientRepository {
   claimPrivacyNotice(client: Client, sentAt: Date): Promise<boolean>;
   /** Undoes the claim made at `sentAt`, so the next message tries again. */
   releasePrivacyNotice(client: Client, sentAt: Date): Promise<void>;
+  /**
+   * US-25: stores `change.enabled` as the return reminder of the client and
+   * records the change, atomically, only when the stored value differs; true
+   * when this call changed it, so of two equal concurrent changes only one is
+   * recorded (CA-25.5, RN-21).
+   */
+  changeReturnReminder(change: ReturnReminderChange): Promise<boolean>;
+  /**
+   * US-25: records `at` as when the client was asked about the return
+   * reminder, only while it is off, they were never asked and no change was
+   * ever recorded; true when this call recorded it (CA-25.1).
+   */
+  claimReturnReminderQuestion(
+    barbershopId: string,
+    clientId: string,
+    at: Date,
+  ): Promise<boolean>;
 }

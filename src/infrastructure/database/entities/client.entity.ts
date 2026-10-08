@@ -42,4 +42,13 @@ export class ClientEntity {
     nullable: true,
   })
   privacyNoticeSentAt!: Date | null;
+
+  // US-25: when the bot asked about the return reminder, at most once per
+  // client (CA-25.1); null until then.
+  @Column({
+    name: 'return_reminder_asked_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  returnReminderAskedAt!: Date | null;
 }

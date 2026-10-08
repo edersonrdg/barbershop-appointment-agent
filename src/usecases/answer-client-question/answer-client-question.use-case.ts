@@ -1,6 +1,11 @@
+import { Client } from '../../domain/entities/client';
 import { MessageInterpreterUnavailableError } from '../../domain/errors/message-interpreter-unavailable.error';
 import type { HandoffReason } from '../../domain/value-objects/handoff-reason';
-import { BookViaWhatsAppUseCase } from '../book-via-whatsapp/book-via-whatsapp.use-case';
+import {
+  BookingPreparation,
+  BookViaWhatsAppUseCase,
+} from '../book-via-whatsapp/book-via-whatsapp.use-case';
+import { ChangeReturnReminderViaWhatsAppUseCase } from '../change-return-reminder-via-whatsapp/change-return-reminder-via-whatsapp.use-case';
 import { ConfirmPresenceViaWhatsAppUseCase } from '../confirm-presence-via-whatsapp/confirm-presence-via-whatsapp.use-case';
 import { GetSuspensionReasonUseCase } from '../get-suspension-reason/get-suspension-reason.use-case';
 import { BarbershopRepository } from '../ports/barbershop.repository.port';
@@ -66,6 +71,8 @@ const TRAILING_HIGH_SURROGATE_PATTERN = /[\uD800-\uDBFF]$/;
 const NO_REPLY: ClientReplyResult = { outcome: 'none' };
 // RF-12: the bot hands over on the second consecutive misunderstanding.
 const FAILURES_BEFORE_HANDOFF = 2;
+// US-25: a "sim" answers the return reminder question for this long.
+const RETURN_REMINDER_QUESTION_MS = 24 * 60 * 60 * 1000;
 
 // US-15: answers questions about services, prices, address and opening hours
 // with the barbershop's data only (RF-05, RF-08, RF-09). US-16: hands the
@@ -75,7 +82,8 @@ const FAILURES_BEFORE_HANDOFF = 2;
 // does a request to cancel or reschedule. US-19: a confirmation of presence
 // comes after those, before the questions. US-23: so does accepting the
 // suggested add-on, and so do joining the waitlist and declining its offer
-// (US-24). US-21: a suspended barbershop gets
+// (US-24). US-25: turning the return reminder on or off comes right after the
+// request for a person, before everything else. US-21: a suspended barbershop gets
 // a fixed reply, without the model, once a paused conversation stayed silent.
 export class AnswerClientQuestionUseCase {
   constructor(
@@ -93,6 +101,7 @@ export class AnswerClientQuestionUseCase {
     private readonly booking: BookViaWhatsAppUseCase,
     private readonly presence: ConfirmPresenceViaWhatsAppUseCase,
     private readonly suspension: GetSuspensionReasonUseCase,
+    private readonly returnReminder: ChangeReturnReminderViaWhatsAppUseCase,
   ) {}
 
   async execute(input: AnswerClientQuestionInput): Promise<ClientReplyResult> {
@@ -148,11 +157,23 @@ export class AnswerClientQuestionUseCase {
         serviceNames: services.map((service) => service.name),
         text: truncate(text),
         ...preparation.interpreterInput,
+        returnReminderQuestion: returnReminderQuestion(
+          client,
+          preparation,
+          now,
+        ),
       });
       if (interpretation.humanRequested) {
         return this.handOff(input, client.id, 'requested', now);
       }
-      if (
+      if (interpretation.returnReminder !== null) {
+        reply = await this.returnReminder.execute({
+          barbershop,
+          client,
+          choice: interpretation.returnReminder,
+          now,
+        });
+      } else if (
         !interpretation.offTopic &&
         (interpretation.bookingRequested ||
           interpretation.cancelRequested ||
@@ -290,6 +311,27 @@ export class AnswerClientQuestionUseCase {
     this.metrics.reply('handoff');
     return { outcome: 'sent', kind: 'handoff', handoff: reason };
   }
+}
+
+// AC 7: the question is answered only while nothing else in the conversation
+// waits for a yes or no, so a "sim" to an offer still chooses the slot.
+function returnReminderQuestion(
+  client: Client,
+  { draft, candidates }: BookingPreparation,
+  now: Date,
+): boolean {
+  const askedAt = client.returnReminderAskedAt;
+  if (client.returnReminderEnabled || askedAt === null) return false;
+  if (now.getTime() - askedAt.getTime() > RETURN_REMINDER_QUESTION_MS) {
+    return false;
+  }
+  return (
+    !draft ||
+    (draft.offer.length === 0 &&
+      candidates.length === 0 &&
+      !draft.addOnSuggestion?.pending &&
+      draft.waitlistProposal === null)
+  );
 }
 
 function truncate(text: string): string {

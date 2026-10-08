@@ -680,4 +680,117 @@ describe('TypeOrmScheduleQuery (e2e)', () => {
       });
     });
   });
+
+  describe('US-25 return reminder reads', () => {
+    // Each appointment gets its own barber, so none of them overlap (RN-07).
+    async function stored(row: {
+      barbershopId?: string;
+      clientId: string | null;
+      endsAt: string;
+      status?: 'attended' | 'confirmed' | 'no_show' | 'cancelled';
+      reminded?: boolean;
+    }): Promise<string> {
+      const barbershopId = row.barbershopId ?? barbershopA;
+      const suffix = randomUUID().slice(0, 8);
+      const barberId = await insertBarber(barbershopId, `Barbeiro ${suffix}`);
+      const serviceId = await insertService(barbershopId, `Corte ${suffix}`);
+      const endsAt = new Date(row.endsAt);
+      const id = await insertAppointment({
+        barbershopId,
+        barberId,
+        clientId: row.clientId,
+        startsAt: new Date(endsAt.getTime() - 30 * 60 * 1000).toISOString(),
+        endsAt: row.endsAt,
+        serviceIds: [serviceId],
+      });
+      await dataSource.query(
+        `UPDATE appointments SET status = $2,
+                return_reminder_sent_at = CASE WHEN $3 THEN now() END
+          WHERE id = $1`,
+        [id, row.status ?? 'attended', row.reminded ?? false],
+      );
+      return id;
+    }
+
+    async function optedIn(
+      barbershopId: string,
+      name: string,
+      phone: string,
+    ): Promise<string> {
+      const id = await insertClient(barbershopId, name, phone);
+      await dataSource.query(
+        'UPDATE clients SET return_reminder_enabled = true WHERE id = $1',
+        [id],
+      );
+      return id;
+    }
+
+    it('US-25 (C23) (a): lists the attended appointments with a client that ended in (after, until]', async () => {
+      const ana = await insertClient(barbershopA, 'Ana', '+5511911110001');
+      const other = await insertClient(barbershopB, 'Edu', '+5511911110005');
+      const inside = await stored({
+        clientId: ana,
+        endsAt: '2026-09-29T14:00:00Z',
+      });
+      const atUntil = await stored({
+        clientId: ana,
+        endsAt: '2026-09-29T15:00:00Z',
+      });
+      await stored({ clientId: ana, endsAt: '2026-09-29T13:00:00Z' });
+      for (const status of ['confirmed', 'no_show', 'cancelled'] as const) {
+        await stored({ clientId: ana, endsAt: '2026-09-29T14:00:00Z', status });
+      }
+      await stored({ clientId: null, endsAt: '2026-09-29T14:00:00Z' });
+      await stored({
+        barbershopId: barbershopB,
+        clientId: other,
+        endsAt: '2026-09-29T14:00:00Z',
+      });
+
+      const entries = await query.listAttendedEndedIn(
+        barbershopA,
+        new Date('2026-09-29T13:00:00Z'),
+        new Date('2026-09-29T15:00:00Z'),
+      );
+
+      expect(entries.map((entry) => entry.id)).toEqual([inside, atUntil]);
+      expect(entries[0].client).toEqual({
+        id: ana,
+        name: 'Ana',
+        phone: '+5511911110001',
+      });
+    });
+
+    it('US-25 (C23) (b): lists the latest attendance of each opted-in client that is due and not invited', async () => {
+      const ana = await optedIn(barbershopA, 'Ana', '+5511911110001');
+      const bruno = await insertClient(barbershopA, 'Bruno', '+5511911110002');
+      const caio = await optedIn(barbershopA, 'Caio', '+5511911110003');
+      const dani = await optedIn(barbershopA, 'Dani', '+5511911110004');
+      const edu = await optedIn(barbershopB, 'Edu', '+5511911110005');
+      const due = await stored({
+        clientId: ana,
+        endsAt: '2026-08-30T15:00:00Z',
+      });
+      await stored({ clientId: bruno, endsAt: '2026-08-30T15:00:00Z' });
+      await stored({ clientId: caio, endsAt: '2026-08-30T15:00:00Z' });
+      await stored({ clientId: caio, endsAt: '2026-09-29T16:00:00Z' });
+      await stored({
+        clientId: dani,
+        endsAt: '2026-08-30T15:00:00Z',
+        reminded: true,
+      });
+      await stored({
+        barbershopId: barbershopB,
+        clientId: edu,
+        endsAt: '2026-08-30T15:00:00Z',
+      });
+
+      const entries = await query.listReturnRemindersDue(
+        barbershopA,
+        new Date('2026-09-29T15:00:00Z'),
+      );
+
+      expect(entries.map((entry) => entry.id)).toEqual([due]);
+    });
+  });
 });

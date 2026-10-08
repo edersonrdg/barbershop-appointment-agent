@@ -80,4 +80,24 @@ export interface ScheduleQuery {
     after: Date,
     until: Date,
   ): Promise<PendingReminder[]>;
+
+  /**
+   * US-25: the attended appointments of the barbershop that have a client and
+   * end after `after` and up to `until`, ordered by end and id.
+   */
+  listAttendedEndedIn(
+    barbershopId: string,
+    after: Date,
+    until: Date,
+  ): Promise<ScheduleEntry[]>;
+
+  /**
+   * US-25: for each client of the barbershop with the return reminder on, the
+   * attended appointment with the latest start, when it ends up to
+   * `endedUntil` and its return reminder was never sent; ordered by end and id.
+   */
+  listReturnRemindersDue(
+    barbershopId: string,
+    endedUntil: Date,
+  ): Promise<ScheduleEntry[]>;
 }

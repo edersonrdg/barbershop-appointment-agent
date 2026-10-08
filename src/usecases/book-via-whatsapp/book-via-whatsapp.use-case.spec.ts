@@ -40,6 +40,7 @@ function interpretation(
     addOnAccepted: false,
     waitlistAccepted: false,
     offerDeclined: false,
+    returnReminder: null,
     ...partial,
   };
 }
