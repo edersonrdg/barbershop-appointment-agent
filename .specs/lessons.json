@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 28,
+  "next_id": 29,
   "lessons": [
     {
       "id": "L-001",
@@ -498,6 +498,24 @@
       ],
       "created": "2026-10-07T14:53:04Z",
       "last_seen": "2026-10-07T14:53:04Z"
+    },
+    {
+      "id": "L-028",
+      "key": "spec_precision_gap::when a check names a literal fixture fact an offset an actor the same history use that exact value in the test fixture or state the claim as the property the test covers",
+      "text": "When a check names a literal fixture fact (an offset, an actor, the same history), use that exact value in the test fixture or state the claim as the property the test covers.",
+      "signal": "spec_precision_gap",
+      "scope": "spec",
+      "status": "candidate",
+      "features": [
+        "us-25-lembrete-de-retorno"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "verification.md C30, C31, C23 (b), C2 (f) (spec)"
+      ],
+      "created": "2026-10-08T13:41:35Z",
+      "last_seen": "2026-10-08T13:41:35Z"
     }
   ]
 }
