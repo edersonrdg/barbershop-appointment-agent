@@ -23,6 +23,7 @@ function describeClient(client: Client) {
     phone: client.phone,
     createdAt: client.createdAt,
     returnReminderEnabled: client.returnReminderEnabled,
+    returnReminderAskedAt: client.returnReminderAskedAt,
   };
 }
 
@@ -35,6 +36,7 @@ describe('Client', () => {
       phone: '+5511987654321',
       createdAt: NOW,
       returnReminderEnabled: false,
+      returnReminderAskedAt: null,
     });
   });
 
@@ -65,6 +67,7 @@ describe('Client', () => {
       phone: '+5511987654321',
       createdAt: NOW,
       returnReminderEnabled: true,
+      returnReminderAskedAt: NOW,
     });
 
     expect(describeClient(client)).toEqual({
@@ -74,6 +77,7 @@ describe('Client', () => {
       phone: '+5511987654321',
       createdAt: NOW,
       returnReminderEnabled: true,
+      returnReminderAskedAt: NOW,
     });
   });
 });

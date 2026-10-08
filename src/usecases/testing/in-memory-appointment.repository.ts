@@ -25,12 +25,15 @@ export interface AppointmentMarks {
   reminder24hSentAt: Date | null;
   reminder1hSentAt: Date | null;
   clientConfirmedAt: Date | null;
+  /** US-25: when the return reminder of the attended appointment went out. */
+  returnReminderSentAt: Date | null;
 }
 
 const NO_MARKS: AppointmentMarks = {
   reminder24hSentAt: null,
   reminder1hSentAt: null,
   clientConfirmedAt: null,
+  returnReminderSentAt: null,
 };
 
 const REMINDER_MARKS: Record<ReminderKind, keyof AppointmentMarks> = {
@@ -194,6 +197,23 @@ export class InMemoryAppointmentRepository implements AppointmentRepository {
     );
   }
 
+  claimReturnReminder(
+    barbershopId: string,
+    appointmentId: string,
+    now: Date,
+  ): Promise<boolean> {
+    return Promise.resolve(
+      this.markIf(
+        barbershopId,
+        appointmentId,
+        'returnReminderSentAt',
+        now,
+        () => true,
+        'attended',
+      ),
+    );
+  }
+
   // Same guards as the conditional UPDATE of the database (door 1).
   private markIf(
     barbershopId: string,
@@ -201,6 +221,7 @@ export class InMemoryAppointmentRepository implements AppointmentRepository {
     mark: keyof AppointmentMarks,
     now: Date,
     condition: (marks: AppointmentMarks) => boolean,
+    status: AppointmentStatus = 'confirmed',
   ): boolean {
     const stored = this.appointments.find(
       (appointment) =>
@@ -209,7 +230,7 @@ export class InMemoryAppointmentRepository implements AppointmentRepository {
     );
     const marks = this.marksOf(barbershopId, appointmentId);
     if (
-      stored?.status !== 'confirmed' ||
+      stored?.status !== status ||
       marks[mark] !== null ||
       !condition(marks)
     ) {

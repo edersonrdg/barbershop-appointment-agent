@@ -92,6 +92,12 @@ import { RecordConversationActivityUseCase } from '../../usecases/record-convers
 import { ResumeConversationUseCase } from '../../usecases/resume-conversation/resume-conversation.use-case';
 import { SendAppointmentRemindersUseCase } from '../../usecases/send-appointment-reminders/send-appointment-reminders.use-case';
 import { ProcessWaitlistUseCase } from '../../usecases/process-waitlist/process-waitlist.use-case';
+import { ChangeReturnReminderViaWhatsAppUseCase } from '../../usecases/change-return-reminder-via-whatsapp/change-return-reminder-via-whatsapp.use-case';
+import {
+  RETURN_REMINDER_METRICS,
+  ReturnReminderMetrics,
+} from '../../usecases/ports/return-reminder-metrics.port';
+import { SendReturnRemindersUseCase } from '../../usecases/send-return-reminders/send-return-reminders.use-case';
 import {
   WAITLIST_METRICS,
   WaitlistMetrics,
@@ -111,9 +117,11 @@ import { EvolutionWebhookGuard } from '../external/whatsapp/evolution/evolution-
 import { EvolutionWhatsAppConnector } from '../external/whatsapp/evolution/evolution-whatsapp-connector';
 import { AppointmentRemindersJob } from '../jobs/appointment-reminders.job';
 import { WaitlistJob } from '../jobs/waitlist.job';
+import { ReturnReminderJob } from '../jobs/return-reminder.job';
 import { METRICS_REGISTRY } from '../observability/metrics.registry';
 import { ObservabilityModule } from '../observability/observability.module';
 import { PrometheusWaitlistMetrics } from '../observability/prometheus-waitlist-metrics';
+import { PrometheusReturnReminderMetrics } from '../observability/prometheus-return-reminder-metrics';
 import { PrometheusWhatsAppMetrics } from '../observability/prometheus-whatsapp-metrics';
 import { SystemClock } from '../security/system-clock';
 import { UuidIdGenerator } from '../security/uuid-id-generator';
@@ -369,6 +377,7 @@ import { ServicesModule } from './services.module';
         BookViaWhatsAppUseCase,
         ConfirmPresenceViaWhatsAppUseCase,
         GetSuspensionReasonUseCase,
+        ChangeReturnReminderViaWhatsAppUseCase,
       ],
       useFactory: (
         connections: WhatsAppConnectionRepository,
@@ -385,6 +394,7 @@ import { ServicesModule } from './services.module';
         booking: BookViaWhatsAppUseCase,
         presence: ConfirmPresenceViaWhatsAppUseCase,
         suspension: GetSuspensionReasonUseCase,
+        returnReminder: ChangeReturnReminderViaWhatsAppUseCase,
       ) =>
         new AnswerClientQuestionUseCase(
           connections,
@@ -401,8 +411,85 @@ import { ServicesModule } from './services.module';
           booking,
           presence,
           suspension,
+          returnReminder,
         ),
     },
+    {
+      provide: RETURN_REMINDER_METRICS,
+      inject: [METRICS_REGISTRY],
+      useFactory: (registry: Registry) =>
+        new PrometheusReturnReminderMetrics(registry),
+    },
+    {
+      provide: ChangeReturnReminderViaWhatsAppUseCase,
+      inject: [
+        CLIENT_REPOSITORY,
+        BOOKING_RULES_REPOSITORY,
+        RETURN_REMINDER_METRICS,
+        ID_GENERATOR,
+      ],
+      useFactory: (
+        clients: ClientRepository,
+        bookingRules: BookingRulesRepository,
+        metrics: ReturnReminderMetrics,
+        ids: IdGenerator,
+      ) =>
+        new ChangeReturnReminderViaWhatsAppUseCase(
+          clients,
+          bookingRules,
+          metrics,
+          ids,
+        ),
+    },
+    {
+      provide: SendReturnRemindersUseCase,
+      inject: [
+        BARBERSHOP_REPOSITORY,
+        WHATSAPP_CONNECTION_REPOSITORY,
+        GetSuspensionReasonUseCase,
+        SCHEDULE_QUERY,
+        CLIENT_REPOSITORY,
+        APPOINTMENT_REPOSITORY,
+        BOOKING_RULES_REPOSITORY,
+        NO_SHOW_LEDGER,
+        CONVERSATION_REPOSITORY,
+        WHATSAPP_CONNECTOR,
+        RETURN_REMINDER_METRICS,
+        CLOCK,
+        ConfigService,
+      ],
+      useFactory: (
+        barbershops: BarbershopRepository,
+        connections: WhatsAppConnectionRepository,
+        suspension: GetSuspensionReasonUseCase,
+        schedule: ScheduleQuery,
+        clients: ClientRepository,
+        appointments: AppointmentRepository,
+        bookingRules: BookingRulesRepository,
+        ledger: NoShowLedger,
+        conversations: ConversationRepository,
+        connector: WhatsAppConnector,
+        metrics: ReturnReminderMetrics,
+        clock: Clock,
+        config: ConfigService<Env, true>,
+      ) =>
+        new SendReturnRemindersUseCase(
+          barbershops,
+          connections,
+          suspension,
+          schedule,
+          clients,
+          appointments,
+          bookingRules,
+          ledger,
+          conversations,
+          connector,
+          metrics,
+          clock,
+          config.get('WHATSAPP_HANDOFF_RESUME_HOURS', { infer: true }),
+        ),
+    },
+    ReturnReminderJob,
     {
       provide: ConfirmPresenceViaWhatsAppUseCase,
       inject: [SCHEDULE_QUERY, APPOINTMENT_REPOSITORY],

@@ -146,5 +146,13 @@
 - **Date**: 2026-10-07
 - **Status**: active
 
+### AD-019
+- **Decision**: O opt-in do lembrete de retorno (US-25) é `clients.return_reminder_enabled` (AD-010), e toda mudança dele grava, na mesma transação e só quando o valor muda, uma linha em `return_reminder_consents` (`enabled`, `channel` com `CHECK (channel IN ('whatsapp'))`, `recorded_at`), que nunca é alterada. A pergunta é reivindicada uma vez por cliente em `clients.return_reminder_asked_at` (só com o lembrete desativado e sem registro), e o convite uma vez por atendimento em `appointments.return_reminder_sent_at`; os dois envios saem do `ReturnReminderJob` (`@Cron('* * * * *')` em toda instância, AD-015, barbearia por barbearia, AD-009), que pula conversas pausadas e barbearias desconectadas ou suspensas sem reivindicar.
+- **Reason**: US-25 (CA-25.1 a CA-25.5, RF-19, RF-20, RN-19, RN-21). O consentimento é a base legal desse contato (PRD seção 15) e precisa de prova que uma coluna sobrescrita não guarda.
+- **Trade-off**: Um novo canal de opt-in (painel, por exemplo) exige migration para ampliar o `CHECK`. A retenção dos registros segue em aberto (PRD seção 19).
+- **Scope**: Clientes, lembrete de retorno e jobs, US-25 em diante.
+- **Date**: 2026-10-08
+- **Status**: active
+
 ## Handoff
 

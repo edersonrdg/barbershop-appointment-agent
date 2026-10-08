@@ -53,6 +53,7 @@ function interpretation(
     addOnAccepted: false,
     waitlistAccepted: false,
     offerDeclined: false,
+    returnReminder: null,
     ...partial,
   };
 }
@@ -238,6 +239,7 @@ describe('WhatsApp questions (e2e)', () => {
           suggestedAddOn: null,
           waitlistProposal: null,
           waitlistOffer: false,
+          returnReminderQuestion: false,
         },
       ]);
     });

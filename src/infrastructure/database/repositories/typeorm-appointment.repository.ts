@@ -113,6 +113,20 @@ export class TypeOrmAppointmentRepository implements AppointmentRepository {
     return affected === 1;
   }
 
+  async claimReturnReminder(
+    barbershopId: string,
+    appointmentId: string,
+    now: Date,
+  ): Promise<boolean> {
+    const [, affected] = await this.dataSource.query<[unknown, number]>(
+      `UPDATE appointments SET return_reminder_sent_at = $3
+       WHERE barbershop_id = $1 AND id = $2
+         AND return_reminder_sent_at IS NULL AND status = 'attended'`,
+      [barbershopId, appointmentId, now],
+    );
+    return affected === 1;
+  }
+
   async confirmByClient(
     barbershopId: string,
     appointmentId: string,

@@ -174,6 +174,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: test/whatsapp-waitlist.e2e-spec.ts:367 (C26 round 1) (metrics)
 - last seen: 2026-10-07T14:53:04Z
 
+### L-028 - When a check names a literal fixture fact (an offset, an actor, the same history), use that exact value in the test fixture or state the claim as the property the test covers.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec` · harmful: 0
+- features: us-25-lembrete-de-retorno
+- evidence: verification.md C30, C31, C23 (b), C2 (f) (spec)
+- last seen: 2026-10-08T13:41:35Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

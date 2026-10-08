@@ -24,7 +24,8 @@ import { ClientEntity } from './client.entity';
 // Attended and no-show appointments keep holding the slot (RN-03, ATD-04); the
 // explicit status list leaves cancelled (US-18) out, which frees the slot.
 // US-19: the reminders and the client's confirmation are instants on the
-// appointment, null until they happen (door 1).
+// appointment, null until they happen (door 1). US-25: so is the return
+// reminder of an attended appointment, sent at most once (door 1).
 // The partial no-show index serves the derived no-show count (RN-11, RN-13).
 @Entity({ name: 'appointments' })
 @Index('appointments_barbershop_starts_idx', ['barbershopId', 'startsAt'])
@@ -93,4 +94,11 @@ export class AppointmentEntity {
 
   @Column({ name: 'client_confirmed_at', type: 'timestamptz', nullable: true })
   clientConfirmedAt!: Date | null;
+
+  @Column({
+    name: 'return_reminder_sent_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  returnReminderSentAt!: Date | null;
 }

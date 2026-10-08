@@ -1,8 +1,9 @@
-import { Client } from '../../domain/entities/client';
+import { Client, ClientProps } from '../../domain/entities/client';
 import { ClientPhoneTakenError } from '../../domain/errors/client-phone-taken.error';
 import {
   ClientRepository,
   ClientSearch,
+  ReturnReminderChange,
 } from '../ports/client.repository.port';
 
 // Refuses a second client with the same phone in the barbershop, like the
@@ -12,6 +13,8 @@ export class InMemoryClientRepository implements ClientRepository {
   private readonly barberLinks = new Set<string>();
   private readonly privacyNotices = new Map<string, Date>();
   readonly searches: ClientSearch[] = [];
+  /** US-25: the recorded opt-in changes, in the order they were stored. */
+  readonly returnReminderChanges: ReturnReminderChange[] = [];
 
   /** Seeds an appointment of `barberId` with the client, for `search`. */
   linkToBarber(barbershopId: string, clientId: string, barberId: string): void {
@@ -103,6 +106,77 @@ export class InMemoryClientRepository implements ClientRepository {
     return Promise.resolve(true);
   }
 
+  /** US-25: overwrites the stored return reminder state, without a record. */
+  setReturnReminder(
+    barbershopId: string,
+    clientId: string,
+    state: { enabled?: boolean; askedAt?: Date | null },
+  ): void {
+    this.replace(barbershopId, clientId, (client) => ({
+      returnReminderEnabled: state.enabled ?? client.returnReminderEnabled,
+      returnReminderAskedAt:
+        state.askedAt === undefined
+          ? client.returnReminderAskedAt
+          : state.askedAt,
+    }));
+  }
+
+  // Same guards as the conditional UPDATE of the database (door 1).
+  changeReturnReminder(change: ReturnReminderChange): Promise<boolean> {
+    const stored = this.clients.find(
+      (client) =>
+        client.barbershopId === change.barbershopId &&
+        client.id === change.clientId,
+    );
+    if (!stored || stored.returnReminderEnabled === change.enabled) {
+      return Promise.resolve(false);
+    }
+    this.replace(change.barbershopId, change.clientId, () => ({
+      returnReminderEnabled: change.enabled,
+    }));
+    this.returnReminderChanges.push({ ...change });
+    return Promise.resolve(true);
+  }
+
+  claimReturnReminderQuestion(
+    barbershopId: string,
+    clientId: string,
+    at: Date,
+  ): Promise<boolean> {
+    const stored = this.clients.find(
+      (client) =>
+        client.barbershopId === barbershopId && client.id === clientId,
+    );
+    const recorded = this.returnReminderChanges.some(
+      (change) =>
+        change.barbershopId === barbershopId && change.clientId === clientId,
+    );
+    if (
+      !stored ||
+      stored.returnReminderEnabled ||
+      stored.returnReminderAskedAt !== null ||
+      recorded
+    ) {
+      return Promise.resolve(false);
+    }
+    this.replace(barbershopId, clientId, () => ({
+      returnReminderAskedAt: at,
+    }));
+    return Promise.resolve(true);
+  }
+
+  private replace(
+    barbershopId: string,
+    clientId: string,
+    change: (client: Client) => Partial<ClientProps>,
+  ): void {
+    this.clients = this.clients.map((client) =>
+      client.barbershopId === barbershopId && client.id === clientId
+        ? Client.restore({ ...propsOf(client), ...change(client) })
+        : client,
+    );
+  }
+
   releasePrivacyNotice(client: Client, sentAt: Date): Promise<void> {
     const key = noticeKey(client);
     if (this.privacyNotices.get(key)?.getTime() === sentAt.getTime()) {
@@ -114,4 +188,16 @@ export class InMemoryClientRepository implements ClientRepository {
 
 function noticeKey(client: Client): string {
   return `${client.barbershopId}:${client.id}`;
+}
+
+function propsOf(client: Client): ClientProps {
+  return {
+    id: client.id,
+    barbershopId: client.barbershopId,
+    name: client.name,
+    phone: client.phone,
+    createdAt: client.createdAt,
+    returnReminderEnabled: client.returnReminderEnabled,
+    returnReminderAskedAt: client.returnReminderAskedAt,
+  };
 }

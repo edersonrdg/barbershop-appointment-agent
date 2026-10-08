@@ -220,6 +220,12 @@ describe('API docs (e2e)', () => {
     expect(hook.description).toContain('US-24');
   });
 
+  it('US-25 AC 25 (C27): describes the return reminder on the webhook', () => {
+    const hook = document.paths['/webhooks/whatsapp/evolution'].post!;
+
+    expect(hook.description).toContain('US-25');
+  });
+
   it('US-17 (C36): describes the booking on the webhook and the blocked_client reason', () => {
     const hook = document.paths['/webhooks/whatsapp/evolution'].post!;
     expect(hook.description).toContain('US-17');

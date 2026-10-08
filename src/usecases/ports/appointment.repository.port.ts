@@ -64,4 +64,14 @@ export interface AppointmentRepository {
     appointmentId: string,
     now: Date,
   ): Promise<boolean>;
+  /**
+   * Records that the return reminder of the attended appointment went out at
+   * `now`, only while it was never recorded; true when this call recorded it,
+   * so of two concurrent runs only one sends (US-25, RN-19).
+   */
+  claimReturnReminder(
+    barbershopId: string,
+    appointmentId: string,
+    now: Date,
+  ): Promise<boolean>;
 }
