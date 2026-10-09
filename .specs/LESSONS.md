@@ -180,6 +180,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: verification.md C30, C31, C23 (b), C2 (f) (spec)
 - last seen: 2026-10-08T13:41:35Z
 
+### L-029 - When a check claims per-entity isolation of a filtered input, place the other entity's data where it would change the filtered result if the filter were missing.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `test-fixtures` · harmful: 0
+- features: us-26-relatorios-basicos
+- evidence: C7 - test/reports.e2e-spec.ts:419 (test-fixtures)
+- last seen: 2026-10-09T20:52:04Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
