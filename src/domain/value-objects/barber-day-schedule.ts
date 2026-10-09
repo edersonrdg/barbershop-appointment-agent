@@ -9,6 +9,12 @@ export interface AvailableSlot {
   endsAt: Date;
 }
 
+/** US-26: minutes of the day the barber is available, and how many are booked. */
+export interface DayOccupancy {
+  availableMinutes: number;
+  bookedMinutes: number;
+}
+
 export type ScheduleViolation =
   'outside-opening-hours' | 'outside-working-hours' | 'blocked' | 'overlap';
 
@@ -73,17 +79,46 @@ export class BarberDaySchedule {
     return null;
   }
 
-  private freePeriods(): UtcPeriod[] {
-    const { openPeriods, workPeriods, blocks, appointments } = this.props;
-    const available = openPeriods.flatMap((open) =>
+  // US-26 (CA-26.1): only the booked part inside the available time counts,
+  // so an appointment left outside after the hours changed never pushes the
+  // occupancy past 100%.
+  occupancy(): DayOccupancy {
+    const available = this.availablePeriods();
+    const booked = available.flatMap((period) =>
+      this.props.appointments.flatMap((busy) => intersection(period, busy)),
+    );
+    return {
+      availableMinutes: minutesOf(available),
+      bookedMinutes: minutesOf(booked),
+    };
+  }
+
+  private availablePeriods(): UtcPeriod[] {
+    const { openPeriods, workPeriods, blocks } = this.props;
+    const working = openPeriods.flatMap((open) =>
       workPeriods.flatMap((work) => intersection(open, work)),
     );
-    const free = [...blocks, ...appointments].reduce(
+    return blocks.reduce(
+      (periods, block) => periods.flatMap((period) => subtract(period, block)),
+      working,
+    );
+  }
+
+  private freePeriods(): UtcPeriod[] {
+    const free = this.props.appointments.reduce(
       (periods, busy) => periods.flatMap((period) => subtract(period, busy)),
-      available,
+      this.availablePeriods(),
     );
     return free.sort((a, b) => a.start.getTime() - b.start.getTime());
   }
+}
+
+function minutesOf(periods: readonly UtcPeriod[]): number {
+  const ms = periods.reduce(
+    (total, period) => total + period.end.getTime() - period.start.getTime(),
+    0,
+  );
+  return ms / MS_PER_MINUTE;
 }
 
 function contains(outer: UtcPeriod, inner: UtcPeriod): boolean {

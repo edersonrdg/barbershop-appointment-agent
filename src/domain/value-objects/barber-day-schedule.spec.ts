@@ -223,4 +223,40 @@ describe('BarberDaySchedule', () => {
       );
     });
   });
+
+  describe('occupancy', () => {
+    it('CA-26.1 (C5): available time is work within opening hours minus blocks', () => {
+      const occupancy = schedule({
+        open: [period('09:00', '18:00')],
+        work: [period('08:00', '12:00')],
+        blocks: [period('09:00', '10:00')],
+      }).occupancy();
+
+      expect(occupancy).toEqual({ availableMinutes: 120, bookedMinutes: 0 });
+    });
+
+    it('CA-26.1 (C5): booked minutes count only the part inside the available time', () => {
+      const occupancy = schedule({
+        open: [period('09:00', '18:00')],
+        work: [period('09:00', '12:00')],
+        blocks: [period('09:00', '10:00')],
+        appointments: [
+          period('10:00', '10:30'),
+          period('11:30', '12:30'),
+          period('09:00', '09:30'),
+        ],
+      }).occupancy();
+
+      expect(occupancy).toEqual({ availableMinutes: 120, bookedMinutes: 60 });
+    });
+
+    it('CA-26.1 (C6): a closed day has no available minutes', () => {
+      const occupancy = schedule({
+        open: [],
+        appointments: [period('10:00', '10:30')],
+      }).occupancy();
+
+      expect(occupancy).toEqual({ availableMinutes: 0, bookedMinutes: 0 });
+    });
+  });
 });

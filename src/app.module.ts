@@ -11,6 +11,7 @@ import { BarbershopSettingsModule } from './infrastructure/modules/barbershop-se
 import { BookingRulesModule } from './infrastructure/modules/booking-rules.module';
 import { ClientsModule } from './infrastructure/modules/clients.module';
 import { ManualBookingModule } from './infrastructure/modules/manual-booking.module';
+import { ReportsModule } from './infrastructure/modules/reports.module';
 import { ScheduleModule } from './infrastructure/modules/schedule.module';
 import { SchedulingModule } from './infrastructure/modules/scheduling.module';
 import { ServicesModule } from './infrastructure/modules/services.module';
@@ -45,6 +46,7 @@ import { ObservabilityModule } from './infrastructure/observability/observabilit
     ClientsModule,
     WhatsAppModule,
     SubscriptionsModule,
+    ReportsModule,
   ],
 })
 export class AppModule {}
